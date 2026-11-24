@@ -9,6 +9,13 @@ import { LogMessage } from './LogMessage';
 import { RecordAfterRequestFinished, RecordImmediately } from './LogRecorder';
 
 /**
+ * Tuple of arguments expected by `build()`, `record()`, and `recordImmediately()`. Log types with
+ * no parameters accept zero arguments; all others require their parameter object.
+ */
+type LogBuilderArguments<T extends LogType> =
+    [LogTypeParameters<T>] extends [Record<string, never>] ? [] : [params: LogTypeParameters<T>];
+
+/**
  * The `LogBuilder` class is the main mechanism through which features can write log entries. The
  * basic usage is identical for most features: obtain an instance for a particular type, adjust
  * attribution and severity in accordance to the circumstances, and record the entry.
@@ -108,22 +115,22 @@ export class LogBuilder<T extends LogType> {
      * Records the log entry to the database. The information will be committed lazily outside of
      * the regular request flow to not block the user experience.
      */
-    record(params?: LogTypeParameters<T>): void {
+    record(...args: LogBuilderArguments<T>): void {
         if (!this.#condition)
             return;
 
-        RecordAfterRequestFinished(this.build(params));
+        RecordAfterRequestFinished(this.build(...args));
     }
 
     /**
      * Records the log entry to the database. The information will be committed immediately, and the
      * caller is expected to `await` on the call completing.
      */
-    recordImmediately(params?: LogTypeParameters<T>): Promise<void> {
+    recordImmediately(...args: LogBuilderArguments<T>): Promise<void> {
         if (!this.#condition)
             return Promise.resolve();
 
-        return RecordImmediately(this.build(params));
+        return RecordImmediately(this.build(...args));
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -132,7 +139,7 @@ export class LogBuilder<T extends LogType> {
      * Builds the log entry to a `LogMessage` instance. The `params` cannot be validated because
      * there is no non-TypeScript representation of them, so we rely on the compiler.
      */
-    build(params?: LogTypeParameters<T>): LogMessage {
+    build(...args: LogBuilderArguments<T>): LogMessage {
         return new LogMessage({
             type: this.#type,
 
@@ -142,7 +149,7 @@ export class LogBuilder<T extends LogType> {
             initiatorUserId: this.#initiatorUserId,
             affectedUserId: this.#affectedUserId,
 
-            parameters: params,
+            parameters: args[0],
         });
     }
 

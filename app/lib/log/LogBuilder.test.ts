@@ -92,6 +92,18 @@ describe('LogBuilder', () => {
             firstName: 'Joe',
             age: 28
         });
+
+        // @ts-expect-error Required parameters must be provided for parameterised log types.
+        LogBuilder.for('TestWithParameters').build();
+
+        // @ts-expect-error Required parameters must be provided when recording.
+        LogBuilder.for('TestWithParameters').withCondition(false).record();
+
+        // @ts-expect-error Required parameters must be provided when recording immediately.
+        void LogBuilder.for('TestWithParameters').withCondition(false).recordImmediately();
+
+        // @ts-expect-error Parameterless log types must not accept arguments.
+        LogBuilder.for('TestWithoutParameters').build({});
     });
 
     it('should be able to log differences with a recording', () => {

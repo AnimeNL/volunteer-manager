@@ -67,6 +67,10 @@ export async function updateSubscriptions(userId: number, formData: unknown) {
             })
             .executeSelectMany();
 
+        const added: string[] = [];
+        const updated: string[] = [];
+        const removed: string[] = [];
+
         await dbInstance.transaction(async () => {
             const consultedActiveSubscriptions: Set<number> = new Set();
 
@@ -92,6 +96,8 @@ export async function updateSubscriptions(userId: number, formData: unknown) {
                         await dbInstance.deleteFrom(tSubscriptions)
                             .where(tSubscriptions.subscriptionId.equals(existing.id))
                             .executeDelete();
+
+                        removed.push(subscriptionType.label);
                     }
                 } else {
                     if (existing) {
@@ -106,6 +112,8 @@ export async function updateSubscriptions(userId: number, formData: unknown) {
                                 })
                                 .where(tSubscriptions.subscriptionId.equals(existing.id))
                                 .executeUpdate();
+
+                            updated.push(subscriptionType.label);
                         }
                     } else {
                         await dbInstance.insertInto(tSubscriptions)
@@ -119,6 +127,8 @@ export async function updateSubscriptions(userId: number, formData: unknown) {
                                 subscriptionChannelWhatsapp: whatsapp,
                             })
                             .executeInsert();
+
+                        added.push(subscriptionType.label);
                     }
                 }
             }
@@ -130,6 +140,8 @@ export async function updateSubscriptions(userId: number, formData: unknown) {
                 await dbInstance.deleteFrom(tSubscriptions)
                     .where(tSubscriptions.subscriptionId.equals(subscription.id))
                     .executeDelete();
+
+                removed.push(subscription.type);
             }
         });
 
@@ -137,7 +149,7 @@ export async function updateSubscriptions(userId: number, formData: unknown) {
             .withInitiatorUser(props.user)
             .withAffectedUser(userId)
             .withSeverity('Warning')
-            .record();
+            .record({ added, updated, removed });
 
         return { success: true };
     });
