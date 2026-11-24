@@ -6,9 +6,7 @@ import { forbidden, notFound } from 'next/navigation';
 import type { AuthenticationContext } from '@lib/auth';
 import { getTeam } from '@lib/cache';
 import { requireVolunteerAuthenticationWithEvent } from '@lib/auth';
-import db, { tEventsTeams, tUsersEvents } from '@lib/database';
-
-import { kRegistrationStatus } from '@lib/database/Types';
+import db, { tEventsTeams } from '@lib/database';
 
 /**
  * Authenticates the user for `(eventSlug, teamSlug)` and verifies that they have access to that
@@ -18,31 +16,21 @@ import { kRegistrationStatus } from '@lib/database/Types';
 export async function requireDutyBookAccess(
     context: AuthenticationContext, eventSlug: string, teamSlug: string)
 {
-    const { access, event, user } =
+    const { access, event, events, user } =
         await requireVolunteerAuthenticationWithEvent(context, eventSlug);
 
     const team = await getTeam(teamSlug);
     if (!team || !team.flags.enableDutyBook)
         notFound();
 
-    // TODO: Refactor AuthenticationContext.events to support multiple teams per event so team
-    // membership checks do not need to query `users_events` directly.
-    const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
-    const teamParticipation = await db.selectFrom(tEventsTeams)
-        .leftJoin(usersEventsJoin)
-            .on(usersEventsJoin.eventId.equals(tEventsTeams.eventId))
-                .and(usersEventsJoin.teamId.equals(tEventsTeams.teamId))
-                .and(usersEventsJoin.userId.equals(user.id))
-                .and(usersEventsJoin.registrationStatus.equals(kRegistrationStatus.Accepted))
+    const teamEnabled = await db.selectFrom(tEventsTeams)
         .where(tEventsTeams.eventId.equals(event.id))
             .and(tEventsTeams.teamId.equals(team.id))
             .and(tEventsTeams.enableTeam.equals(/* true= */ 1))
-        .select({
-            isMember: usersEventsJoin.userId.isNotNull(),
-        })
+        .selectOneColumn(tEventsTeams.teamId)
         .executeSelectNoneOrOne();
 
-    if (!teamParticipation)
+    if (!teamEnabled)
         notFound();
 
     const hasUnrestrictedAccess = access.can('event.duty-book', 'read', {
@@ -50,7 +38,8 @@ export async function requireDutyBookAccess(
         team: team.slug,
     });
 
-    if (!hasUnrestrictedAccess && !teamParticipation.isMember)
+    const isTeamMember = !!events.get(event.slug)?.has(team.slug);
+    if (!hasUnrestrictedAccess && !isTeamMember)
         forbidden();
 
     return { access, event, hasUnrestrictedAccess, team, user };
