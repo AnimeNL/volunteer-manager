@@ -399,7 +399,7 @@ function verifyAccess(
             }
 
         } else {
-            if (context.events.get(event.slug) !== team.slug)
+            if (!context.events.get(event.slug)?.has(team.slug))
                 forbidden();
         }
     }

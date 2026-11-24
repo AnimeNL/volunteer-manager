@@ -121,7 +121,7 @@ async function loadUserAuthenticationContext(userId: number): Promise<Authentica
         };
     }
 
-    const events: UserAuthenticationContext['events'] = new Map();
+    const events = new Map<string, Set<string>>();
     const user: User = {
         id: authenticationResult.userId,
         username: authenticationResult.username,
@@ -149,9 +149,13 @@ async function loadUserAuthenticationContext(userId: number): Promise<Authentica
             });
         }
 
-        // TODO: Volunteers can belong to multiple teams per event; refactor `events` so earlier
-        // team entries are not overwritten.
-        events.set(entry.event, entry.team);
+        let eventTeams = events.get(entry.event);
+        if (!eventTeams) {
+            eventTeams = new Set();
+            events.set(entry.event, eventTeams);
+        }
+
+        eventTeams.add(entry.team);
     }
 
     const accessControl = new AccessControl({

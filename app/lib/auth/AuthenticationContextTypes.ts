@@ -21,9 +21,9 @@ export interface UserAuthenticationContext {
 
     /**
      * Context regarding the user's access to events. Keyed by event slug ("2024"), and valued by
-     * the slug of the team they're part of ("crew").
+     * the set of slugs of the teams they're part of ("crew").
      */
-    events: Map<string, string>;
+    events: Map<string, ReadonlySet<string>>;
 }
 
 /**

@@ -137,6 +137,43 @@ describe('AuthenticationContext', () => {
         expect((await getAuthenticationContext()).user).toBeUndefined();
     });
 
+    it('preserves multiple teams per event in the authentication context', async () => {
+        cookieStoreData.set(kSessionCookieName, sealSession({
+            sessionId: 401, userId: 88, secret: 'multi-team-secret',
+        }));
+
+        mockConnection.expect('selectOneRow', () => ({
+            sessionId: 401,
+            userId: 88,
+            sessionTokenHash: hashSessionSecret('multi-team-secret'),
+            impersonatorUserId: null,
+            impersonatorReturnUrl: null,
+        }));
+        expectAuthenticationQuery(mockConnection, {
+            userId: 88,
+            firstName: 'Multi',
+            events: [
+                { event: '2026', team: 'stewards', grant: 'event.duty-book:read' },
+                { event: '2026', team: 'hosts' },
+                { event: '2025', team: 'stewards' },
+            ],
+        });
+        mockConnection.expect('update', () => 1);
+
+        const context = await requireAuthenticationContext();
+        expect(context.events.size).toBe(2);
+        expect([ ...context.events.get('2026')! ]).toEqual([ 'stewards', 'hosts' ]);
+        expect([ ...context.events.get('2025')! ]).toEqual([ 'stewards' ]);
+        expect(context.access.can('event.duty-book', 'read', {
+            event: '2026',
+            team: 'stewards',
+        })).toBe(true);
+        expect(context.access.can('event.duty-book', 'read', {
+            event: '2026',
+            team: 'hosts',
+        })).toBe(false);
+    });
+
     it('executes permission checks and enforces requireAuthenticationContext()', async () => {
         // Unauthenticated visitors receive 401; authenticated users without permission receive 403:
         await expectHttpStatus(

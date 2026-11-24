@@ -34,7 +34,9 @@ export default async function GuidePage(props: PageProps<'/guide'>) {
     } else {
         // TODO: This is a very fragile way of determining the most recent team
         const mostRecentEventSlug = [ ...authenticationContext.events.keys() ].sort().pop()!;
-        guideTeamSlug = authenticationContext.events.get(mostRecentEventSlug)!;
+        const [ mostRecentTeamSlug ] = authenticationContext.events.get(mostRecentEventSlug)!;
+
+        guideTeamSlug = mostRecentTeamSlug;
     }
 
     const contentOptions = {

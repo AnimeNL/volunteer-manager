@@ -18,7 +18,7 @@ interface BuildAuthenticationContextParams {
         teams?: string;
     }>;
     user?: Partial<User>;
-    events?: Map</* eventSlug= */ string, /* teamSlug= */ string>;
+    events?: Map</* eventSlug= */ string, /* teamSlugs= */ ReadonlySet<string>>;
 }
 
 /**

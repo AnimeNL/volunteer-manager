@@ -421,7 +421,7 @@ describe('requireAuthentication', () => {
     describe('requireVolunteerAuthentication', () => {
         it('allows access for regular volunteers with accepted registrations', async () => {
             const context = buildAuthenticationContext({
-                events: new Map([ [ 'event-2026', 'stewards' ] ]),
+                events: new Map([ [ 'event-2026', new Set([ 'stewards' ]) ] ]),
             });
 
             const result = await requireVolunteerAuthentication(context);
@@ -448,7 +448,7 @@ describe('requireAuthentication', () => {
                 access: {
                     grants: 'test.boolean',
                 },
-                events: new Map([ [ 'event-2026', 'stewards' ] ]),
+                events: new Map([ [ 'event-2026', new Set([ 'stewards' ]) ] ]),
             });
 
             const result = await requireVolunteerAuthentication(context, 'test.boolean');
@@ -506,7 +506,7 @@ describe('requireAuthentication', () => {
     describe('requireVolunteerAuthenticationWithEvent', () => {
         it('allows access for volunteers registered for the specific event', async () => {
             const context = buildAuthenticationContext({
-                events: new Map([ [ 'event-2026', 'stewards' ] ]),
+                events: new Map([ [ 'event-2026', new Set([ 'stewards' ]) ] ]),
             });
 
             const result = await requireVolunteerAuthenticationWithEvent(context, 'event-2026');
@@ -568,7 +568,7 @@ describe('requireAuthentication', () => {
                         { permission: 'event.schedule.access', event: 'event-2026' },
                     ],
                 },
-                events: new Map([ [ 'event-2026', 'stewards' ] ]),
+                events: new Map([ [ 'event-2026', new Set([ 'stewards' ]) ] ]),
             });
 
             const result = await requireVolunteerAuthenticationWithEvent(
@@ -587,7 +587,7 @@ describe('requireAuthentication', () => {
 
         it('throws notFound for non-existent events', async () => {
             const context = buildAuthenticationContext({
-                events: new Map([ [ 'event-2026', 'stewards' ] ]),
+                events: new Map([ [ 'event-2026', new Set([ 'stewards' ]) ] ]),
             });
 
             mockConnection.expect('selectOneRow', () => undefined);
@@ -604,7 +604,7 @@ describe('requireAuthentication', () => {
 
         it('rejects volunteers who are not registered for the specific event', async () => {
             const context = buildAuthenticationContext({
-                events: new Map([ [ 'other-event', 'stewards' ] ]),
+                events: new Map([ [ 'other-event', new Set([ 'stewards' ]) ] ]),
             });
 
             try {
@@ -620,7 +620,7 @@ describe('requireAuthentication', () => {
     describe('requireVolunteerAuthenticationWithEventAndTeam', () => {
         it('allows access for volunteers registered for the specific event and team', async () => {
             const context = buildAuthenticationContext({
-                events: new Map([ [ 'event-2026', 'stewards' ] ]),
+                events: new Map([ [ 'event-2026', new Set([ 'stewards' ]) ] ]),
             });
 
             const result = await requireVolunteerAuthenticationWithEventAndTeam(
@@ -628,6 +628,50 @@ describe('requireAuthentication', () => {
             expect(result.user).toEqual(context.user);
             expect(result.event).toEqual(kTestEvent);
             expect(result.team).toEqual(kTestTeam);
+        });
+
+        it('allows access to every team for a multi-team volunteer in the same event', async () => {
+            const kHostsTeam: CachedTeam = {
+                ...kTestTeam,
+                id: 21,
+                slug: 'hosts',
+                name: 'Hosts',
+                title: 'Hosts',
+                plural: 'Hosts',
+            };
+            const kCrewTeam: CachedTeam = {
+                ...kTestTeam,
+                id: 22,
+                slug: 'crew',
+                name: 'Crew',
+                title: 'Crew',
+                plural: 'Crew',
+            };
+
+            const teamCache = Cache.getInstance('TeamCache');
+            teamCache.set(kHostsTeam.slug, kHostsTeam);
+            teamCache.set(kCrewTeam.slug, kCrewTeam);
+
+            const context = buildAuthenticationContext({
+                events: new Map([ [ 'event-2026', new Set([ 'stewards', 'hosts' ]) ] ]),
+            });
+
+            const stewardsResult = await requireVolunteerAuthenticationWithEventAndTeam(
+                context, 'event-2026', 'stewards');
+            expect(stewardsResult.team).toEqual(kTestTeam);
+
+            const hostsResult = await requireVolunteerAuthenticationWithEventAndTeam(
+                context, 'event-2026', 'hosts');
+            expect(hostsResult.team).toEqual(kHostsTeam);
+
+            try {
+                await requireVolunteerAuthenticationWithEventAndTeam(
+                    context, 'event-2026', 'crew');
+                expect.unreachable('Expected 403 for unassigned third team');
+            } catch (error: any) {
+                expect(isHTTPAccessFallbackError(error)).toBeTruthy();
+                expect(getAccessFallbackHTTPStatus(error)).toBe(403);
+            }
         });
 
         it('allows access for team administrators', async () => {
@@ -658,7 +702,7 @@ describe('requireAuthentication', () => {
                         },
                     ],
                 },
-                events: new Map([ [ 'event-2026', 'stewards' ] ]),
+                events: new Map([ [ 'event-2026', new Set([ 'stewards' ]) ] ]),
             });
 
             const result = await requireVolunteerAuthenticationWithEventAndTeam(
@@ -684,7 +728,7 @@ describe('requireAuthentication', () => {
 
         it('throws notFound when team does not exist', async () => {
             const context = buildAuthenticationContext({
-                events: new Map([ [ 'event-2026', 'stewards' ] ]),
+                events: new Map([ [ 'event-2026', new Set([ 'stewards' ]) ] ]),
             });
 
             mockConnection.expect('selectOneRow', () => undefined);
@@ -701,7 +745,7 @@ describe('requireAuthentication', () => {
 
         it('rejects volunteers registered for a different team', async () => {
             const context = buildAuthenticationContext({
-                events: new Map([ [ 'event-2026', 'hosts' ] ]),
+                events: new Map([ [ 'event-2026', new Set([ 'hosts' ]) ] ]),
             });
 
             try {

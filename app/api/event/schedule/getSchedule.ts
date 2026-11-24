@@ -582,7 +582,7 @@ async function populateVendors(
 async function registerVolunteers(
     dbInstance: DBConnection, schedule: Response, eventId: number,
     unavailabilityFn: UnavailabilityFn, notesAccess: boolean, phoneNumberAccess: boolean,
-    teamAccess: boolean, team?: string)
+    teamAccess: boolean, teams?: string[])
 {
     const availabilityPreferencesJoin = tUsersEventsPreferencesAvailability.forUseInLeftJoin();
     const storageJoin = tStorage.forUseInLeftJoin();
@@ -603,7 +603,7 @@ async function registerVolunteers(
                 .and(availabilityPreferencesJoin.preferenceVersionIsLatest.equals(/* true= */ 1))
         .where(tUsersEvents.eventId.equals(eventId))
             .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
-            .and(tTeams.teamSlug.equalsIfValue(team).ignoreWhen(teamAccess))
+            .and(tTeams.teamSlug.inIfValue(teams).ignoreWhen(teamAccess))
         .select({
             id: tUsers.userId,
             user: {
@@ -909,11 +909,11 @@ function ensureInternalShiftActivity(
 async function populateVolunteers(
     dbInstance: DBConnection, schedule: Response, currentTime: Temporal.ZonedDateTime,
     eventId: number, unavailabilityFn: UnavailabilityFn, notesAccess: boolean,
-    phoneNumberAccess: boolean, teamAccess: boolean, team?: string)
+    phoneNumberAccess: boolean, teamAccess: boolean, teams?: string[])
 {
     await registerVolunteers(
         dbInstance, schedule, eventId, unavailabilityFn, notesAccess, phoneNumberAccess,
-        teamAccess, team);
+        teamAccess, teams);
 
     const shifts = await fetchScheduledShifts(dbInstance, eventId);
 
@@ -1002,10 +1002,10 @@ export async function getSchedule(
 
     const { access, user } = context;
 
-    let team: string | undefined;  // slug
+    let teams: string[] | undefined;  // slugs
 
     if (context.events.has(event.slug)) {
-        team = context.events.get(event.slug)!;
+        teams = [ ...context.events.get(event.slug)! ];
     } else {
         if (!access.can('event.schedule.access', { event: event.slug }))
             return 'forbidden';
@@ -1131,7 +1131,7 @@ export async function getSchedule(
 
     await populateVolunteers(
         dbInstance, schedule, currentTime, event.id, unavailabilityFn, notesAccess,
-        phoneNumberAccess, teamAccess, team);
+        phoneNumberAccess, teamAccess, teams);
 
     await populateDutyBooks(dbInstance, access, schedule, event.id);
     await populateKnowledgeBase(dbInstance, access, schedule, event.id);
