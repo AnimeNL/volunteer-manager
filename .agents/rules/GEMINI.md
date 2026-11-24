@@ -19,6 +19,9 @@ Prior to checking in at the end of an iteration, or considering a task complete,
    * `perf: Improve the Next.js build time by 12% through improved inline caches`
    * `feat: Add a new section on the finance page displaying total revenue`
 
+   For `perf:` commit messages, include measured performance gains (e.g. percentage or wall-clock
+   deltas) whenever possible.
+
 # Coding rules
 
 ## Think Before Coding
