@@ -7,9 +7,12 @@ import { useRouter } from 'next/navigation';
 
 import type { SxProps } from '@mui/system';
 import type { Theme } from '@mui/material/styles';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Dialog from '@mui/material/Dialog';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 
 import type { User } from '@lib/auth';
+import { dayjs } from '@lib/DateTime';
 
 import { ActivationReminderDialog } from './authentication/ActivationReminderDialog';
 import { IdentityDialog } from './authentication/IdentityDialog';
@@ -335,7 +338,8 @@ function AuthenticationFlow(props: AuthenticationFlowProps) {
     // ---------------------------------------------------------------------------------------------
 
     return (
-        <Dialog open={!!open} onClose={() => onRequestClose()} sx={kStyles.root} fullWidth>
+        <LocalizationProvider dateAdapter={AdapterDayjs} dateLibInstance={dayjs}>
+            <Dialog open={!!open} onClose={() => onRequestClose()} sx={kStyles.root} fullWidth>
             { authFlowState === 'username' &&
                 <UsernameDialog onClose={onRequestClose}
                                 onSubmit={onSubmitUsername} /> }
@@ -381,7 +385,8 @@ function AuthenticationFlow(props: AuthenticationFlowProps) {
             { (authFlowState === 'identity-password' && user) &&
                 <IdentityPasswordDialog onClose={onRequestClose}
                                         onSubmit={onRequestPasswordChange} /> }
-        </Dialog>
+            </Dialog>
+        </LocalizationProvider>
     );
 }
 

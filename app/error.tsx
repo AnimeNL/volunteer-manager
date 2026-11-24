@@ -11,6 +11,7 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 
 import { ExportLayout } from '@app/(tools)/exports/[slug]/ExportLayout';
+import { RegistrationTheme } from './(registration)/RegistrationTheme';
 
 import { reportError } from './ErrorActions';
 
@@ -78,19 +79,21 @@ export default function ErrorPage({ error }: { error: Error & { digest?: string 
     }, [ error, pathname ]);
 
     return (
-        <ExportLayout eventName="AnimeCon Volunteering Teams">
-            <Paper sx={{ p: 2, textAlign: 'center' }}>
-                <Typography variant="h5">
-                    Whoops! Something went wrong…
-                </Typography>
-                <Typography variant="body1" sx={{ textWrap: 'balance', py: 1 }}>
-                    Something went very wrong and the page you requested is currently not available.
-                    Don't worry, it's not you, it's us. Please let us know that this happened,
-                    and we'll be happy to help out.
-                    { !!digest && ' When you do, please share the following code with us:' }
-                </Typography>
-                { !!digest && <Chip label={digest} color="error" /> }
-            </Paper>
-        </ExportLayout>
+        <RegistrationTheme>
+            <ExportLayout eventName="AnimeCon Volunteering Teams">
+                <Paper sx={{ p: 2, textAlign: 'center' }}>
+                    <Typography variant="h5">
+                        Whoops! Something went wrong…
+                    </Typography>
+                    <Typography variant="body1" sx={{ textWrap: 'balance', py: 1 }}>
+                        Something went very wrong and the page you requested is currently not available.
+                        Don't worry, it's not you, it's us. Please let us know that this happened,
+                        and we'll be happy to help out.
+                        { !!digest && ' When you do, please share the following code with us:' }
+                    </Typography>
+                    { !!digest && <Chip label={digest} color="error" /> }
+                </Paper>
+            </ExportLayout>
+        </RegistrationTheme>
     );
 }

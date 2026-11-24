@@ -11,6 +11,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import { createTheme } from '@mui/material/styles';
 
 import Box from '@mui/material/Box';
+import CssBaseline from '@mui/material/CssBaseline';
 
 /**
  * The Open Sans font is used for headers shown on the display.
@@ -96,6 +97,7 @@ function createDisplayTheme() {
 export function DisplayTheme(props: React.PropsWithChildren) {
     return (
         <ThemeProvider theme={createDisplayTheme()}>
+            <CssBaseline />
             <Box sx={kStyles.container}>
                 {props.children}
             </Box>

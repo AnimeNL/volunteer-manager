@@ -6,6 +6,7 @@
 import { Inter } from 'next/font/google';
 import { useMemo } from 'react';
 
+import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider as MuiThemeProvider, createTheme, type Color } from '@mui/material/styles';
 
 import type { ColorPalette } from './ThemeUtilities';
@@ -112,6 +113,7 @@ export function ThemeProvider(props: React.PropsWithChildren<ThemeProviderProps>
 
     return (
         <MuiThemeProvider theme={theme}>
+            <CssBaseline />
             {props.children}
         </MuiThemeProvider>
     );

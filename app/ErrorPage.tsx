@@ -9,6 +9,7 @@ import { ErrorPageClientReporter } from './ErrorPageClientReporter';
 import { ExportLayout } from '@app/(tools)/exports/[slug]/ExportLayout';
 import { RegistrationContentContainer } from '@app/(registration)/registration/RegistrationContentContainer';
 import { RegistrationLayout } from './(registration)/registration/RegistrationLayout';
+import { RegistrationTheme } from './(registration)/RegistrationTheme';
 import { determineEnvironment } from '@lib/Environment';
 import { getAuthenticationContext } from '@lib/auth';
 import { getStaticContent } from '@lib/Content';
@@ -51,16 +52,18 @@ export async function ErrorPage(props: ErrorPageProps) {
     const environment = await determineEnvironment();
     if (!environment) {
         return (
-            <ExportLayout eventName="AnimeCon Volunteering Teams">
-                <Paper sx={{ p: 2, textAlign: 'center' }}>
-                    <Typography variant="h5">
-                        {kFatalErrorTitle}
-                    </Typography>
-                    <Typography variant="body1" sx={{ textWrap: 'balance', py: 1 }}>
-                        {kFatalErrorContent}
-                    </Typography>
-                </Paper>
-            </ExportLayout>
+            <RegistrationTheme>
+                <ExportLayout eventName="AnimeCon Volunteering Teams">
+                    <Paper sx={{ p: 2, textAlign: 'center' }}>
+                        <Typography variant="h5">
+                            {kFatalErrorTitle}
+                        </Typography>
+                        <Typography variant="body1" sx={{ textWrap: 'balance', py: 1 }}>
+                            {kFatalErrorContent}
+                        </Typography>
+                    </Paper>
+                </ExportLayout>
+            </RegistrationTheme>
         );
     }
 
@@ -72,13 +75,15 @@ export async function ErrorPage(props: ErrorPageProps) {
     };
 
     return (
-        <RegistrationLayout environment={environment}>
-            <RegistrationContentContainer title={content.title} user={user}>
-                <Box sx={{ p: 2 }}>
-                    {content.markdown}
-                </Box>
-                <ErrorPageClientReporter statusCode={props.statusCode} />
-            </RegistrationContentContainer>
-        </RegistrationLayout>
+        <RegistrationTheme themeColours={environment.colours}>
+            <RegistrationLayout environment={environment}>
+                <RegistrationContentContainer title={content.title} user={user}>
+                    <Box sx={{ p: 2 }}>
+                        {content.markdown}
+                    </Box>
+                    <ErrorPageClientReporter statusCode={props.statusCode} />
+                </RegistrationContentContainer>
+            </RegistrationLayout>
+        </RegistrationTheme>
     );
 }

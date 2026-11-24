@@ -3,11 +3,13 @@
 
 'use client';
 
+import { Roboto } from 'next/font/google';
 import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { PaletteMode } from '@mui/material';
 import type { SxProps } from '@mui/system';
 import type { Theme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider } from '@mui/material/styles';
 import { createTheme } from '@mui/material/styles';
 import { decomposeColor, lighten } from '@mui/system/colorManipulator';
@@ -132,6 +134,16 @@ function storePaletteModeToCache(mode: SchedulePaletteMode) {
 }
 
 /**
+ * The Roboto font, loaded through NextJS' font stack, with default settings for Material UI.
+ */
+const kFontRoboto = Roboto({
+    weight: ['300', '400', '500', '700'],
+    subsets: ['latin'],
+    display: 'block',
+    fallback: ['Helvetica', 'Arial', 'sans-serif'],
+});
+
+/**
  * Creates the theme for the schedule environment for the given colour scheme (`mode`) and base
  * colour (`base`). The rest of the scheme will be computed based on that.
  */
@@ -183,6 +195,9 @@ function createScheduleTheme(mode: PaletteMode, palette: { dark: string; light: 
                     },
                 },
             },
+        },
+        typography: {
+            fontFamily: kFontRoboto.style.fontFamily,
         },
     });
 }
@@ -243,6 +258,7 @@ export function ScheduleTheme(props: React.PropsWithChildren<ScheduleThemeProps>
     return (
         <ScheduleThemeContext.Provider value={context}>
             <ThemeProvider theme={theme}>
+                <CssBaseline />
                 <Box sx={kStyles.container}>
                     {props.children}
                 </Box>
