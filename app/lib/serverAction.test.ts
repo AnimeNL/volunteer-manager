@@ -855,7 +855,7 @@ describe('serverAction', () => {
         expect(errorLogDelegateInvoked).toBeTruthy();
     });
 
-    it('rethrows Next.js control-flow errors without logging them', async () => {
+    it('logs and rethrows Next.js control-flow errors', async () => {
         const scheme = z.object({ /* no data */ });
 
         let invocations = 0;
@@ -866,23 +866,27 @@ describe('serverAction', () => {
         // Step 0: Validate preconditions
         expect(errorLogDelegateInvoked).toBeFalsy();
 
-        // Step 1: Verify unauthorized() for unidentified users is rethrown and not logged
+        // Step 1: Verify unauthorized() for unidentified users is logged and rethrown
         await expect(visitorAction(new FormData)).rejects.toThrow('NEXT_HTTP_ERROR_FALLBACK;401');
         expect(invocations).toBe(0);
-        expect(errorLogDelegateInvoked).toBeFalsy();
+        expect(errorLogDelegateInvoked).toBeTruthy();
 
-        // Step 2: Verify forbidden(), notFound() and redirect() thrown in actions are rethrown
+        // Step 2: Verify forbidden(), notFound() and redirect() thrown in actions are logged and
+        // rethrown
+        errorLogDelegateInvoked = false;
         const forbiddenAction = serverAction(scheme, async () => { forbidden(); });
         await expect(forbiddenAction(new FormData)).rejects.toThrow('NEXT_HTTP_ERROR_FALLBACK;403');
-        expect(errorLogDelegateInvoked).toBeFalsy();
+        expect(errorLogDelegateInvoked).toBeTruthy();
 
+        errorLogDelegateInvoked = false;
         const notFoundAction = serverAction(scheme, async () => { notFound(); });
         await expect(notFoundAction(new FormData)).rejects.toThrow('NEXT_HTTP_ERROR_FALLBACK;404');
-        expect(errorLogDelegateInvoked).toBeFalsy();
+        expect(errorLogDelegateInvoked).toBeTruthy();
 
+        errorLogDelegateInvoked = false;
         const redirectAction = serverAction(scheme, async () => { redirect('/somewhere'); });
         await expect(redirectAction(new FormData)).rejects.toThrow('NEXT_REDIRECT');
-        expect(errorLogDelegateInvoked).toBeFalsy();
+        expect(errorLogDelegateInvoked).toBeTruthy();
     });
 
     it('logs exceptions thrown in server actions in the database', async () => {

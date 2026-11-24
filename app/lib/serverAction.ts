@@ -340,14 +340,16 @@ export async function executeServerAction<T extends ZodType,
         return { success: true };
 
     } catch (error: any) {
-        unstable_rethrow(error);
-
+        // Intentionally record errors before rethrowing so that Next.js HTTP/control-flow errors
+        // (such as 401, 403, and 404) are still captured in the error log.
         RecordErrorLog({
             error,
             requestUrl,
             severity: kLogSeverity.Error,
             user: authenticationContext?.user,
         });
+
+        unstable_rethrow(error);
 
         return {
             success: false,
