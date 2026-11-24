@@ -17,7 +17,6 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon, { listItemIconClasses } from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import ListSubheader from '@mui/material/ListSubheader';
-import MobileOffIcon from '@mui/icons-material/MobileOff';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
@@ -178,14 +177,7 @@ function NavigationItemClient(props: { item: NavigationItem, path: string }) {
             </ListItemText>
             { (!!props.item.badge && typeof props.item.badge.value === 'number') &&
                 <Badge badgeContent={props.item.badge.value} color={props.item.badge.severity} /> }
-            { (!!props.item.badge && !!props.item.badge.migration) &&
-                <Tooltip title="Not yet mobile friendly">
-                    <NavigationMenuWarningIcon />
-                </Tooltip> }
-            { (!!props.item.badge
-                   && typeof props.item.badge.value !== 'number'
-                   && !!props.item.badge.value
-                   && !props.item.badge.migration) &&
+            { (!!props.item.badge && props.item.badge.value === true) &&
                 <Badge variant="dot" color={ props.item.badge.severity ?? 'primary' } /> }
         </NavigationMenuListItem>
     );
@@ -227,15 +219,6 @@ const NavigationMenuListItem = styled(ListItemButton)(({ theme }) => ([
 const NavigationMenuListItemIcon = styled(ListItemIcon)(({ theme }) => ({
     minWidth: '36px',
     transition: theme.transitions.create('color', { duration: kTransitionDuration }),
-}));
-
-/**
- * The "migration in progress" icon indicating that works are still taking place.
- */
-const NavigationMenuWarningIcon = styled(MobileOffIcon)(({ theme }) => ({
-    marginRight: '-10px',
-    color: theme.vars?.palette.error.main,
-    fontSize: '1.25rem',
 }));
 
 /**

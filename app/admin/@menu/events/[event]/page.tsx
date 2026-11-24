@@ -329,7 +329,6 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
                 },
                 {
                     Icon: ScheduleIcon,
-                    badge: { migration: true, value: true },  // migration not started
                     label: 'Schedule',
                     permission: {
                         permission: 'volunteers.schedules',
