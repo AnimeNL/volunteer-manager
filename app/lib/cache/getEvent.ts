@@ -21,58 +21,63 @@ export async function getEvent(event: number | string): Promise<CachedEvent | un
             return undefined;
     }
 
-    return await Cache.getInstance('EventCache').getOrInsert(slug, async slug => {
-        const storageJoin = tStorage.forUseInLeftJoin();
-        const event = await db.selectFrom(tEvents)
-            .leftJoin(storageJoin)
-                .on(storageJoin.fileId.equals(tEvents.eventIdentityId))
-            .where(tEvents.eventSlug.equals(slug))
-            .select({
-                id: tEvents.eventId,
-                slug: tEvents.eventSlug,
-                name: tEvents.eventName,
-                shortName: tEvents.eventShortName,
-                imageUrl: storageJoin.fileHash,
-                published: tEvents.eventHidden.equals(/* false= */ 0),
-                location: tEvents.eventLocation,
-                startTime: tEvents.eventStartTime,
-                endTime: tEvents.eventEndTime,
-                timeZone: tEvents.eventTimezone,
+    const cache = Cache.getInstance('EventCache');
+    const cached = cache.get(slug);
+    if (cached)
+        return cached;
 
-                flags: {
-                    enableBuildUp: tEvents.availabilityBuildUp.equals(/* true= */ 1),
-                    enableHotel: tEvents.hotelEnabled.equals(/* true= */ 1),
-                    enableRefunds: tEvents.refundEnabled.equals(/* true= */ 1),
-                    enableTearDown: tEvents.availabilityTearDown.equals(/* true= */ 1),
-                    enableTraining: tEvents.trainingEnabled.equals(/* true= */ 1),
-                },
+    const storageJoin = tStorage.forUseInLeftJoin();
+    const record = await db.selectFrom(tEvents)
+        .leftJoin(storageJoin)
+            .on(storageJoin.fileId.equals(tEvents.eventIdentityId))
+        .where(tEvents.eventSlug.equals(slug))
+        .select({
+            id: tEvents.eventId,
+            slug: tEvents.eventSlug,
+            name: tEvents.eventName,
+            shortName: tEvents.eventShortName,
+            imageUrl: storageJoin.fileHash,
+            published: tEvents.eventHidden.equals(/* false= */ 0),
+            location: tEvents.eventLocation,
+            startTime: tEvents.eventStartTime,
+            endTime: tEvents.eventEndTime,
+            timeZone: tEvents.eventTimezone,
 
-                integrations: {
-                    anPlanFestivalId: tEvents.eventFestivalId,
-                    weeztixEventId: tEvents.eventWeeztixGuid,
-                    yourTicketProviderEventId: tEvents.eventYtpEventId,
-                    yourTicketProviderExternalEventId: tEvents.eventYtpExternalEventId,
-                },
+            flags: {
+                enableBuildUp: tEvents.availabilityBuildUp.equals(/* true= */ 1),
+                enableHotel: tEvents.hotelEnabled.equals(/* true= */ 1),
+                enableRefunds: tEvents.refundEnabled.equals(/* true= */ 1),
+                enableTearDown: tEvents.availabilityTearDown.equals(/* true= */ 1),
+                enableTraining: tEvents.trainingEnabled.equals(/* true= */ 1),
+            },
 
-                tickets: {
-                    provider: tEvents.ticketsProvider,
-                    enableAutoGrant: tEvents.ticketsAutoGrantEnabled.equals(/* true= */ 1),
-                    enableAutoRevoke: tEvents.ticketsAutoRevokeEnabled.equals(/* true= */ 1),
-                    volunteerTicketId: tEvents.ticketsAutoGrantTicketId,
-                    weeztixVolunteerTicketGuid: tEvents.eventWeeztixVolunteerTicketGuid,
-                },
-            })
-            .executeSelectNoneOrOne();
+            integrations: {
+                anPlanFestivalId: tEvents.eventFestivalId,
+                weeztixEventId: tEvents.eventWeeztixGuid,
+                yourTicketProviderEventId: tEvents.eventYtpEventId,
+                yourTicketProviderExternalEventId: tEvents.eventYtpExternalEventId,
+            },
 
-        if (!event)
-            return null;
+            tickets: {
+                provider: tEvents.ticketsProvider,
+                enableAutoGrant: tEvents.ticketsAutoGrantEnabled.equals(/* true= */ 1),
+                enableAutoRevoke: tEvents.ticketsAutoRevokeEnabled.equals(/* true= */ 1),
+                volunteerTicketId: tEvents.ticketsAutoGrantTicketId,
+                weeztixVolunteerTicketGuid: tEvents.eventWeeztixVolunteerTicketGuid,
+            },
+        })
+        .executeSelectNoneOrOne();
 
-        return {
-            ...event,
-            imageUrl: getBlobUrl(event?.imageUrl),
-        };
+    if (!record)
+        return undefined;
 
-    }) ?? undefined;
+    const result: CachedEvent = {
+        ...record,
+        imageUrl: getBlobUrl(record.imageUrl),
+    };
+
+    cache.set(slug, result);
+    return result;
 }
 
 /**
@@ -82,11 +87,12 @@ export async function invalidateEventCache(event: number | string): Promise<void
     const cache = Cache.getInstance('EventCache');
 
     if (typeof event === 'string' && cache.has(event)) {
-        const { id } = cache.get(event)!;
+        const cached = cache.get(event);
 
         cache.delete(event);
 
-        invalidateUrlSlug({ event: id });
+        if (cached)
+            invalidateUrlSlug({ event: cached.id });
 
     } else if (typeof event === 'number') {
         const slug = await getUrlSlug({ event });

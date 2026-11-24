@@ -20,36 +20,44 @@ export async function getTeam(team: number | string): Promise<CachedTeam | undef
             return undefined;
     }
 
-    return await Cache.getInstance('TeamCache').getOrInsert(slug, async slug => {
-        return db.selectFrom(tTeams)
-            .innerJoin(tEnvironments)
-                .on(tEnvironments.environmentId.equals(tTeams.teamEnvironmentId))
-            .where(tTeams.teamSlug.equals(slug))
-            .select({
-                id: tTeams.teamId,
-                slug: tTeams.teamSlug,
-                domain: tEnvironments.environmentDomain,
-                environmentId: tEnvironments.environmentId,
-                name: tTeams.teamTitle,
-                title: tTeams.teamName,
-                plural: tTeams.teamPlural,
-                color: tTeams.teamColourLightTheme,
-                inviteKey: tTeams.teamInviteKey,
-                flags: {
-                    enableDutyBook: tTeams.teamFlagEnableDutyBook.equals(/* true= */ 1),
-                    enableScheduling: tTeams.teamFlagEnableScheduling.equals(/* true= */ 1),
-                    managesContent: tTeams.teamFlagManagesContent.equals(/* true= */ 1),
-                    managesFirstAid: tTeams.teamFlagManagesFirstAid.equals(/* true= */ 1),
-                    managesKnowledgeBase: tTeams.teamFlagManagesFaq.equals(/* true= */ 1),
-                    managesSecurity: tTeams.teamFlagManagesSecurity.equals(/* true= */ 1),
-                },
-                integrations: {
-                    emailAccountId: tTeams.teamEmailAccountId,
-                },
-            })
-            .executeSelectNoneOrOne();
+    const cache = Cache.getInstance('TeamCache');
+    const cached = cache.get(slug);
+    if (cached)
+        return cached;
 
-    }) ?? undefined;
+    const result = await db.selectFrom(tTeams)
+        .innerJoin(tEnvironments)
+            .on(tEnvironments.environmentId.equals(tTeams.teamEnvironmentId))
+        .where(tTeams.teamSlug.equals(slug))
+        .select({
+            id: tTeams.teamId,
+            slug: tTeams.teamSlug,
+            domain: tEnvironments.environmentDomain,
+            environmentId: tEnvironments.environmentId,
+            name: tTeams.teamTitle,
+            title: tTeams.teamName,
+            plural: tTeams.teamPlural,
+            color: tTeams.teamColourLightTheme,
+            inviteKey: tTeams.teamInviteKey,
+            flags: {
+                enableDutyBook: tTeams.teamFlagEnableDutyBook.equals(/* true= */ 1),
+                enableScheduling: tTeams.teamFlagEnableScheduling.equals(/* true= */ 1),
+                managesContent: tTeams.teamFlagManagesContent.equals(/* true= */ 1),
+                managesFirstAid: tTeams.teamFlagManagesFirstAid.equals(/* true= */ 1),
+                managesKnowledgeBase: tTeams.teamFlagManagesFaq.equals(/* true= */ 1),
+                managesSecurity: tTeams.teamFlagManagesSecurity.equals(/* true= */ 1),
+            },
+            integrations: {
+                emailAccountId: tTeams.teamEmailAccountId,
+            },
+        })
+        .executeSelectNoneOrOne();
+
+    if (!result)
+        return undefined;
+
+    cache.set(slug, result);
+    return result;
 }
 
 /**
@@ -59,11 +67,12 @@ export async function invalidateTeamCache(team: number | string) {
     const cache = Cache.getInstance('TeamCache');
 
     if (typeof team === 'string' && cache.has(team)) {
-        const { id } = cache.get(team)!;
+        const cached = cache.get(team);
 
         cache.delete(team);
 
-        invalidateUrlSlug({ team: id });
+        if (cached)
+            invalidateUrlSlug({ team: cached.id });
 
     } else if (typeof team === 'number') {
         const slug = await getUrlSlug({ team });
