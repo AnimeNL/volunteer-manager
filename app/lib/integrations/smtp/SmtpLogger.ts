@@ -93,7 +93,7 @@ export class SmtpLoggerImpl implements SmtpLogger {
     private normalizeUser(input?: User | number): number | null {
         if (typeof input === 'number')
             return input;
-        else if (typeof input === 'object' && 'userId' in input)
+        else if (typeof input === 'object' && input !== null && 'id' in input)
             return input.id;
 
         return null;
