@@ -6,7 +6,6 @@ import { z } from 'zod/v4';
 
 import Alert from '@mui/material/Alert';
 import HistoryIcon from '@mui/icons-material/History';
-import Paper from '@mui/material/Paper';
 
 import type { Mutation } from '@lib/database/Types';
 import { ExpandableSection } from '@app/admin/components/ExpandableSection';
@@ -272,43 +271,44 @@ export default async function EventTeamSchedulePage(
     // ---------------------------------------------------------------------------------------------
 
     return (
-        <>
+        <ScheduleContextImpl
+            event={{
+                shortName: event.shortName,
+                slug: event.slug,
+                startTime: event.startTime.toString(),
+                endTime: event.endTime.toString(),
+            }}
+            team={{
+                slug: team.slug,
+                title: team.title,
+            }}
+            defaultContext={defaultContext}
+            readOnly={readOnly}>
+
             { !!readOnly &&
-                <Paper component={Alert} severity="warning">
+                <Alert severity="warning" variant="outlined">
                     Please ask your Staff member to add you to the scheduling team if you would like
                     to be able to make any changes.
-                </Paper> }
-            <ScheduleContextImpl
-                event={{
-                    slug: event.slug,
-                    startTime: event.startTime.toString(),
-                    endTime: event.endTime.toString(),
-                }}
-                team={{
-                    slug: team.slug,
-                    name: team.name,
-                }}
-                defaultContext={defaultContext}>
+                </Alert> }
 
-                <ScheduleImpl readOnly={readOnly} sections={sections}
-                              historyContext={{ event: event.slug, team: team.slug }}
-                              historySource={scheduleHistoryDataSource} />
+            <ScheduleImpl readOnly={readOnly} sections={sections}
+                          historyContext={{ event: event.slug, team: team.slug }}
+                          historySource={scheduleHistoryDataSource} />
 
-                <ExpandableSection
-                    defaultExpanded={ !!userSettings['user-admin-schedule-expand-history'] }
-                    title="Recent changes" icon={ <HistoryIcon color="info" /> }
-                    setting="user-admin-schedule-expand-history">
+            <ExpandableSection
+                defaultExpanded={ !!userSettings['user-admin-schedule-expand-history'] }
+                title="Recent changes" icon={ <HistoryIcon color="info" /> }
+                setting="user-admin-schedule-expand-history">
 
-                    <ScheduleHistoryTable
-                        context={{ event: event.slug, team: team.slug }}
-                        source={scheduleHistoryDataSource} />
+                <ScheduleHistoryTable
+                    context={{ event: event.slug, team: team.slug }}
+                    source={scheduleHistoryDataSource} />
 
-                </ExpandableSection>
+            </ExpandableSection>
 
-                { /* TODO: Add a section displaying warnings */ }
+            { /* TODO: Add a section displaying warnings */ }
 
-            </ScheduleContextImpl>
-        </>
+        </ScheduleContextImpl>
     );
 }
 

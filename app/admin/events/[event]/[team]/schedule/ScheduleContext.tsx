@@ -14,9 +14,9 @@ import Divider from '@mui/material/Divider';
 import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import IconButton from '@mui/material/IconButton';
-import Paper from '@mui/material/Paper';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import PeopleIcon from '@mui/icons-material/People';
+import ScheduleIcon from '@mui/icons-material/Schedule';
 import Snackbar from '@mui/material/Snackbar';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
@@ -27,9 +27,8 @@ import Tooltip from '@mui/material/Tooltip';
 
 import type { ChangeEventContext, ScheduleEvent } from '@app/admin/components/Schedule';
 import type { GetScheduleResult } from './ScheduleActions';
-import { DocumentationButton } from '@app/admin/components/Documentation';
 import { ScheduleHighlightDialog } from './ScheduleHighlightDialog';
-import { SectionHeader } from '@app/admin/components/SectionHeader';
+import { Section } from '@app/admin/components/Section';
 import { formatDate } from '@lib/Temporal';
 
 import { createScheduleEntry, deleteScheduleEntry, getSchedule, updateScheduleEntry,
@@ -98,6 +97,7 @@ interface ScheduleContextImplProps {
      * Information about the event for which the schedule is being shown.
      */
     event: {
+        shortName: string;
         slug: string;
         startTime: string;
         endTime: string;
@@ -108,13 +108,18 @@ interface ScheduleContextImplProps {
      */
     team: {
         slug: string;
-        name: string;
+        title: string;
     };
 
     /**
      * Default values that should be set in the context.
      */
     defaultContext: ScheduleInfo & { date?: string; highlightedShifts?: string };
+
+    /**
+     * Whether the schedule is displayed in read-only mode due to lack of update privileges.
+     */
+    readOnly?: boolean;
 }
 
 /**
@@ -299,54 +304,69 @@ export function ScheduleContextImpl(props: React.PropsWithChildren<ScheduleConte
     return (
         <ScheduleContext.Provider value={scheduleContext}>
 
-            <Stack component={Paper} direction="row" spacing={2} sx={{
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                paddingX: 2,
-                paddingY: '13px'
-            }}>
-                <SectionHeader title="Schedule" subtitle={props.team.name} sx={{ mb: 0 }} />
-                <Stack direction="row" divider={ <Divider orientation="vertical" flexItem /> }
-                       spacing={2} sx={{ alignItems: 'center' }}>
-                    { (!!isLoading || !!isProcessingChange) &&
-                        <Tooltip title="The schedule is being updated…">
-                            <CircularProgress size={16} sx={{ mr: '2px !important' }} />
-                        </Tooltip> }
-                    { ((!isLoading && !isProcessingChange) && !error) &&
-                        <Tooltip title="The schedule is up to date">
-                            <TaskAltIcon fontSize="small" color="success" />
-                        </Tooltip> }
-                    { ((!isLoading && !isProcessingChange) && !!error) &&
-                        <Tooltip title={ error?.message || 'The schedule could not be updated' }>
-                            <ErrorOutlinedIcon fontSize="small" color="error" />
-                        </Tooltip> }
-                    <Tooltip title="Allow scheduling other teams' shifts">
-                        <FormControlLabel control={ <Switch size="small"
-                                                            defaultChecked={inclusiveShifts} /> }
-                                          label={ <PeopleIcon fontSize="small" /> }
-                                          labelPlacement="start"
-                                          onChange={handleInclusiveShiftsChange}
-                                          slotProps={{ typography: { sx: { display: 'flex',
-                                                                           mr: .5 } } }} />
-                    </Tooltip>
-                    <Tooltip title="Highlight shifts">
-                        <Badge badgeContent={highlightedShiftIds.size} overlap="circular"
-                               color="info">
-                            <IconButton onClick={handleHighlightDialogOpen}>
-                                <PendingActionsIcon fontSize="small" />
-                            </IconButton>
-                        </Badge>
-                    </Tooltip>
-                    <ToggleButtonGroup exclusive value={date} size="small"
-                                       onChange={handleDateChange} >
-                        { availableDays.map(({ date, label }) =>
-                            <ToggleButton key={date} value={date}>
-                                {label}
-                            </ToggleButton> )}
-                    </ToggleButtonGroup>
-                    <DocumentationButton title="Schedule" topic="schedule" />
-                </Stack>
-            </Stack>
+            <Section icon={ <ScheduleIcon color="primary" /> } title="Schedule"
+                     documentation="schedule" limited={props.readOnly}
+                     breadcrumbs={[
+                         {
+                             label: props.event.shortName,
+                             href: `/admin/events/${props.event.slug}`,
+                         },
+                         {
+                             label: props.team.title,
+                             href: `/admin/events/${props.event.slug}/${props.team.slug}`,
+                         },
+                         { label: 'Schedule' },
+                     ]}
+                     headerAction={
+                         <Stack direction="row"
+                                divider={ <Divider orientation="vertical" flexItem /> }
+                                spacing={2} sx={{
+                                    alignItems: 'center',
+                                    ml: props.readOnly ? 1 : 0,
+                                    mr: 1,
+                                }}>
+                             { (!!isLoading || !!isProcessingChange) &&
+                                 <Tooltip title="The schedule is being updated…">
+                                     <CircularProgress size={16} sx={{ mr: '2px !important' }} />
+                                 </Tooltip> }
+                             { ((!isLoading && !isProcessingChange) && !error) &&
+                                 <Tooltip title="The schedule is up to date">
+                                     <TaskAltIcon fontSize="small" color="success" />
+                                 </Tooltip> }
+                             { ((!isLoading && !isProcessingChange) && !!error) &&
+                                 <Tooltip title={
+                                     error?.message || 'The schedule could not be updated'
+                                 }>
+                                     <ErrorOutlinedIcon fontSize="small" color="error" />
+                                 </Tooltip> }
+                             <Tooltip title="Allow scheduling other teams' shifts">
+                                 <FormControlLabel
+                                     control={ <Switch size="small"
+                                                       defaultChecked={inclusiveShifts} /> }
+                                     label={ <PeopleIcon fontSize="small" /> }
+                                     labelPlacement="start"
+                                     onChange={handleInclusiveShiftsChange}
+                                     slotProps={{ typography: { sx: { display: 'flex',
+                                                                      mr: .5 } } }} />
+                             </Tooltip>
+                             <Tooltip title="Highlight shifts">
+                                 <Badge badgeContent={highlightedShiftIds.size} overlap="circular"
+                                        color="info">
+                                     <IconButton onClick={handleHighlightDialogOpen}>
+                                         <PendingActionsIcon fontSize="small" />
+                                     </IconButton>
+                                 </Badge>
+                             </Tooltip>
+                             <ToggleButtonGroup exclusive value={date} size="small"
+                                                onChange={handleDateChange}>
+                                 { availableDays.map(({ date, label }) =>
+                                     <ToggleButton key={date} value={date}>
+                                         {label}
+                                     </ToggleButton> )}
+                             </ToggleButtonGroup>
+                         </Stack>
+                     }
+                     sx={{ marginBottom: '0 !important' }} />
 
             {props.children}
 
