@@ -362,7 +362,7 @@ export function ScheduleImpl(props: ScheduleImplProps) {
     // (when necessary) the vertical scrollbars to be visible at once. However, only enforce a
     // height when this is actually required, based on the number of resources in the schedule.
     if (windowHeight > 450) {
-        let estimatedScheduleHeight = /* header= */ 50;
+        let estimatedScheduleHeight = /* header= */ 125;
         for (const resource of resources) {
             estimatedScheduleHeight += /* section header= */ 32;
             if (!!resource.children)
@@ -371,7 +371,7 @@ export function ScheduleImpl(props: ScheduleImplProps) {
 
         // Substract 100 from the `windowHeight` to ensure that the essential UI around the tool
         // is still visible. This isn't an exact number, and the user will have to scroll anyway.
-        const maximumScheduleHeight = windowHeight - 100;
+        const maximumScheduleHeight = windowHeight - 130;
 
         if (estimatedScheduleHeight >= maximumScheduleHeight)
             height = maximumScheduleHeight;
