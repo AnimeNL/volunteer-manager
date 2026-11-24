@@ -401,6 +401,44 @@ export const kVendorTeam = {
 } as const;
 
 /**
+ * Device form factor recorded alongside a Web Vitals measurement.
+ * @see Table `web_vitals`
+ */
+export type WebVitalDeviceType = Values<typeof kWebVitalDeviceType>;
+export const kWebVitalDeviceType = {
+    Desktop: 'Desktop',
+    Mobile: 'Mobile',
+} as const;
+
+/**
+ * Core Web Vitals metric name recorded from the client.
+ * @see Table `web_vitals`
+ */
+export type WebVitalMetric = Values<typeof kWebVitalMetric>;
+export const kWebVitalMetric = {
+    TTFB: 'TTFB',
+    FCP: 'FCP',
+    LCP: 'LCP',
+    INP: 'INP',
+    CLS: 'CLS',
+} as const;
+
+/**
+ * Navigation type reported by Next.js `useReportWebVitals`.
+ * @see Table `web_vitals`
+ */
+export type WebVitalNavigationType = Values<typeof kWebVitalNavigationType>;
+export const kWebVitalNavigationType = {
+    Navigate: 'navigate',
+    Reload: 'reload',
+    BackForward: 'back-forward',
+    BackForwardCache: 'back-forward-cache',
+    Prerender: 'prerender',
+    Restore: 'restore',
+    SoftNavigation: 'soft-navigation',
+} as const;
+
+/**
  * Type of Weeztix ticket (i.e. product or ticket) stored in the table.
  * @see Table `weeztix_ticket_types`
  */

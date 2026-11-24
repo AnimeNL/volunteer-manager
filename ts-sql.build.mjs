@@ -284,6 +284,12 @@ do {
                 { field: [ 'vendors', 'vendor_shirt_fit' ], type: 'ShirtFit' },
                 { field: [ 'vendors', 'vendor_shirt_size' ], type: 'ShirtSize' },
                 { field: [ 'vendors', 'vendor_team' ], type: 'VendorTeam' },
+                { field: [ 'web_vitals', 'vital_device_type' ], type: 'WebVitalDeviceType' },
+                { field: [ 'web_vitals', 'vital_metric' ], type: 'WebVitalMetric' },
+                {
+                    field: [ 'web_vitals', 'vital_navigation_type' ],
+                    type: 'WebVitalNavigationType',
+                },
                 {
                     field: [ 'weeztix_ticket_types', 'weeztix_ticket_type' ],
                     type: 'WeeztixTicketType',

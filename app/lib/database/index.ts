@@ -76,6 +76,7 @@ export { tUsersSessions } from './scheme/UsersSessionsTable';
 export { tUsersSettings } from './scheme/UsersSettingsTable';
 export { tVendorsSchedule } from './scheme/VendorsScheduleTable';
 export { tVendors } from './scheme/VendorsTable';
+export { tWebVitals } from './scheme/WebVitalsTable';
 export { tWeeztixOrders } from './scheme/WeeztixOrdersTable';
 export { tWeeztixPurchases } from './scheme/WeeztixPurchasesTable';
 export { tWeeztixTicketTypes } from './scheme/WeeztixTicketTypesTable';

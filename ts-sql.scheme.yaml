@@ -2958,6 +2958,86 @@ tables:
       CONSTRAINT `events_teams_event_id` FOREIGN KEY (`event_id`) REFERENCES `events` (`event_id`) ON DELETE CASCADE,
       CONSTRAINT `events_teams_team_id` FOREIGN KEY (`team_id`) REFERENCES `teams` (`team_id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: web_vitals
+  type: BASE TABLE
+  columns:
+  - name: vital_id
+    type: int(10) unsigned
+    nullable: false
+    extraDef: auto_increment
+  - name: vital_date
+    type: datetime
+    nullable: false
+    default: current_timestamp()
+  - name: vital_origin
+    type: varchar(128)
+    nullable: false
+  - name: vital_route
+    type: varchar(255)
+    nullable: false
+  - name: vital_metric
+    type: enum('TTFB','FCP','LCP','INP','CLS')
+    nullable: false
+  - name: vital_value
+    type: double
+    nullable: false
+  - name: vital_navigation_type
+    type: enum('navigate','reload','back-forward','back-forward-cache','prerender','restore','soft-navigation')
+    nullable: false
+  - name: vital_device_type
+    type: enum('Desktop','Mobile')
+    nullable: false
+  - name: vital_build_hash
+    type: varchar(7)
+    nullable: false
+  indexes:
+  - name: idx_web_vitals_build_hash
+    def: KEY idx_web_vitals_build_hash (vital_build_hash, vital_metric) USING BTREE
+    table: web_vitals
+    columns:
+    - vital_build_hash
+    - vital_metric
+  - name: idx_web_vitals_date_metric
+    def: KEY idx_web_vitals_date_metric (vital_date, vital_metric) USING BTREE
+    table: web_vitals
+    columns:
+    - vital_date
+    - vital_metric
+  - name: idx_web_vitals_route_metric_date
+    def: KEY idx_web_vitals_route_metric_date (vital_route, vital_metric, vital_date) USING BTREE
+    table: web_vitals
+    columns:
+    - vital_route
+    - vital_metric
+    - vital_date
+  - name: PRIMARY
+    def: PRIMARY KEY (vital_id) USING BTREE
+    table: web_vitals
+    columns:
+    - vital_id
+  constraints:
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (vital_id)
+    table: web_vitals
+    columns:
+    - vital_id
+  def: |-
+    CREATE TABLE `web_vitals` (
+      `vital_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+      `vital_date` datetime NOT NULL DEFAULT current_timestamp(),
+      `vital_origin` varchar(128) NOT NULL,
+      `vital_route` varchar(255) NOT NULL,
+      `vital_metric` enum('TTFB','FCP','LCP','INP','CLS') NOT NULL,
+      `vital_value` double NOT NULL,
+      `vital_navigation_type` enum('navigate','reload','back-forward','back-forward-cache','prerender','restore','soft-navigation') NOT NULL,
+      `vital_device_type` enum('Desktop','Mobile') NOT NULL,
+      `vital_build_hash` varchar(7) NOT NULL,
+      PRIMARY KEY (`vital_id`),
+      KEY `idx_web_vitals_route_metric_date` (`vital_route`,`vital_metric`,`vital_date`),
+      KEY `idx_web_vitals_date_metric` (`vital_date`,`vital_metric`),
+      KEY `idx_web_vitals_build_hash` (`vital_build_hash`,`vital_metric`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: permissions
   type: BASE TABLE
   columns:
@@ -4661,151 +4741,6 @@ tables:
       PRIMARY KEY (`vendors_schedule_id`),
       KEY `vendor_id` (`vendor_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-- name: outbox
-  type: BASE TABLE
-  columns:
-  - name: outbox_id
-    type: int(8) unsigned
-    nullable: false
-    extraDef: auto_increment
-  - name: outbox_timestamp
-    type: timestamp
-    nullable: false
-    default: current_timestamp()
-  - name: outbox_sender
-    type: varchar(128)
-    nullable: false
-  - name: outbox_sender_user_id
-    type: int(8) unsigned
-    nullable: true
-    default: "NULL"
-  - name: outbox_to
-    type: varchar(128)
-    nullable: false
-  - name: outbox_to_user_id
-    type: int(8) unsigned
-    nullable: true
-    default: "NULL"
-  - name: outbox_cc
-    type: varchar(128)
-    nullable: true
-    default: "NULL"
-  - name: outbox_bcc
-    type: varchar(128)
-    nullable: true
-    default: "NULL"
-  - name: outbox_headers
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: outbox_subject
-    type: text
-    nullable: false
-  - name: outbox_body_html
-    type: text
-    nullable: false
-    default: "''"
-  - name: outbox_body_text
-    type: text
-    nullable: false
-    default: "''"
-  - name: outbox_logs
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: outbox_error_name
-    type: varchar(32)
-    nullable: true
-    default: "NULL"
-  - name: outbox_error_cause
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: outbox_error_message
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: outbox_error_stack
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: outbox_result_message_id
-    type: varchar(256)
-    nullable: true
-    default: "NULL"
-  - name: outbox_result_accepted
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: outbox_result_rejected
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: outbox_result_pending
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: outbox_result_response
-    type: text
-    nullable: true
-    default: "NULL"
-  indexes:
-  - name: outbox_date
-    def: KEY outbox_date (outbox_timestamp) USING BTREE
-    table: outbox
-    columns:
-    - outbox_timestamp
-  - name: outbox_sender_user_id
-    def: KEY outbox_sender_user_id (outbox_sender_user_id) USING BTREE
-    table: outbox
-    columns:
-    - outbox_sender_user_id
-  - name: outbox_to_user_id
-    def: KEY outbox_to_user_id (outbox_to_user_id) USING BTREE
-    table: outbox
-    columns:
-    - outbox_to_user_id
-  - name: PRIMARY
-    def: PRIMARY KEY (outbox_id) USING BTREE
-    table: outbox
-    columns:
-    - outbox_id
-  constraints:
-  - name: PRIMARY
-    type: PRIMARY KEY
-    def: PRIMARY KEY (outbox_id)
-    table: outbox
-    columns:
-    - outbox_id
-  def: |-
-    CREATE TABLE `outbox` (
-      `outbox_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
-      `outbox_timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
-      `outbox_sender` varchar(128) NOT NULL,
-      `outbox_sender_user_id` int(8) unsigned DEFAULT NULL,
-      `outbox_to` varchar(128) NOT NULL,
-      `outbox_to_user_id` int(8) unsigned DEFAULT NULL,
-      `outbox_cc` varchar(128) DEFAULT NULL,
-      `outbox_bcc` varchar(128) DEFAULT NULL,
-      `outbox_headers` text DEFAULT NULL,
-      `outbox_subject` text NOT NULL,
-      `outbox_body_html` text NOT NULL DEFAULT '',
-      `outbox_body_text` text NOT NULL DEFAULT '',
-      `outbox_logs` text DEFAULT NULL,
-      `outbox_error_name` varchar(32) DEFAULT NULL,
-      `outbox_error_cause` text DEFAULT NULL,
-      `outbox_error_message` text DEFAULT NULL,
-      `outbox_error_stack` text DEFAULT NULL,
-      `outbox_result_message_id` varchar(256) DEFAULT NULL,
-      `outbox_result_accepted` text DEFAULT NULL,
-      `outbox_result_rejected` text DEFAULT NULL,
-      `outbox_result_pending` text DEFAULT NULL,
-      `outbox_result_response` text DEFAULT NULL,
-      PRIMARY KEY (`outbox_id`),
-      KEY `outbox_date` (`outbox_timestamp`),
-      KEY `outbox_to_user_id` (`outbox_to_user_id`),
-      KEY `outbox_sender_user_id` (`outbox_sender_user_id`)
-    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: inbox_threads
   type: BASE TABLE
   columns:
@@ -6292,99 +6227,6 @@ tables:
       `session_token` int(4) unsigned NOT NULL DEFAULT 1,
       PRIMARY KEY (`user_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-- name: outbox_whatsapp
-  type: BASE TABLE
-  columns:
-  - name: whatsapp_message_id
-    type: int(8) unsigned
-    nullable: false
-    extraDef: auto_increment
-  - name: whatsapp_date
-    type: datetime
-    nullable: false
-    default: current_timestamp()
-  - name: whatsapp_recipient_user_id
-    type: int(8) unsigned
-    nullable: false
-  - name: whatsapp_recipient_phone_number
-    type: varchar(16)
-    nullable: false
-  - name: whatsapp_request
-    type: text
-    nullable: false
-  - name: whatsapp_error_name
-    type: varchar(32)
-    nullable: true
-    default: "NULL"
-  - name: whatsapp_error_message
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: whatsapp_error_stack
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: whatsapp_error_cause
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: whatsapp_response_status
-    type: int(8) unsigned
-    nullable: true
-    default: "NULL"
-  - name: whatsapp_response_time
-    type: int(8) unsigned
-    nullable: true
-    default: "NULL"
-  - name: whatsapp_response_message_id
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: whatsapp_response_message_status
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: whatsapp_response_text
-    type: text
-    nullable: true
-    default: "NULL"
-  indexes:
-  - name: whatsapp_message_recipient_user_id
-    def: KEY whatsapp_message_recipient_user_id (whatsapp_recipient_user_id) USING BTREE
-    table: outbox_whatsapp
-    columns:
-    - whatsapp_recipient_user_id
-  - name: PRIMARY
-    def: PRIMARY KEY (whatsapp_message_id) USING BTREE
-    table: outbox_whatsapp
-    columns:
-    - whatsapp_message_id
-  constraints:
-  - name: PRIMARY
-    type: PRIMARY KEY
-    def: PRIMARY KEY (whatsapp_message_id)
-    table: outbox_whatsapp
-    columns:
-    - whatsapp_message_id
-  def: |-
-    CREATE TABLE `outbox_whatsapp` (
-      `whatsapp_message_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
-      `whatsapp_date` datetime NOT NULL DEFAULT current_timestamp(),
-      `whatsapp_recipient_user_id` int(8) unsigned NOT NULL,
-      `whatsapp_recipient_phone_number` varchar(16) NOT NULL,
-      `whatsapp_request` text NOT NULL,
-      `whatsapp_error_name` varchar(32) DEFAULT NULL,
-      `whatsapp_error_message` text DEFAULT NULL,
-      `whatsapp_error_stack` text DEFAULT NULL,
-      `whatsapp_error_cause` text DEFAULT NULL,
-      `whatsapp_response_status` int(8) unsigned DEFAULT NULL,
-      `whatsapp_response_time` int(8) unsigned DEFAULT NULL,
-      `whatsapp_response_message_id` text DEFAULT NULL,
-      `whatsapp_response_message_status` text DEFAULT NULL,
-      `whatsapp_response_text` text DEFAULT NULL,
-      PRIMARY KEY (`whatsapp_message_id`),
-      KEY `whatsapp_message_recipient_user_id` (`whatsapp_recipient_user_id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: shifts_categories
   type: BASE TABLE
   columns:
