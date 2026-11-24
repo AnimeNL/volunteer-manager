@@ -302,6 +302,47 @@ describe('Cache', () => {
             expect(cache.has({ key: '1' })).toBeFalsy();
             expect(cache.has({ key: '3' })).toBeFalsy();
         });
+
+        it('should check expiry lazily on single-key reads without full scans', async () => {
+            const cache = Cache.getInstance('TestCacheWithTTL');
+            cache.set({ key: 'a' }, 'alpha');
+            cache.set({ key: 'b' }, 'beta');
+
+            const iteratorSpy = vi.spyOn(Map.prototype, Symbol.iterator);
+            try {
+                expect(cache.has({ key: 'a' })).toBeTruthy();
+                expect(cache.get({ key: 'a' })).toBe('alpha');
+                expect(cache.getMetadata({ key: 'a' })).toBeDefined();
+                expect(await cache.getOrInsert({ key: 'a' }, async () => 'new')).toBe('alpha');
+                expect(iteratorSpy).not.toHaveBeenCalled();
+
+                vi.advanceTimersByTime(10_000);
+
+                expect(cache.has({ key: 'a' })).toBeFalsy();
+                expect(cache.get({ key: 'b' })).toBeUndefined();
+                expect(cache.getMetadata({ key: 'a' })).toBeUndefined();
+                expect(iteratorSpy).not.toHaveBeenCalled();
+            } finally {
+                iteratorSpy.mockRestore();
+            }
+        });
+
+        it('should prune expired entries on set before LRU eviction', () => {
+            const cache = Cache.getInstance('TestCacheWithBoundedTTL');
+            cache.clear();
+
+            cache.set({ key: '1' }, 'data1');
+            vi.advanceTimersByTime(6_000);
+            cache.set({ key: '2' }, 'data2');
+
+            // Advance 5s: '1' is at 11s (expired), '2' is at 5s (still valid).
+            vi.advanceTimersByTime(5_000);
+            cache.set({ key: '3' }, 'data3');
+
+            expect(cache.has({ key: '1' })).toBeFalsy();
+            expect(cache.has({ key: '2' })).toBeTruthy();
+            expect(cache.has({ key: '3' })).toBeTruthy();
+        });
     });
 
     describe('metadata()', () => {

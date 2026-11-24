@@ -200,12 +200,17 @@ export class Cache<T extends CacheType> {
      */
     delete(...args: CacheDeleteArgs<T>): void;
     delete(params?: any) {
-        this.pruneExpiredEntries();
+        if (typeof params !== 'object' || params === null) {
+            const key = serializeParams(params);
+            if (this.#entries.get(key)?.params === params)
+                this.#entries.delete(key);
+
+            return;
+        }
 
         for (const [ key, entry ] of this.#entries) {
             const entryParams = entry.params;
             const matches = params === entryParams || (
-                typeof params === 'object' && params !== null &&
                 typeof entryParams === 'object' && entryParams !== null &&
                 Object.keys(params).every(k => (entryParams as any)[k] === params[k])
             );
@@ -238,11 +243,7 @@ export class Cache<T extends CacheType> {
      */
     getMetadata(...args: CacheAccessArgs<T>): CacheEntryMetadata | undefined;
     getMetadata(params?: any): CacheEntryMetadata | undefined {
-        this.pruneExpiredEntries();
-
-        const key = serializeParams(params);
-        const entry = this.#entries.get(key);
-
+        const entry = this.getValidEntry(serializeParams(params));
         if (!entry)
             return undefined;
 
@@ -258,10 +259,8 @@ export class Cache<T extends CacheType> {
      */
     get<Result = CacheContents<T>>(...args: CacheAccessArgs<T>): Result | null | undefined;
     get(params?: any): any {
-        this.pruneExpiredEntries();
-
         const key = serializeParams(params);
-        const entry = this.#entries.get(key);
+        const entry = this.getValidEntry(key);
 
         if (entry)
             this.touchEntry(key, entry);
@@ -277,8 +276,6 @@ export class Cache<T extends CacheType> {
     async getOrInsert(paramsOrPopulateFn: any, maybePopulateFn?: any, maybeSkipCache?: boolean)
         : Promise<any>
     {
-        this.pruneExpiredEntries();
-
         let params: any;
         let populateFn: any;
         let skipCache: boolean | undefined;
@@ -295,7 +292,7 @@ export class Cache<T extends CacheType> {
 
         if (!skipCache) {
             const key = serializeParams(params);
-            const entry = this.#entries.get(key);
+            const entry = this.getValidEntry(key);
 
             if (entry) {
                 this.touchEntry(key, entry);
@@ -314,8 +311,7 @@ export class Cache<T extends CacheType> {
      */
     has(...args: CacheAccessArgs<T>): boolean;
     has(params?: any): boolean {
-        this.pruneExpiredEntries();
-        return this.#entries.has(serializeParams(params));
+        return this.getValidEntry(serializeParams(params)) !== undefined;
     }
 
     /**
@@ -384,6 +380,22 @@ export class Cache<T extends CacheType> {
     // ---------------------------------------------------------------------------------------------
 
     /**
+     * Returns the entry for `key` if present and unexpired, lazily removing it if expired.
+     */
+    private getValidEntry(key: string): CacheEntry<T> | undefined {
+        const entry = this.#entries.get(key);
+        if (!entry)
+            return undefined;
+
+        if (entry.expiresAt !== null && performance.now() >= entry.expiresAt) {
+            this.#entries.delete(key);
+            return undefined;
+        }
+
+        return entry;
+    }
+
+    /**
      * Prunes all expired elements from this cache.
      */
     private pruneExpiredEntries() {
@@ -393,7 +405,7 @@ export class Cache<T extends CacheType> {
         const now = performance.now();
 
         for (const [ key, entry ] of this.#entries) {
-            if (entry.expiresAt && now >= entry.expiresAt)
+            if (entry.expiresAt !== null && now >= entry.expiresAt)
                 this.#entries.delete(key);
         }
     }
