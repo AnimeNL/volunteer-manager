@@ -2,9 +2,8 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { Scheduler } from './Scheduler';
-
 import type { TaskResult } from '../database/Types';
-import { scheduleTask } from '@lib/scheduler';
+import { scheduleTask } from './ScheduleTask';
 import db, { tTasks } from '@lib/database';
 
 /**
@@ -128,10 +127,10 @@ export class TaskContext {
 
     /**
      * Initialises a context for a static task, i.e. one that exists in the database, indicated by
-     * the given `taskId` and optionally the given `params`. Will return `undefined` when the task
-     * does not exist in the database, or has already been executed.
+     * the given `taskId`. Will return `undefined` when the task does not exist in the database, or
+     * has already been executed.
      */
-    static async forStaticTask(taskId: number, params: unknown) {
+    static async forStaticTask(taskId: number) {
         const task = await db.selectFrom(tTasks)
             .where(tTasks.taskId.equals(taskId))
                 .and(tTasks.taskInvocationResult.isNull())

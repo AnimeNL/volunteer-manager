@@ -49,7 +49,7 @@ export class TaskRunner {
         if ('taskName' in task)
             return this.executeNamedTask(TaskContext.forEphemeralTask(task.taskName, params));
 
-        const context = await TaskContext.forStaticTask(task.taskId, params);
+        const context = await TaskContext.forStaticTask(task.taskId);
         if (!context)
             return kTaskResult.InvalidTaskId;
 
