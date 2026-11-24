@@ -75,6 +75,16 @@ export default async function SettingsPage() {
                     description:
                         'Theme colour for the administration area. May be overridden by the user.',
                 },
+                {
+                    setting: 'web-vitals-reporting',
+                    type: 'boolean',
+                    defaultValue: false,
+
+                    label: 'Web Vitals reporting',
+                    description:
+                        'When enabled, clients report Core Web Vitals (TTFB, FCP, LCP, INP, CLS) ' +
+                        'to the server for performance monitoring.',
+                },
             ],
         },
         'Display settings': {

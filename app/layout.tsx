@@ -7,7 +7,9 @@ import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript';
 
 import { ClientProviders } from './ClientProviders';
+import { WebVitalsReporter } from './components/WebVitalsReporter';
 import { determineEnvironment } from '@lib/Environment';
+import { readSetting } from '@lib/Settings';
 
 /**
  * The root layout depends on the request's Host header to resolve the active environment, so all
@@ -48,7 +50,10 @@ export const viewport: Viewport = {
  * the path that has been requested by the client, allowing for middleware routing.
  */
 export default async function RootLayout(props: LayoutProps<'/'>) {
-    const environment = await determineEnvironment();
+    const [ environment, webVitalsReporting ] = await Promise.all([
+        determineEnvironment(),
+        readSetting('web-vitals-reporting'),
+    ]);
 
     return (
         <html lang="en" suppressHydrationWarning>
@@ -60,6 +65,7 @@ export default async function RootLayout(props: LayoutProps<'/'>) {
                         {props.children}
                     </ClientProviders>
                 </AppRouterCacheProvider>
+                { !!webVitalsReporting && <WebVitalsReporter /> }
                 { process.env.APP_ANALYTICS === '1' &&
                     <script src="https://analytics.beverloo.com/api/script.js"
                             data-site-id="47ebe80cb1b2" defer /> }
