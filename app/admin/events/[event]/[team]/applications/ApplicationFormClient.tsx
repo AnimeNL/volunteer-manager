@@ -11,7 +11,7 @@ import Grid from '@mui/material/Grid';
 import { AutocompleteElementWithDisabledOptions, type AutocompleteElementWithDisabledOptionsProps, type AutocompleteOption }
     from '@app/admin/components/AutocompleteElementWithDisabledOptions';
 import { ApplicationAvailabilityForm }
-    from '@app/registration/[slug]/application/ApplicationParticipation';
+    from '@app/(registration)/registration/[slug]/application/ApplicationParticipation';
 import { ParticipationForm } from '../volunteers/[volunteer]/preferences/ParticipationForm';
 
 /**

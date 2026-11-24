@@ -5,7 +5,7 @@ import { forbidden, notFound, unauthorized } from 'next/navigation';
 
 import { determineEnvironment } from '@lib/Environment';
 import { getEnvironmentContext, type EnvironmentContext } from '@lib/EnvironmentContext';
-import type { ParamMap } from '../../../../../.next/types/routes';
+import type { ParamMap } from '../../../../../../.next/types/routes';
 
 /**
  * Type that defines the properties available on an application context.

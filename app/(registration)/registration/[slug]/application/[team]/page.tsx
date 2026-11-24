@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 
 import { EventApplicationStatus } from './EventApplicationStatus';
 import { determineEnvironment } from '@lib/Environment';
-import { generatePortalMetadataFn } from '@app/registration/generatePortalMetadataFn';
+import { generatePortalMetadataFn } from '@app/(registration)/registration/generatePortalMetadataFn';
 import { getEnvironmentContext } from '@lib/EnvironmentContext';
 
 /**

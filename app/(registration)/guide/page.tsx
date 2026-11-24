@@ -6,8 +6,8 @@ import { forbidden, notFound } from 'next/navigation'
 
 import Box from '@mui/material/Box';
 
-import { RegistrationContentContainer } from '@app/registration/RegistrationContentContainer';
-import { RegistrationLayout } from '../../registration/RegistrationLayout';
+import { RegistrationContentContainer } from '../registration/RegistrationContentContainer';
+import { RegistrationLayout } from '../registration/RegistrationLayout';
 import { determineEnvironment } from '@lib/Environment';
 import { getStaticContent } from '@lib/Content';
 import { requireAuthenticationContext } from '@lib/auth';

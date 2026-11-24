@@ -7,7 +7,7 @@ import Paper from '@mui/material/Paper';
 
 import { MuiLicense } from '@components/MuiLicense';
 import { Navigation, type NavigationProps } from './components/Navigation';
-import { RegistrationLayout } from '@app/registration/RegistrationLayout';
+import { RegistrationLayout } from '../registration/RegistrationLayout';
 import { createTicketService } from '@lib/tickets';
 import { determineEnvironment } from '@lib/Environment';
 import { determineFilters } from './Filters';

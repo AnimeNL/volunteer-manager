@@ -16,7 +16,7 @@ import db, { tTeams, tTeamsRoles, tUsers, tUsersEvents, tUsersEventsPreferencesA
     tUsersEventsPreferencesParticipation } from '@lib/database';
 
 import { kRegistrationStatus, kShirtFit, kShirtSize, kSubscriptionType } from '@lib/database/Types';
-import { kServiceHoursProperty, kServiceTimingProperty } from '@app/registration/[slug]/application/ApplicationActions';
+import { kServiceHoursProperty, kServiceTimingProperty } from '@app/(registration)/registration/[slug]/application/ApplicationActions';
 
 /**
  * Zod type that describes that no data is expected.

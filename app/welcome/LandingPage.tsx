@@ -9,8 +9,8 @@ import { AdministrationCard } from './landing/AdministrationCard';
 import { ApplicationProgressHeader } from './ApplicationProgressHeader';
 import { EventsContent } from './landing/EventsContent';
 import { NoEventsContent } from './landing/NoEventsContent';
-import { RegistrationContentContainer } from '@app/registration/RegistrationContentContainer';
-import { RegistrationLayout } from '@app/registration/RegistrationLayout';
+import { RegistrationContentContainer } from '@app/(registration)/registration/RegistrationContentContainer';
+import { RegistrationLayout } from '@app/(registration)/registration/RegistrationLayout';
 import { StatisticsCard } from './landing/StatisticsCard';
 import { getEnvironmentContext } from '@lib/EnvironmentContext';
 

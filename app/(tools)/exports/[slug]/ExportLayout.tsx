@@ -10,7 +10,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import { kLogoContainerStyles } from '@app/registration/RegistrationLayout';
+import { kLogoContainerStyles } from '@app/(registration)/registration/RegistrationLayout';
 
 /**
  * Props accepted by the <ExportLayout> component.

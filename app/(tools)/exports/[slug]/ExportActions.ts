@@ -18,7 +18,7 @@ import db, { tEvents, tExports, tExportsLogs, tRoles, tTeams, tTrainings, tTrain
         from '@lib/database';
 
 import { kAvailabilityBuildUpTearDownScheme }
-    from '@app/registration/[slug]/application/AvailabilityBuildUpTearDownScheme';
+    from '@app/(registration)/registration/[slug]/application/AvailabilityBuildUpTearDownScheme';
 import { kExportType, kRegistrationStatus, kVendorTeam } from '@lib/database/Types';
 
 /**

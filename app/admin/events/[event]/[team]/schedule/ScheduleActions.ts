@@ -17,7 +17,7 @@ import { writeUserSetting, writeUserSettings } from '@lib/UserSettings';
 import db, { tActivities, tActivitiesTimeslots, tRoles, tSchedule, tScheduleLogs, tShifts, tUsers,
     tUsersEvents, tUsersEventsPreferencesAvailability } from '@lib/database';
 
-import type { kServiceHoursProperty } from '@app/registration/[slug]/application/ApplicationActions';
+import type { kServiceHoursProperty } from '@app/(registration)/registration/[slug]/application/ApplicationActions';
 import { kMutation, kRegistrationStatus } from '@lib/database/Types';
 import { kTemporalPlainDate, kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
 

@@ -7,8 +7,8 @@ import Typography from '@mui/material/Typography';
 
 import { ErrorPageClientReporter } from './ErrorPageClientReporter';
 import { ExportLayout } from '@app/(tools)/exports/[slug]/ExportLayout';
-import { RegistrationContentContainer } from '@app/registration/RegistrationContentContainer';
-import { RegistrationLayout } from './registration/RegistrationLayout';
+import { RegistrationContentContainer } from '@app/(registration)/registration/RegistrationContentContainer';
+import { RegistrationLayout } from './(registration)/registration/RegistrationLayout';
 import { determineEnvironment } from '@lib/Environment';
 import { getAuthenticationContext } from '@lib/auth';
 import { getStaticContent } from '@lib/Content';

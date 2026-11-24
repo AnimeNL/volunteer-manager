@@ -18,7 +18,7 @@ import db, { tUsers } from '@lib/database';
 
 import * as actions from './[id]/AccountActions';
 
-import { kGenderOptions } from '@app/registration/authentication/RegisterForm';
+import { kGenderOptions } from '@app/(registration)/registration/authentication/RegisterForm';
 
 /**
  * Data source through which the Accounts data table can be populated.

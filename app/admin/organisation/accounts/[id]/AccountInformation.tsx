@@ -18,7 +18,7 @@ import { DiscordIcon } from '@app/admin/components/icons/DiscordIcon';
 import { LocalDatePickerElement } from '@components/LocalDatePickerElement';
 import { ResponsiveConfirmationDialog } from '@app/admin/components/ResponsiveConfirmationDialog';
 
-import { kGenderOptions, kLanguageOptions } from '@app/registration/authentication/RegisterForm';
+import { kGenderOptions, kLanguageOptions } from '@app/(registration)/registration/authentication/RegisterForm';
 
 /**
  * Props accepted by the <AccountInformation> component.

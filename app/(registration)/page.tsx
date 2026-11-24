@@ -3,8 +3,8 @@
 
 import { notFound } from 'next/navigation';
 
-import { LandingPage } from './welcome/LandingPage';
-import { PlaceholderPage } from './welcome/PlaceholderPage';
+import { LandingPage } from '../welcome/LandingPage';
+import { PlaceholderPage } from '../welcome/PlaceholderPage';
 import { determineEnvironment } from '@lib/Environment';
 import { generatePortalMetadataFn } from './registration/generatePortalMetadataFn';
 
