@@ -5,6 +5,10 @@ import type { Scheduler } from './Scheduler';
 // NOTE: Do not import further dependencies from here, as this file is used outside of the app
 // bundle and we want to minimise side-effects.
 
+declare namespace globalThis {
+    let animeConSchedulerRunner: SchedulerRunner | undefined;
+}
+
 /**
  * Maximum exception multiplier. The multiplier will be doubled each time an exception is thrown
  * when executing a scheduler. The maximum walltime is this multiplied by the interval.
@@ -15,16 +19,6 @@ export const kMaximumExceptionMultiplier = 64;
  * Interval, in milliseconds, at which the schedulers should be invoked.
  */
 export const kSchedulerRunnerIntervalMs = 1000;
-
-/**
- * Private Symbol preventing direct instantiation of the SchedulerRunner class.
- */
-const kSchedulerRunnerPrivateSymbol: unique symbol = Symbol('SchedulerRunner');
-
-/**
- * Global instance of the SchedulerRunner. Will be created by `SchedulerRunner::getInstance()`.
- */
-let globalSchedulerRunner: SchedulerRunner | undefined = undefined;
 
 /**
  * Returns a promise that will be resolved after the given number of `ms`. Can be awaited.
@@ -45,27 +39,23 @@ export class SchedulerRunner {
      * Returns a new instance of the scheduler runner, must only be used for testing.
      */
     static createInstanceForTesting(): SchedulerRunner {
-        return new SchedulerRunner(kSchedulerRunnerPrivateSymbol);
+        return new SchedulerRunner();
     }
 
     /**
-     * Returns the global instance of the Volunteer Manager's Scheduler.
+     * Returns the global instance of the Volunteer Manager's Scheduler. Stored on `globalThis` so
+     * that hot module reloads do not orphan a running loop.
      */
     static getInstance(): SchedulerRunner {
-        if (!globalSchedulerRunner)
-            globalSchedulerRunner = new SchedulerRunner(kSchedulerRunnerPrivateSymbol);
-
-        return globalSchedulerRunner;
+        globalThis.animeConSchedulerRunner ??= new SchedulerRunner();
+        return globalThis.animeConSchedulerRunner;
     }
 
     #abortController?: AbortController;
     #exceptionPenaltyMultiplier: number;
     #schedulers: Set<Scheduler>;
 
-    private constructor(privateSymbol: Symbol) {
-        if (privateSymbol !== kSchedulerRunnerPrivateSymbol)
-            throw new Error('Do not instantiate the runner directly, use getInstance() instead');
-
+    private constructor() {
         this.#abortController = undefined;
         this.#exceptionPenaltyMultiplier = 1;
         this.#schedulers = new Set();
