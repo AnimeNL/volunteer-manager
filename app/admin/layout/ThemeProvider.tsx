@@ -14,9 +14,8 @@ import type { ColorPalette } from './ThemeUtilities';
  * The Inter font, loaded through NextJS' font stack, with default settings for Material UI.
  */
 const kInterFont = Inter({
-    weight: [ '300', '400', '500', '700' ],
     subsets: [ 'latin' ],
-    display: 'block',
+    display: 'swap',
     fallback: [ 'Roboto', 'Helvetica', 'Arial', 'sans-serif' ],
 });
 
