@@ -329,7 +329,7 @@ export class WeeztixClient {
      * @returns Array of ticket types that have been attached to the given `shopId`.
      */
     async listShopTicketTypes(shopId: string): Promise<weeztix.GetShopTicketTypesResponse> {
-        return this.issueRequest(weeztix.kGetScannerTypesResponse, {
+        return this.issueRequest(weeztix.kGetShopTicketTypesResponse, {
             api: `/shop/${shopId}/tickets`,
             operation: '/shop/<Id>/tickets',
             method: 'GET',

@@ -211,7 +211,7 @@ export const kGetShopTicketTypesResponse = z.array(z.object({
  * Expected response for the /shop/:guid/tickets API.
  * @see https://docs.weeztix.com/api/dashboard/get-shop-specific-ticket
  */
-export type GetShopTicketTypesResponse = z.infer<typeof kGetShopsResponse>;
+export type GetShopTicketTypesResponse = z.infer<typeof kGetShopTicketTypesResponse>;
 
 /**
  * Expected response for the /shop/{type?} API.
