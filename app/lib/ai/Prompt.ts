@@ -110,26 +110,30 @@ export abstract class Prompt<T extends PromptParameters> {
      * this is the first access, which may incur a database operation.
      */
     get template(): Promise<PromptTemplate> {
-        return new Promise(async (resolve) => {
-            if (this.#template === undefined) {
-                if (this.#templateText === undefined || !!this.metadata.settings.complexity) {
-                    const settings = await readSettings([
-                        this.metadata.settings.prompt,
-                        this.metadata.settings.complexity!,
-                    ]);
+        return this.loadTemplate();
+    }
 
-                    if (!!this.metadata.settings.complexity)
-                        this.#complexity = settings[this.metadata.settings.complexity] ?? 'medium';
+    /**
+     * Loads and compiles the template for this prompt when it has not been initialised yet.
+     */
+    private async loadTemplate(): Promise<PromptTemplate> {
+        if (this.#template === undefined) {
+            const { complexity, prompt } = this.metadata.settings;
+            if (this.#templateText === undefined || !!complexity) {
+                const keys = complexity ? [ prompt, complexity ] : [ prompt ];
+                const settings = await readSettings(keys);
 
-                    if (!this.#templateText)
-                        this.#templateText = settings[this.metadata.settings.prompt] ?? '';
-                }
+                if (!!complexity)
+                    this.#complexity = settings[complexity] ?? 'medium';
 
-                this.#template = PromptTemplate.compile(this.#templateText);
+                if (!this.#templateText)
+                    this.#templateText = settings[prompt] ?? '';
             }
 
-            return resolve(this.#template);
-        });
+            this.#template = PromptTemplate.compile(this.#templateText);
+        }
+
+        return this.#template;
     }
 
     /**
