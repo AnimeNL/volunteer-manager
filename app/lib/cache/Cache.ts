@@ -37,7 +37,12 @@ interface CacheEntryMetadata {
 /**
  * Interface representing an entry in the Cache.
  */
-interface CacheEntry<T extends CacheType> extends CacheEntryMetadata {
+interface CacheEntry<T extends CacheType> extends Omit<CacheEntryMetadata, 'bytes'> {
+    /**
+     * Number of bytes stored in this cache entry, computed lazily when metadata is requested.
+     */
+    bytes: number | undefined;
+
     /**
      * Parameters with which this cache entry has been associated.
      */
@@ -234,8 +239,13 @@ export class Cache<T extends CacheType> {
      */
     *metadata(): IterableIterator<CacheEntryMetadata> {
         this.pruneExpiredEntries();
-        for (const { accessCount, bytes, lastAccessTime } of this.#entries.values())
-            yield { accessCount, bytes, lastAccessTime };
+        for (const entry of this.#entries.values()) {
+            yield {
+                accessCount: entry.accessCount,
+                bytes: this.getEntryBytes(entry),
+                lastAccessTime: entry.lastAccessTime,
+            };
+        }
     }
 
     /**
@@ -249,7 +259,7 @@ export class Cache<T extends CacheType> {
 
         return {
             accessCount: entry.accessCount,
-            bytes: entry.bytes,
+            bytes: this.getEntryBytes(entry),
             lastAccessTime: entry.lastAccessTime,
         };
     }
@@ -346,7 +356,7 @@ export class Cache<T extends CacheType> {
                 : null,
 
             accessCount: 1,
-            bytes: calculateByteSize(contents),
+            bytes: undefined,
             lastAccessTime: performance.now(),
         });
 
@@ -378,6 +388,14 @@ export class Cache<T extends CacheType> {
     [Symbol.iterator]() { return this.entries(); }
 
     // ---------------------------------------------------------------------------------------------
+
+    /**
+     * Returns the byte size of `entry`, computing and caching it lazily on first request.
+     */
+    private getEntryBytes(entry: CacheEntry<T>): number {
+        entry.bytes ??= calculateByteSize(entry.contents);
+        return entry.bytes;
+    }
 
     /**
      * Returns the entry for `key` if present and unexpired, lazily removing it if expired.

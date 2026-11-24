@@ -412,6 +412,29 @@ describe('Cache', () => {
             expect(metadata).toHaveLength(1);
             expect(metadata[0].bytes).toBe(0);
         });
+
+        it('should compute and cache byte sizes lazily when metadata is requested', () => {
+            const cache = Cache.getInstance('ManifestLatestEvent');
+            const data = { name: 'AnimeCon 2026', fullName: 'AnimeCon 2026 Event' };
+            const expectedBytes = new TextEncoder().encode(JSON.stringify(data)).length;
+
+            const stringifySpy = vi.spyOn(JSON, 'stringify');
+            try {
+                cache.set(data);
+                expect(stringifySpy).not.toHaveBeenCalled();
+
+                const meta1 = cache.getMetadata();
+                expect(meta1?.bytes).toBe(expectedBytes);
+                expect(stringifySpy).toHaveBeenCalledTimes(1);
+
+                const meta2 = cache.getMetadata();
+                expect(meta2?.bytes).toBe(expectedBytes);
+                expect(Array.from(cache.metadata())[0].bytes).toBe(expectedBytes);
+                expect(stringifySpy).toHaveBeenCalledTimes(1);
+            } finally {
+                stringifySpy.mockRestore();
+            }
+        });
     });
 
     describe('LRU eviction behaviour', () => {
