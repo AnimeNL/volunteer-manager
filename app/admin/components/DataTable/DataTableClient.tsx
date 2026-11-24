@@ -3,6 +3,7 @@
 
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -23,18 +24,26 @@ import Tooltip from '@mui/material/Tooltip';
 import type { Column } from './Column';
 import type { DataSourceInterface } from './DataSourceInterface';
 import type { DataTableListViewProps } from './DataTableListViewRow';
+import type { DataTableRowEditorProps } from './DataTableRowEditor';
 import type { ExtractContext, ExtractRowModel } from './Types';
 import { DataTableListViewButtonRow, DataTableListViewRow, calculateListViewRowHeight }
     from './DataTableListViewRow';
 import { DataTableProminentSearchToolbar } from './DataTableProminentSearchToolbar';
 import { DataTableResponsiveFooter, DataTableResponsiveFooterWithQuickSearch } from './DataTableResponsiveFooter';
-import { DataTableRowEditor } from './DataTableRowEditor';
 import { ResponsiveConfirmationDialog } from '../ResponsiveConfirmationDialog';
 import { isFrozenRow, isProtectedRow } from './Utilities';
 import { useDataTableState } from './useDataTableState';
 import { useIsMobile } from '@app/admin/lib/useIsMobile';
 
 import { kColumnTemplates } from './ColumnTemplates';
+
+/**
+ * Lazily loaded row editor dialog so `react-hook-form-mui` is only fetched when creating or
+ * editing rows in the modal/bottom-sheet editor.
+ */
+const DataTableRowEditor = dynamic<DataTableRowEditorProps<any>>(
+    () => import('./DataTableRowEditor').then(module => module.DataTableRowEditor),
+    { ssr: false });
 
 /**
  * Default value for the page size.
@@ -651,20 +660,22 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 undone once you confirm its deletion
 
             </ResponsiveConfirmationDialog>
-            <DataTableRowEditor
-                open={editCandidate !== undefined}
-                onClose={handleEditClose}
-                onSave={handleEditSave}
-                columns={props.columns}
-                subject={subject}
-                row={editCandidate} />
-            <DataTableRowEditor
-                open={createOpen}
-                onClose={handleCreateClose}
-                onSave={handleCreateSave}
-                columns={props.columns}
-                subject={subject}
-                create />
+            { editCandidate !== undefined &&
+                <DataTableRowEditor
+                    open
+                    onClose={handleEditClose}
+                    onSave={handleEditSave}
+                    columns={props.columns}
+                    subject={subject}
+                    row={editCandidate} /> }
+            { createOpen &&
+                <DataTableRowEditor
+                    open
+                    onClose={handleCreateClose}
+                    onSave={handleCreateSave}
+                    columns={props.columns}
+                    subject={subject}
+                    create /> }
         </>
     );
 }

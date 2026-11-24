@@ -6,7 +6,8 @@
 import Link from '@app/LinkProxy';
 import { useCallback, useContext, useMemo, useState } from 'react';
 
-import { SelectElement, TimePickerElement } from '@proxy/react-hook-form-mui';
+import { SelectElement } from '@proxy/react-hook-form-mui';
+import { TimePickerElement } from '@proxy/react-hook-form-mui-date-pickers';
 
 import type { PopoverPosition } from '@mui/material/Popover';
 import Button from '@mui/material/Button';

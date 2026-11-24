@@ -20,7 +20,7 @@ import { ResponsiveFormDialog, type ResponsiveFormDialogProps } from '../Respons
 /**
  * Props accepted by the <DataTableRowEditor> component.
  */
-interface DataTableRowEditorProps<RowModel extends GridValidRowModel = GridValidRowModel>
+export interface DataTableRowEditorProps<RowModel extends GridValidRowModel = GridValidRowModel>
     extends Pick<ResponsiveFormDialogProps, 'open' | 'onClose'>
 {
     /**

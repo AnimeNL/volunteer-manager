@@ -8,4 +8,3 @@
 //
 // @see https://github.com/dohomi/react-hook-form-mui/issues/279
 export * from 'react-hook-form-mui';
-export * from 'react-hook-form-mui/date-pickers';

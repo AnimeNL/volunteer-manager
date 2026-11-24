@@ -6,7 +6,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { AvailabilityWindowIndicator } from './AvailabilityWindowIndicator';
-import { DateTimePickerElement } from '@proxy/react-hook-form-mui';
+import { DateTimePickerElement } from '@proxy/react-hook-form-mui-date-pickers';
 
 /**
  * Props accepted by the <AvailabilityWindow> component.
