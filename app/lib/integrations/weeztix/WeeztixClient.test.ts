@@ -38,7 +38,7 @@ describe('WeeztixClient', () => {
     });
 
     it('issues request successfully without refresh when access token is valid', async () => {
-        const client = new WeeztixClient(createSettings(100)); // token valid for 100s
+        const client = new WeeztixClient(createSettings(600)); // token valid for 10m
 
         fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify([
             {
@@ -62,8 +62,8 @@ describe('WeeztixClient', () => {
             }));
     });
 
-    it('refreshes token and retries if access token is initially expired', async () => {
-        const client = new WeeztixClient(createSettings(-301)); // token expired 5m+1s ago
+    it('refreshes token and retries if access token is expiring soon', async () => {
+        const client = new WeeztixClient(createSettings(299)); // token expires within 5m
 
         // 1st fetch: token refresh endpoint
         fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({
@@ -115,7 +115,7 @@ describe('WeeztixClient', () => {
     });
 
     it('refreshes token and retries if API returns 401', async () => {
-        const client = new WeeztixClient(createSettings(100)); // token valid, but server rejects
+        const client = new WeeztixClient(createSettings(600)); // token valid, but server rejects
 
         // 1st fetch: API call returning 401
         fetchSpy.mockResolvedValueOnce(new Response('Unauthorized', { status: 401 }));
@@ -158,7 +158,7 @@ describe('WeeztixClient', () => {
     });
 
     it('throws error if API returns 401 on retry', async () => {
-        const client = new WeeztixClient(createSettings(100));
+        const client = new WeeztixClient(createSettings(600));
 
         // 1st fetch: API call returning 401
         fetchSpy.mockResolvedValueOnce(new Response('Unauthorized', { status: 401 }));
@@ -183,7 +183,7 @@ describe('WeeztixClient', () => {
 
     it('generalises event GUIDs in instrumentation operations for listTicketTypes', async () => {
         const withContextSpy = vi.spyOn(Instrumentation, 'withContext');
-        const client = new WeeztixClient(createSettings(100));
+        const client = new WeeztixClient(createSettings(600));
 
         fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify([
             {
@@ -218,7 +218,7 @@ describe('WeeztixClient', () => {
 
     it('retrieves event and order details with generalised instrumentation paths', async () => {
         const withContextSpy = vi.spyOn(Instrumentation, 'withContext');
-        const client = new WeeztixClient(createSettings(100));
+        const client = new WeeztixClient(createSettings(600));
 
         fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({
             guid: 'event-guid-123',
@@ -316,7 +316,7 @@ describe('WeeztixClient', () => {
 
     it('posts order statistics queries and unwraps hit sources', async () => {
         const withContextSpy = vi.spyOn(Instrumentation, 'withContext');
-        const client = new WeeztixClient(createSettings(100));
+        const client = new WeeztixClient(createSettings(600));
 
         const mockOrder = {
             guid: 'order-newer',
@@ -381,7 +381,7 @@ describe('WeeztixClient', () => {
     });
 
     it('returns true for empty OK responses when schema is undefined', async () => {
-        const client = new WeeztixClient(createSettings(100));
+        const client = new WeeztixClient(createSettings(600));
         const issueRequest = (client as unknown as {
             issueRequest: (
                 schema: undefined,
@@ -403,7 +403,7 @@ describe('WeeztixClient', () => {
     });
 
     it('resends confirmation e-mails for a given orderId', async () => {
-        const client = new WeeztixClient(createSettings(100));
+        const client = new WeeztixClient(createSettings(600));
 
         fetchSpy.mockResolvedValueOnce(new Response(null, { status: 204 }));
         await expect(client.resendConfirmationEmail('order-guid-789')).resolves.toBe(true);
@@ -420,7 +420,7 @@ describe('WeeztixClient', () => {
 
     it('updates order receiver information with generalised instrumentation paths', async () => {
         const withContextSpy = vi.spyOn(Instrumentation, 'withContext');
-        const client = new WeeztixClient(createSettings(100));
+        const client = new WeeztixClient(createSettings(600));
 
         fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({
             guid: 'order-guid-789',
@@ -466,7 +466,7 @@ describe('WeeztixClient', () => {
 
     it('creates and updates ticket metadata with generalised instrumentation paths', async () => {
         const withContextSpy = vi.spyOn(Instrumentation, 'withContext');
-        const client = new WeeztixClient(createSettings(100));
+        const client = new WeeztixClient(createSettings(600));
 
         fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({
             guid: 'order-metadata-guid-1',
@@ -550,7 +550,7 @@ describe('WeeztixClient', () => {
 
     it('cancels an order with generalised instrumentation paths', async () => {
         const withContextSpy = vi.spyOn(Instrumentation, 'withContext');
-        const client = new WeeztixClient(createSettings(100));
+        const client = new WeeztixClient(createSettings(600));
 
         fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({
             errors: {},

@@ -441,7 +441,7 @@ export class WeeztixClient {
         : Promise<T | boolean>
     {
         const currentInstant = Temporal.Now.instant();
-        const expirationInstant = currentInstant.subtract({ minutes: 5 });
+        const expirationInstant = currentInstant.add({ minutes: 5 });
 
         // Automatically refresh the access token when it either as expired, or is due to expire in
         // the near future. We do this to avoid unnecessary roundtrips on 401 responses.
