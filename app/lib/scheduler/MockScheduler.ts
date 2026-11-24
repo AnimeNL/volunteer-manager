@@ -1,8 +1,7 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { TaskIdentifier } from './Scheduler';
-import { SchedulerBase } from './SchedulerBase';
+import { Scheduler, type TaskIdentifier } from './Scheduler';
 import { SchedulerRunner } from './SchedulerRunner';
 
 /**
@@ -14,9 +13,13 @@ type TaskFunction = () => Promise<void>;
  * Mock implementation of the scheduler which is to be used in testing environments. Provides access
  * to historic invocations and use that allows it to be introspected.
  */
-export class MockScheduler extends SchedulerBase {
+export class MockScheduler extends Scheduler {
     #populated: boolean = false;
     #registeredTasks: Map<string, TaskFunction> = new Map;
+
+    constructor() {
+        super(task => this.#handleTask(task));
+    }
 
     /**
      * Gets whether the scheduler has been populated with tasks. This will be initiated by the
@@ -28,7 +31,7 @@ export class MockScheduler extends SchedulerBase {
      * Invokes the singular task identified by the given `task`. In the mock scheduler we only
      * support named tasks right now.
      */
-    async invoke(task: TaskIdentifier): Promise<void> {
+    async #handleTask(task: TaskIdentifier): Promise<void> {
         if ('taskId' in task)
             throw new Error(`The MockScheduler only supports named tasks (got: ${task.taskId})`);
 

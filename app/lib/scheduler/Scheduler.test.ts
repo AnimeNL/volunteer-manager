@@ -3,7 +3,7 @@
 
 import { MockScheduler } from './MockScheduler';
 
-describe('SchedulerBase', () => {
+describe('Scheduler', () => {
     it('maintains a priority queue of the to-be-executed tasks', async () => {
         const scheduler = new MockScheduler();
 
