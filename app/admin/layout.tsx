@@ -10,7 +10,7 @@ import { ResponsiveLayout } from './layout/ResponsiveLayout';
 import { checkPermission } from '@lib/auth/access';
 import { computePalette } from './layout/ThemeUtilities';
 import { determineEnvironment } from '@lib/Environment';
-import { readUserSettings } from '@lib/UserSettings';
+import { readUserSetting } from '@lib/UserSettings';
 import { requireAuthentication } from '@lib/auth';
 import db, { tEvents } from '@lib/database';
 
@@ -45,15 +45,11 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
     const events = unfilteredEvents!.filter(event =>
         access.can('event.visible', { event: event.slug, team: kAnyTeam }))
 
-    const settings = await readUserSettings(user.id, [
-        'admin-theme-color',
-        'ai-example-messages',
-        'user-ai-example-messages-promo-time',
-    ]);
+    const themeColor = await readUserSetting(user.id, 'admin-theme-color');
 
     const enableOrganisation = checkPermission(access, kDashboardPermissions);
 
-    const palette = computePalette(settings['admin-theme-color'] || '#2196f3');
+    const palette = computePalette(themeColor || '#2196f3');
 
     return (
         <>
