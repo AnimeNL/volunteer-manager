@@ -4,6 +4,7 @@
 import ApiIcon from '@mui/icons-material/Api';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
+import SpeedIcon from '@mui/icons-material/Speed';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
 import { and, requireAuthentication } from '@lib/auth';
@@ -38,6 +39,12 @@ export default async function DiagnosticsLayout(props: LayoutProps<'/admin/syste
                         operation: 'read',
                     }),
                 url: '/admin/system/diagnostics/integrations',
+                urlMatchMode: 'prefix',
+            },
+            {
+                Icon: SpeedIcon,
+                label: 'Performance',
+                url: '/admin/system/diagnostics/performance',
                 urlMatchMode: 'prefix',
             },
             {
