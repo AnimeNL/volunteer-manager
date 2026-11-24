@@ -18,6 +18,12 @@ import db, { tWebVitals } from '@lib/database';
 import { kWebVitalDeviceType, kWebVitalNavigationType } from '@lib/database/Types';
 
 /**
+ * Whether measurements recorded by local `"dev"` builds should be excluded. Only non-production
+ * builds display and consider `"dev"` measurements.
+ */
+const kExcludeDevBuilds = process.env.NODE_ENV === 'production';
+
+/**
  * Schema for querying Web Vitals time-series data for a specific normalized route.
  */
 const kFetchRouteVitalsSchema = z.object({
@@ -41,7 +47,8 @@ async function fetchRouteVitals(input: unknown) {
 
         let query = db.selectFrom(tWebVitals)
             .where(tWebVitals.vitalRoute.equals(data.route))
-                .and(tWebVitals.vitalDate.greaterOrEqual(cutoffDate));
+                .and(tWebVitals.vitalDate.greaterOrEqual(cutoffDate))
+                .and(tWebVitals.vitalBuildHash.notEquals('dev').onlyWhen(kExcludeDevBuilds));
 
         if (data.deviceType === 'Desktop')
             query = query.and(tWebVitals.vitalDeviceType.equals(kWebVitalDeviceType.Desktop));
@@ -105,6 +112,7 @@ export default async function PerformanceDiagnosticsPage() {
         readSetting('web-vitals-reporting'),
         db.selectFrom(tWebVitals)
             .where(tWebVitals.vitalDate.greaterOrEqual(thirtyDaysAgo))
+                .and(tWebVitals.vitalBuildHash.notEquals('dev').onlyWhen(kExcludeDevBuilds))
             .select({
                 route: tWebVitals.vitalRoute,
                 metric: tWebVitals.vitalMetric,
@@ -112,6 +120,7 @@ export default async function PerformanceDiagnosticsPage() {
             })
             .executeSelectMany(),
         db.selectDistinctFrom(tWebVitals)
+            .where(tWebVitals.vitalBuildHash.notEquals('dev').onlyWhen(kExcludeDevBuilds))
             .selectOneColumn(tWebVitals.vitalRoute)
             .orderBy(tWebVitals.vitalRoute, 'asc')
             .executeSelectMany(),
