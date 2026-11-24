@@ -266,4 +266,18 @@ describe('AccessControl', () => {
         expect(checkPermission(access, and())).toBe(false);
         expect(checkPermission(access, or())).toBe(false);
     });
+
+    it('skips PermissionRoles cache lookups when constructed without grants', () => {
+        const getInstanceSpy = vi.spyOn(Cache, 'getInstance');
+        try {
+            const guest = new AccessControl({});
+            const emptyArray = new AccessControl({ grants: [] });
+
+            expect(getInstanceSpy).not.toHaveBeenCalled();
+            expect(guest.can('test.boolean')).toBe(false);
+            expect(emptyArray.can('test.boolean')).toBe(false);
+        } finally {
+            getInstanceSpy.mockRestore();
+        }
+    });
 });

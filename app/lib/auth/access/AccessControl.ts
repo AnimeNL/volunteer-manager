@@ -76,18 +76,17 @@ export type AccessResult = Result & {
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Collects permission revocations inherited from any permission roles referenced by `rawGrants`,
- * preserving each grant's event/team scope.
+ * Resolves permission role expansions and inherited revocations referenced by `rawGrants`,
+ * preserving each grant's event/team scope. Looks up only referenced roles on demand.
  */
-function collectRoleRevokes(
-    rawGrants: Grant | Grant[] | undefined,
-    roleMap: Map<string, { grants: string[]; revokes: string[] }>): Grant[]
+function resolveRoles(rawGrants: Grant | Grant[])
+    : { expansions?: Record<string, string[]>; revokes: Grant[] }
 {
-    if (!rawGrants)
-        return [];
-
+    const roleCache = Cache.getInstance('PermissionRoles');
     const grants = Array.isArray(rawGrants) ? rawGrants : [ rawGrants ];
-    const collected: Grant[] = [];
+
+    let expansions: Record<string, string[]> | undefined;
+    const revokes: Grant[] = [];
 
     for (const entry of grants) {
         const grant = typeof entry === 'string' ? { permission: entry } : entry;
@@ -100,27 +99,28 @@ function collectRoleRevokes(
 
             seen.add(permission);
 
-            const role = roleMap.get(permission);
+            const role = roleCache.get(permission);
             if (!role)
                 continue;
 
-            for (const nested of role.grants) {
-                if (nested)
-                    queue.push(nested);
-            }
+            const roleGrants = role.grants.filter(Boolean);
+            expansions ??= Object.create(null);
+            expansions![permission] ??= roleGrants;
+
+            queue.push(...roleGrants);
 
             for (const revoked of role.revokes) {
                 if (!revoked)
                     continue;
 
-                collected.push(grant.event || grant.team
+                revokes.push(grant.event || grant.team
                     ? { permission: revoked, event: grant.event, team: grant.team }
                     : revoked);
             }
         }
     }
 
-    return collected;
+    return { expansions, revokes };
 }
 
 /**
@@ -141,23 +141,24 @@ export class AccessControl {
     #revokes: AccessList;
 
     constructor(grants: AccessControlParams) {
-        const roleMap = new Map<string, { grants: string[]; revokes: string[] }>();
-        for (const [ role, permissions ] of Cache.getInstance('PermissionRoles').entries()) {
-            if (permissions)
-                roleMap.set(role, permissions);
-        }
+        const hasGrants = !!grants.grants &&
+            (!Array.isArray(grants.grants) || grants.grants.length > 0);
 
-        const expansions = Object.fromEntries(
-            [ ...roleMap.entries() ].map(([ role, permissions ]) =>
-                [ role, permissions.grants.filter(Boolean) ]));
+        const { expansions, revokes: roleRevokes } = hasGrants
+            ? resolveRoles(grants.grants!)
+            : { expansions: undefined, revokes: [] };
 
-        const explicitRevokes = !grants.revokes
-            ? []
-            : Array.isArray(grants.revokes) ? grants.revokes : [ grants.revokes ];
-        const roleRevokes = collectRoleRevokes(grants.grants, roleMap);
+        const revokeGrants = roleRevokes.length > 0
+            ? [
+                ...(grants.revokes
+                    ? (Array.isArray(grants.revokes) ? grants.revokes : [ grants.revokes ])
+                    : []),
+                ...roleRevokes,
+            ]
+            : grants.revokes;
 
         this.#revokes = new AccessList({
-            grants: [ ...explicitRevokes, ...roleRevokes ],
+            grants: revokeGrants,
             requireSpecificScope: true,
         });
 
