@@ -4,6 +4,7 @@
 import { getAccessFallbackHTTPStatus, isHTTPAccessFallbackError }
     from 'next/dist/client/components/http-access-fallback/http-access-fallback';
 
+import type { AuthenticationContext } from './AuthenticationContextTypes';
 import type { CachedEvent, CachedTeam } from '@lib/cache';
 import { AccessControl } from './access/AccessControl';
 import { Cache } from '@lib/cache';
@@ -14,6 +15,16 @@ import { requireAuthentication, requireAuthenticationWithEvent,
     from './RequireAuthentication';
 import { useMockConnection } from '@lib/database/Connection';
 
+let mockAuthContext: AuthenticationContext | undefined;
+
+vi.mock('./AuthenticationContext', () => ({
+    requireAuthenticationContext: async () => {
+        if (!mockAuthContext)
+            throw new Error('Unexpected requireAuthenticationContext() call in test');
+        return mockAuthContext;
+    },
+}));
+
 describe('requireAuthentication', () => {
     const mockConnection = useMockConnection();
 
@@ -23,22 +34,44 @@ describe('requireAuthentication', () => {
         name: 'AnimeCon 2026',
         shortName: '2026',
         published: true,
-        startTime: '2026-06-05T12:00:00+02:00',
-        endTime: '2026-06-07T18:00:00+02:00',
+        startTime: Temporal.ZonedDateTime.from('2026-06-05T12:00:00+02:00[Europe/Amsterdam]'),
+        endTime: Temporal.ZonedDateTime.from('2026-06-07T18:00:00+02:00[Europe/Amsterdam]'),
         timeZone: 'Europe/Amsterdam',
+        flags: {
+            enableBuildUp: false,
+            enableHotel: false,
+            enableRefunds: false,
+            enableTearDown: false,
+            enableTraining: false,
+        },
     };
 
     const kTestTeam: CachedTeam = {
         id: 20,
         slug: 'stewards',
+        domain: 'animecon.team',
+        environmentId: 1,
         name: 'Stewards',
-        color: {
-            darkTheme: '#ff0000',
-            lightTheme: '#cc0000',
+        title: 'Stewards',
+        plural: 'Stewards',
+        color: '#cc0000',
+        inviteKey: 'test-invite-key',
+        integrations: {
+            emailAccountId: 1,
+        },
+        flags: {
+            enableDutyBook: false,
+            enableScheduling: true,
+            managesContent: false,
+            managesFirstAid: false,
+            managesKnowledgeBase: false,
+            managesSecurity: false,
         },
     };
 
     beforeEach(() => {
+        mockAuthContext = undefined;
+
         const eventCache = Cache.getInstance('EventCache');
         eventCache.clear();
         eventCache.set(kTestEvent.slug, kTestEvent);
@@ -46,6 +79,8 @@ describe('requireAuthentication', () => {
         const teamCache = Cache.getInstance('TeamCache');
         teamCache.clear();
         teamCache.set(kTestTeam.slug, kTestTeam);
+
+        Cache.getInstance('UrlSlugs').clear();
     });
 
     describe('requireAuthentication', () => {
@@ -111,6 +146,19 @@ describe('requireAuthentication', () => {
                 expect(isHTTPAccessFallbackError(error)).toBeTruthy();
                 expect(getAccessFallbackHTTPStatus(error)).toBe(403);
             }
+        });
+
+        it('resolves authentication context implicitly when omitted', async () => {
+            mockAuthContext = buildAuthenticationContext({
+                access: {
+                    grants: 'event.visible,statistics.finances',
+                    events: '*',
+                    teams: '*',
+                },
+            });
+
+            const result = await requireAuthentication('statistics.finances');
+            expect(result.user).toEqual(mockAuthContext.user);
         });
     });
 
@@ -189,6 +237,46 @@ describe('requireAuthentication', () => {
                 expect(isHTTPAccessFallbackError(error)).toBeTruthy();
                 expect(getAccessFallbackHTTPStatus(error)).toBe(403);
             }
+        });
+
+        it('supports EventProps params and numeric event IDs', async () => {
+            mockAuthContext = buildAuthenticationContext({
+                access: {
+                    grants: [
+                        { permission: 'event.visible', event: 'event-2026' },
+                        {
+                            permission: 'volunteers.participation:read',
+                            event: 'event-2026',
+                            team: 'stewards',
+                        },
+                    ],
+                },
+            });
+
+            const propsResult = await requireAuthenticationWithEvent(
+                { params: Promise.resolve({ event: 'event-2026', team: 'stewards' }) },
+                { permission: 'volunteers.participation', operation: 'read' });
+            expect(propsResult.event).toEqual(kTestEvent);
+
+            try {
+                await requireAuthenticationWithEvent(
+                    { params: Promise.resolve({ event: 'event-2026', team: 'hosts' }) },
+                    { permission: 'volunteers.participation', operation: 'read' });
+                expect.unreachable('Expected requireAuthenticationWithEvent to throw 403');
+            } catch (error: any) {
+                expect(isHTTPAccessFallbackError(error)).toBeTruthy();
+                expect(getAccessFallbackHTTPStatus(error)).toBe(403);
+            }
+
+            // Direct slug without explicit context:
+            const slugResult = await requireAuthenticationWithEvent('event-2026');
+            expect(slugResult.event).toEqual(kTestEvent);
+
+            // Numeric event ID resolved via UrlSlugs:
+            mockConnection.expect('selectOneColumnOneRow', () => kTestEvent.slug);
+            const numericResult = await requireAuthenticationWithEvent(
+                mockAuthContext, kTestEvent.id);
+            expect(numericResult.event).toEqual(kTestEvent);
         });
     });
 
@@ -292,6 +380,41 @@ describe('requireAuthentication', () => {
                 expect(isHTTPAccessFallbackError(error)).toBeTruthy();
                 expect(getAccessFallbackHTTPStatus(error)).toBe(403);
             }
+        });
+
+        it('supports EventAndTeamProps params, omitted context, and numeric IDs', async () => {
+            mockAuthContext = buildAuthenticationContext({
+                access: {
+                    grants: [
+                        { permission: 'event.visible', event: 'event-2026', team: 'stewards' },
+                        {
+                            permission: 'volunteers.participation:read',
+                            event: 'event-2026',
+                            team: 'stewards',
+                        },
+                    ],
+                },
+            });
+
+            const propsResult = await requireAuthenticationWithEventAndTeam(
+                { params: Promise.resolve({ event: 'event-2026', team: 'stewards' }) },
+                { permission: 'volunteers.participation', operation: 'read' });
+            expect(propsResult.event).toEqual(kTestEvent);
+            expect(propsResult.team).toEqual(kTestTeam);
+
+            // Direct event & team identifiers without explicit context:
+            const directResult = await requireAuthenticationWithEventAndTeam(
+                'event-2026', 'stewards');
+            expect(directResult.event).toEqual(kTestEvent);
+            expect(directResult.team).toEqual(kTestTeam);
+
+            // Numeric event & team IDs resolved via UrlSlugs:
+            mockConnection.expect('selectOneColumnOneRow', () => kTestTeam.slug);
+            mockConnection.expect('selectOneColumnOneRow', () => kTestEvent.slug);
+            const numericResult = await requireAuthenticationWithEventAndTeam(
+                mockAuthContext, kTestEvent.id, kTestTeam.id);
+            expect(numericResult.event).toEqual(kTestEvent);
+            expect(numericResult.team).toEqual(kTestTeam);
         });
     });
 
