@@ -63,7 +63,7 @@ export async function invalidateTeamCache(team: number | string) {
 
         cache.delete(team);
 
-        invalidateUrlSlug({ event: id });
+        invalidateUrlSlug({ team: id });
 
     } else if (typeof team === 'number') {
         const slug = await getUrlSlug({ team });
