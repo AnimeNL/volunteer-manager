@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { headers } from 'next/headers';
-import { unauthorized } from 'next/navigation';
+import { unauthorized, unstable_rethrow } from 'next/navigation';
 
 import type { ZodError, ZodType, z } from 'zod/v4';
 import type { $ZodArrayDef, $ZodNullableDef, $ZodOptionalDef, $ZodPipeDef, $ZodTypeDef } from 'zod/v4/core';
@@ -340,6 +340,8 @@ export async function executeServerAction<T extends ZodType,
         return { success: true };
 
     } catch (error: any) {
+        unstable_rethrow(error);
+
         RecordErrorLog({
             error,
             requestUrl,

@@ -1,6 +1,7 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { forbidden, notFound, redirect } from 'next/navigation';
 import { z, type ZodType } from 'zod/v4';
 
 import type { User } from './auth';
@@ -854,26 +855,34 @@ describe('serverAction', () => {
         expect(errorLogDelegateInvoked).toBeTruthy();
     });
 
-    it('logs access exceptions for unidentified users in the database', async () => {
+    it('rethrows Next.js control-flow errors without logging them', async () => {
         const scheme = z.object({ /* no data */ });
 
         let invocations = 0;
 
-        const action = async (formData: unknown) =>
-            executeServerAction(formData, scheme, async (data) => { ++invocations; }, false, null);
+        const visitorAction = async (formData: unknown) =>
+            executeServerAction(formData, scheme, async () => { ++invocations; }, false, null);
 
         // Step 0: Validate preconditions
         expect(errorLogDelegateInvoked).toBeFalsy();
 
-        // Step 1: Execute the Server Action and verify the input could not be validated
-        const result = await action(new FormData);
-        expect(result.success).toBeFalsy();
-        expect(result.error).toContain('NEXT_HTTP_ERROR_FALLBACK;401');
-
+        // Step 1: Verify unauthorized() for unidentified users is rethrown and not logged
+        await expect(visitorAction(new FormData)).rejects.toThrow('NEXT_HTTP_ERROR_FALLBACK;401');
         expect(invocations).toBe(0);
+        expect(errorLogDelegateInvoked).toBeFalsy();
 
-        // Step 2: Validate that a database query was issued by the Server Action runner
-        expect(errorLogDelegateInvoked).toBeTruthy();
+        // Step 2: Verify forbidden(), notFound() and redirect() thrown in actions are rethrown
+        const forbiddenAction = serverAction(scheme, async () => { forbidden(); });
+        await expect(forbiddenAction(new FormData)).rejects.toThrow('NEXT_HTTP_ERROR_FALLBACK;403');
+        expect(errorLogDelegateInvoked).toBeFalsy();
+
+        const notFoundAction = serverAction(scheme, async () => { notFound(); });
+        await expect(notFoundAction(new FormData)).rejects.toThrow('NEXT_HTTP_ERROR_FALLBACK;404');
+        expect(errorLogDelegateInvoked).toBeFalsy();
+
+        const redirectAction = serverAction(scheme, async () => { redirect('/somewhere'); });
+        await expect(redirectAction(new FormData)).rejects.toThrow('NEXT_REDIRECT');
+        expect(errorLogDelegateInvoked).toBeFalsy();
     });
 
     it('logs exceptions thrown in server actions in the database', async () => {

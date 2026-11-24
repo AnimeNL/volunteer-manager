@@ -65,6 +65,14 @@ vi.mock('next/navigation', () => {
         }
     }
 
+    class RedirectError extends Error {
+        digest: string;
+        constructor(url: string) {
+            super(`NEXT_REDIRECT;replace;${url};307;`);
+            this.digest = `NEXT_REDIRECT;replace;${url};307;`;
+        }
+    }
+
     return {
         useRouter: () => ({
             push: vi.fn(),
@@ -87,7 +95,11 @@ vi.mock('next/navigation', () => {
             throw new HTTPAccessFallbackError(404);
         },
         redirect: (url: string) => {
-            throw new Error(`Redirect to ${url}`);
+            throw new RedirectError(url);
+        },
+        unstable_rethrow: (error: unknown) => {
+            if (error instanceof HTTPAccessFallbackError || error instanceof RedirectError)
+                throw error;
         },
     };
 });

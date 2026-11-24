@@ -21,6 +21,10 @@ vi.mock('next/navigation', () => ({
     forbidden: () => mockForbidden(),
     notFound: () => { throw new Error('NEXT_NOT_FOUND'); },
     unauthorized: () => { throw new Error('NEXT_UNAUTHORIZED'); },
+    unstable_rethrow: (error: unknown) => {
+        if (error instanceof Error && error.message.startsWith('NEXT_'))
+            throw error;
+    },
 }));
 
 vi.mock('@lib/auth', async importOriginal => {
@@ -111,8 +115,7 @@ describe('TicketActions', () => {
             }),
         });
 
-        const result = await cancelPurchase('2026', 'order-1');
-        expect(result.success).toBe(false);
+        await expect(cancelPurchase('2026', 'order-1')).rejects.toThrow('NEXT_FORBIDDEN');
         expect(mockForbidden).toHaveBeenCalledTimes(1);
         expect(mockCancelTicketExecuteNow).not.toHaveBeenCalled();
     });
