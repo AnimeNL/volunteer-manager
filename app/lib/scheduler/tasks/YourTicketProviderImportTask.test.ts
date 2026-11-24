@@ -127,6 +127,9 @@ describe('YourTicketProviderImportTask', () => {
 
         const result = await (task as any).importTicketTypes(123, knownTickets);
         expect(result).toBe(true);
+        expect((task as any).log.entries).toContainEqual(expect.objectContaining({
+            message: '[Tickets] Added: 0, updated: 0, deleted: 0',
+        }));
     });
 
     it('changes ytpTicketUpdated to the current time if any field changed on an existing ticket', async () => {
@@ -177,6 +180,9 @@ describe('YourTicketProviderImportTask', () => {
 
         const result = await (task as any).importTicketTypes(123, knownTickets);
         expect(result).toBe(true);
+        expect((task as any).log.entries).toContainEqual(expect.objectContaining({
+            message: '[Tickets] Added: 0, updated: 1, deleted: 0',
+        }));
     });
 
     it('soft deletes known tickets that are no longer returned in the live tickets list', async () => {

@@ -259,6 +259,7 @@ export class YourTicketProviderImportTask extends Task {
                         !ZonedDateTimesAreDifferent(knownTicket.SalesEnd, ytpTicketSalesEnd))
                     {
                         ytpTicketUpdated = knownTicket.Updated;
+                    } else {
                         updated++;
                     }
                 } else {
