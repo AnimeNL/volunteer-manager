@@ -150,20 +150,21 @@ export abstract class Driver<MessageType extends Message> {
     protected getPopulatedTemplate(channel: Channel, recipient: Recipient, message: MessageType)
         : Template | undefined
     {
-        const substitutions = this.getSubstitutions(recipient, message);
         const template = this.getTemplate(channel);
+        if (!template)
+            return undefined;
 
-        if (!!template) {
-            template.subject = template.subject.replace(/\\\{([a-z0-9_\.]+)\}/gi, '{$1}');
-            template.body = template.body.replace(/\\\{([a-z0-9_\.]+)\}/gi, '{$1}');
+        const substitutions = this.getSubstitutions(recipient, message);
 
-            for (const [ key, value ] of Object.entries(substitutions)) {
-                template.subject = template.subject.replaceAll(`{${key}}`, `${value}`);
-                template.body = template.body.replaceAll(`{${key}}`, `${value}`);
-            }
+        let subject = template.subject.replace(/\\\{([a-z0-9_\.]+)\}/gi, '{$1}');
+        let body = template.body.replace(/\\\{([a-z0-9_\.]+)\}/gi, '{$1}');
+
+        for (const [ key, value ] of Object.entries(substitutions)) {
+            subject = subject.replaceAll(`{${key}}`, `${value}`);
+            body = body.replaceAll(`{${key}}`, `${value}`);
         }
 
-        return template;
+        return { subject, body };
     }
 
     /**
