@@ -4,7 +4,7 @@
   "description": "AnimeCon Volunteer Manager",
   "scripts": {
     "sync-db": "node ts-sql.build.mjs",
-    "build": "next build",
+    "build": "cross-env NEXT_TELEMETRY_DISABLED=1 next build",
     "build-with-bundle-analyzer": "cross-env ANALYZE=true next build",
     "circular": "npx madge --circular --extensions ts,tsx .",
     "dev": "next dev --turbo",

@@ -37,7 +37,7 @@ const nextConfig: NextConfig = {
         // https://nextjs.org/blog/next-15-1#forbidden-and-unauthorized-experimental
         authInterrupts: true,
 
-        optimizePackageImports: [
+        optimizePackageImports: isProductionBuild ? [
             '@mdxeditor/editor',
             '@mui/x-charts',
             '@mui/x-charts-premium',
@@ -46,10 +46,16 @@ const nextConfig: NextConfig = {
             '@mui/x-date-pickers',
             '@mui/x-scheduler-premium',
             'react-hook-form-mui',
-        ],
+        ] : undefined,
 
         cpus: 8,
         workerThreads: true,
+
+        turbopackInputSourceMaps: false,
+        turbopackMangleExportNames: isProductionBuild ? undefined : false,
+        turbopackPluginRuntimeStrategy: 'workerThreads',
+        turbopackRemoveUnusedExports: isProductionBuild ? undefined : false,
+        turbopackRemoveUnusedImports: isProductionBuild ? undefined : false,
 
         serverActions: {
             bodySizeLimit: '5mb',
