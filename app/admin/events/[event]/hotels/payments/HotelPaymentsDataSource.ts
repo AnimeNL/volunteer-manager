@@ -5,12 +5,12 @@ import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log';
-import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
+import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable/server';
 import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tHotels, tHotelsBookings, tHotelsPayments, tRoles, tTeams, tUsers, tUsersEvents }
     from '@lib/database';
 
-import { kEventTransformer } from '@app/admin/components/DataTable';
+import { kEventTransformer } from '@app/admin/components/DataTable/server';
 import { kHotelPaymentResponsible } from '@lib/database/Types';
 
 /**

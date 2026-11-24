@@ -3,15 +3,15 @@
 
 import { z } from 'zod/v4';
 
-import type { ExtractRowModel } from '@app/admin/components/DataTable';
+import type { ExtractRowModel } from '@app/admin/components/DataTable/server';
 import { createDataSource, withContext, withRowModel }
-    from '@app/admin/components/DataTable';
+    from '@app/admin/components/DataTable/server';
 import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tTeams, tUsers, tUsersEvents, tUsersEventsPreferencesAvailability,
     tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation,
     tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining } from '@lib/database';
 
-import { kEventTransformer } from '@app/admin/components/DataTable';
+import { kEventTransformer } from '@app/admin/components/DataTable/server';
 import { kRegistrationStatus } from '@lib/database/Types';
 
 /**

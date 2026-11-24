@@ -6,11 +6,11 @@ import { z } from 'zod/v4';
 import type { AuthenticationContext, User } from '@lib/auth';
 import type { ContentScope } from './ContentScope';
 import type { ContentType } from '@lib/database/Types';
-import type { ExtractRowModel } from '@app/admin/components/DataTable';
+import type { ExtractRowModel } from '@app/admin/components/DataTable/server';
 import { Cache } from '@lib/cache/Cache';
 import { LogBuilder } from '@lib/log';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
-import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
+import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable/server';
 import { requireAuthentication, requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tContent, tContentCategories, tEvents, tTeams, tUsers } from '@lib/database';
 

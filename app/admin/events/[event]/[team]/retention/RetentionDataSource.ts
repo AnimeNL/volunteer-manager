@@ -4,14 +4,14 @@
 import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log';
-import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
+import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable/server';
 import { readSetting } from '@lib/Settings';
 import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tEvents, tRetention, tTeams, tUsers, tUsersEvents } from '@lib/database';
 
 import { kCommunicationLanguage, kRegistrationStatus, type RetentionStatus }
     from '@lib/database/Types';
-import { kEventTransformer, kTeamTransformer } from '@app/admin/components/DataTable';
+import { kEventTransformer, kTeamTransformer } from '@app/admin/components/DataTable/server';
 
 /**
  * Row model for the retention data table.

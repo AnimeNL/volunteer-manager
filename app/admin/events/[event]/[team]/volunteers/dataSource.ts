@@ -3,9 +3,9 @@
 
 import { z } from 'zod/v4';
 
-import type { ExtractRowModel } from '@app/admin/components/DataTable';
+import type { ExtractRowModel } from '@app/admin/components/DataTable/server';
 import { createDataSource, kEventTransformer, kTeamTransformer, withContext, withRowModel }
-    from '@app/admin/components/DataTable';
+    from '@app/admin/components/DataTable/server';
 import { createTicketService } from '@lib/tickets';
 import { isBefore } from '@lib/Temporal';
 import { requireAuthenticationWithEventAndTeam } from '@lib/auth';

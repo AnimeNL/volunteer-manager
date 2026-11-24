@@ -4,15 +4,15 @@
 import { forbidden } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import type { ExtractRowModel } from '@app/admin/components/DataTable';
+import type { ExtractRowModel } from '@app/admin/components/DataTable/server';
 import { LogBuilder } from '@lib/log';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
-import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
+import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable/server';
 import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tContent, tContentCategories } from '@lib/database';
 
 import { kContentType } from '@lib/database/Types';
-import { kEventTransformer, kTeamTransformer } from '@app/admin/components/DataTable';
+import { kEventTransformer, kTeamTransformer } from '@app/admin/components/DataTable/server';
 
 /**
  * Data source used to populate and manage the knowledge base categories table.

@@ -5,14 +5,14 @@ import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log';
-import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
+import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable/server';
 import { processVolunteerCommunication } from '../../[team]/volunteers/dataSource';
 import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tHotels, tHotelsBookings, tRoles, tTeams, tUsers, tUsersCommunication, tUsersEvents }
     from '@lib/database';
 
 import { kCommunicationLanguage, kRegistrationStatus } from '@lib/database/Types';
-import { kEventTransformer } from '@app/admin/components/DataTable';
+import { kEventTransformer } from '@app/admin/components/DataTable/server';
 
 /**
  * Individual hotel assignment, either as a volunteer (`number`) or as an invitee (`string`).

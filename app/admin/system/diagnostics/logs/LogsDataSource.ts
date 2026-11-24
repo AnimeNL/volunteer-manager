@@ -3,8 +3,8 @@
 
 import { z } from 'zod/v4';
 
-import type { ExtractRowModel } from '@app/admin/components/DataTable';
-import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
+import type { ExtractRowModel } from '@app/admin/components/DataTable/server';
+import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable/server';
 import { requireAuthentication } from '@lib/auth';
 import { resolveTemplate } from '@app/admin/components/DataTable/Utilities';
 import db, { tLogs, tLogsFormat, tUsers } from '@lib/database';

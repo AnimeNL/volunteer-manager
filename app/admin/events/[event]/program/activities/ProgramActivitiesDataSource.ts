@@ -7,7 +7,7 @@ import { z } from 'zod/v4';
 import { LogBuilder } from '@lib/log';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { createDataSource, kEventTransformer, withContext, withRowModel }
-    from '@app/admin/components/DataTable';
+    from '@app/admin/components/DataTable/server';
 import { getAnPlanActivityUrl } from '@lib/AnPlan';
 import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tActivities, tActivitiesLocations, tActivitiesLogs, tActivitiesTimeslots,
