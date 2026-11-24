@@ -188,7 +188,7 @@ export const kFeedbackResponse = {
     Archived: 'Archived',
     Declined: 'Declined',
     Resolved: 'Resolved',
-};
+} as const;
 
 /**
  * Type of content that's stored within the storage buffer.
