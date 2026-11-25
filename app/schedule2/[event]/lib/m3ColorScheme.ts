@@ -105,7 +105,7 @@ export interface M3ColorScheme {
  * Converts an HCL triplet (perceptual Hue, Chroma, Luminance) into a clamped 6-digit RGB hex string.
  */
 function hclToHex(hue: number, chroma: number, luminance: number): string {
-    return hcl(hue, chroma, luminance).clamp().formatHex();
+    return hcl(hue, chroma, luminance).rgb().clamp().formatHex();
 }
 
 /**

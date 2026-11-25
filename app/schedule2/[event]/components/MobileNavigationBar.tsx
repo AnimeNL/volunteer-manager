@@ -62,7 +62,7 @@ const FloatingPill = styled(Paper)(({ theme }) => {
             boxShadow: '0 6px 20px rgba(0, 0, 0, 0.48), inset 0 0 0 1px rgba(255, 255, 255, 0.07)',
         }),
     };
-});
+}) as typeof Paper;
 
 /**
  * Individual destination button inside the floating pill. Displays only an icon when inactive, and

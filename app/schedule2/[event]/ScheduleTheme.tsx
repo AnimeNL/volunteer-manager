@@ -71,7 +71,7 @@ function createScheduleTheme(themeColor: string) {
                         primary: scheme.dark.onSurface,
                         secondary: scheme.dark.onSurfaceVariant,
                     },
-                },
+                } as any,
             },
             light: {
                 palette: {
@@ -93,7 +93,7 @@ function createScheduleTheme(themeColor: string) {
                         primary: scheme.light.onSurface,
                         secondary: scheme.light.onSurfaceVariant,
                     },
-                },
+                } as any,
             },
         },
         components: {
@@ -145,11 +145,13 @@ function createScheduleTheme(themeColor: string) {
             },
             MuiDrawer: {
                 styleOverrides: {
-                    paperAnchorBottom: ({ theme }) => ({
-                        backgroundColor: (theme.vars || theme).palette.m3.shell,
-                        backgroundImage: 'none',
-                        borderTopLeftRadius: kSheetBorderRadiusPx,
-                        borderTopRightRadius: kSheetBorderRadiusPx,
+                    paper: ({ theme }) => ({
+                        '&.MuiDrawer-paperAnchorBottom': {
+                            backgroundColor: (theme.vars || theme).palette.m3.shell,
+                            backgroundImage: 'none',
+                            borderTopLeftRadius: kSheetBorderRadiusPx,
+                            borderTopRightRadius: kSheetBorderRadiusPx,
+                        },
                     }),
                 },
             },

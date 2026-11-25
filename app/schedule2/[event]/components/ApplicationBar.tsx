@@ -24,7 +24,7 @@ import { kHeaderBarHeightPx, kShellSpacingPx } from '../Constants';
  * Sticky outer header row anchored across view transitions. On mobile, carries `12px` horizontal
  * padding above the edge-to-edge sheet; on desktop, aligns flush with the content sheet edges.
  */
-const HeaderRow = styled(Box)(({ theme }) => ({
+const HeaderRow = styled('header')(({ theme }) => ({
     alignItems: 'center',
     backgroundColor: (theme.vars || theme).palette.m3.shell,
     display: 'flex',
@@ -127,7 +127,7 @@ export function ApplicationBar() {
     }, [ handleCloseSearch ]);
 
     return (
-        <HeaderRow component="header">
+        <HeaderRow>
             <PillDock
                 onClick={searchActive ? undefined : handleOpenSearch}
                 role={searchActive ? 'search' : 'button'}
