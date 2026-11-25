@@ -75,7 +75,7 @@ async function AreasContent(props: Pick<PageProps<'/schedule2/[slug]/areas'>, 'p
                                 0);
 
                             return (
-                                <Stack key={area.id} direction="row" spacing={2}
+                                <Stack key={area.id} direction="row" spacing={1.5}
                                        sx={{
                                            alignItems: 'center',
                                            justifyContent: 'space-between',

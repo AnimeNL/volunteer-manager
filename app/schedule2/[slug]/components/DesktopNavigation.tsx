@@ -103,11 +103,11 @@ export function DesktopNavigation(props: DesktopNavigationProps) {
                 bgcolor: 'background.paper',
                 borderRadius: 1,
                 height: kDesktopMenuWidthPx / 2,
-                mb: 0.75,
-                ml: 2,
-                mt: 2,
+                mb: 0.5,
+                ml: 1.5,
+                mt: 1.5,
                 overflow: 'hidden',
-                width: kDesktopMenuWidthPx - 32,
+                width: kDesktopMenuWidthPx - 24,
             }}>
                 <Suspense fallback={ <Skeleton variant="rectangular" width="100%" height="100%" /> }>
                     <EventBannerImage params={props.params} />

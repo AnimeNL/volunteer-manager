@@ -61,12 +61,12 @@ const ShellToolbar = styled(Toolbar)(({ theme }) => ({
     margin: 'auto',
 
     // Align the title and account icon with desktop <CardContent> horizontal padding:
-    // left = sidebar (259px) + content padding (16px) + card padding (16px) = menuWidth + 16px;
-    // right = container padding (16px) + content padding (16px) + card padding (16px) = 48px.
+    // left = sidebar (263px) + content padding (12px) + card padding (16px) = menuWidth + 16px;
+    // right = container padding (12px) + content padding (12px) + card padding (16px) = 40px.
     [theme.breakpoints.up('md')]: {
         maxWidth: `${kDesktopMaximumWidthPx}px`,
         paddingLeft: `${kDesktopMenuWidthPx + 16}px`,
-        paddingRight: theme.spacing(6),
+        paddingRight: theme.spacing(5),
     },
 }));
 

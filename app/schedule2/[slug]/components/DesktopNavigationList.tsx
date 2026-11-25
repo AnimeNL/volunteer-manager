@@ -620,7 +620,7 @@ export function VolunteerNavigationItems(props: VolunteerNavigationItemsProps) {
  */
 export function DesktopNavigationList(props: React.PropsWithChildren) {
     return (
-        <List sx={{ paddingLeft: 2, paddingRight: 0, paddingY: 1 }}>
+        <List sx={{ paddingLeft: 1.5, paddingRight: 0, paddingY: 1 }}>
             <Suspense fallback={ <OverviewItem /> }>
                 <RouteAwareOverviewItem />
             </Suspense>

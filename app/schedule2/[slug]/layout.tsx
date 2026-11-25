@@ -38,16 +38,16 @@ export default async function Schedule2Layout(props: LayoutProps<'/schedule2/[sl
                 <Stack direction="row" sx={{
                     margin: 'auto',
                     maxWidth: { md: kDesktopMaximumWidthPx },
-                    paddingRight: { md: 2 },
+                    paddingRight: { md: 1.5 },
                 }}>
                     <Box sx={{ display: { xs: 'none', md: 'block' } }}>
                         <DesktopNavigation params={props.params} />
                     </Box>
-                    <Stack direction="column" spacing={2} sx={{
+                    <Stack direction="column" spacing={1.5} sx={{
                         flexGrow: 1,
                         maxWidth: '100%',
                         width: { md: `calc(100% - ${2 * kDesktopMenuWidthPx}px)` },
-                        padding: 2,
+                        padding: 1.5,
                     }}>
                         {props.children}
                     </Stack>

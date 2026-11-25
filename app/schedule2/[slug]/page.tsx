@@ -21,7 +21,7 @@ import { requireScheduleAccess } from './lib/getScheduleAccess';
  */
 function OverviewSkeleton() {
     return (
-        <Stack spacing={2}>
+        <Stack spacing={1.5}>
             <Card>
                 <CardContent>
                     <Skeleton variant="text" width="35%" height={20} />

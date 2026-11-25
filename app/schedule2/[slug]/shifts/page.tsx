@@ -89,7 +89,7 @@ async function ShiftsContent(props: Pick<PageProps<'/schedule2/[slug]/shifts'>, 
                                 .toZonedDateTimeISO(event.timeZone);
 
                             return (
-                                <Stack key={shift.id} direction="row" spacing={2}
+                                <Stack key={shift.id} direction="row" spacing={1.5}
                                        sx={{
                                            alignItems: 'center',
                                            justifyContent: 'space-between',
