@@ -48,8 +48,14 @@ const kStyles: { [key: string]: SxProps<Theme> } = {
     toolbar: {
         margin: 'auto',
 
+        // Align the title and account icon with desktop <CardContent> horizontal padding:
+        // left = sidebar (259px) + content padding (16px) + card padding (16px) = menuWidth + 16px;
+        // right = container padding (16px) + content padding (16px) + card padding (16px) = 48px.
         paddingLeft: {
-            md: `${kDesktopMenuWidthPx}px`,
+            md: `${kDesktopMenuWidthPx + 16}px`,
+        },
+        paddingRight: {
+            md: 6,
         },
 
         maxWidth: {
@@ -101,7 +107,7 @@ export function ApplicationBar() {
                     <Typography variant="h6" component="div" sx={kStyles.title}>
                         {title}
                     </Typography>
-                    <IconButton aria-label="Account menu" color="inherit"
+                    <IconButton aria-label="Account menu" color="inherit" edge="end"
                                 onClick={handleMenuOpen} size="large">
                         <AccountCircle />
                     </IconButton>
