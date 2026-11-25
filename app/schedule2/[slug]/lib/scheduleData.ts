@@ -5,8 +5,9 @@ import 'server-only';
 import { cacheLife, cacheTag } from 'next/cache';
 
 import type { AccessControl } from '@lib/auth/access/AccessControl';
-import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots, tDutyBook,
-    tDutyBookViewers, tEventsTeams, tSchedule, tShifts, tTeams, tUsersEvents } from '@lib/database';
+import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots,
+    tDisplaysRequests, tDutyBook, tDutyBookViewers, tEventsTeams, tSchedule, tShifts, tTeams,
+    tUsersEvents } from '@lib/database';
 
 import { kActivityType, kRegistrationStatus } from '@lib/database/Types';
 
@@ -159,6 +160,17 @@ export async function getUserDutyBooks(
         team: team.slug,
         unread: unreadByTeam.get(team.id) ?? 0,
     }));
+}
+
+/**
+ * Counts unacknowledged (pending) help requests for `eventId`.
+ */
+export async function getPendingHelpRequestsCount(eventId: number): Promise<number> {
+    return await db.selectFrom(tDisplaysRequests)
+        .where(tDisplaysRequests.requestEventId.equals(eventId))
+            .and(tDisplaysRequests.requestAcknowledgedBy.isNull())
+        .selectCountAll()
+        .executeSelectOne();
 }
 
 /**

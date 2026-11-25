@@ -22,12 +22,14 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import NotListedLocationIcon from '@mui/icons-material/NotListedLocation';
+import NotListedLocationOutlinedIcon from '@mui/icons-material/NotListedLocationOutlined';
 import { styled } from '@mui/material/styles';
 
 /**
  * Spatial order of top-level navigation segments for directional view transitions.
  */
-const kSectionOrder = [ '', '/shifts', '/areas', '/duty-book' ];
+const kSectionOrder = [ '', '/shifts', '/areas', '/duty-book', '/help-requests' ];
 
 /**
  * Material Design 3 rounded navigation item shared across all desktop sidebar entries, matching the
@@ -357,6 +359,11 @@ interface VolunteerNavigationItemsProps {
     hasShifts: boolean;
 
     /**
+     * Pending help requests summary when the user has access to Help requests.
+     */
+    helpRequests?: { pending: number };
+
+    /**
      * Event slug for building navigation destinations.
      */
     slug: string;
@@ -366,7 +373,7 @@ interface VolunteerNavigationItemsProps {
  * Renders volunteer-specific desktop sidebar entries streamed in behind `<Suspense>`.
  */
 export function VolunteerNavigationItems(props: VolunteerNavigationItemsProps) {
-    const { areas, dutyBooks, hasActiveShift, hasShifts, slug } = props;
+    const { areas, dutyBooks, hasActiveShift, hasShifts, helpRequests, slug } = props;
 
     const pathname = usePathname();
     const relativePathname = getRelativePathname(pathname, slug);
@@ -384,6 +391,7 @@ export function VolunteerNavigationItems(props: VolunteerNavigationItemsProps) {
 
     const isShiftsActive = relativePathname.startsWith('/shifts');
     const isEventsActive = relativePathname === '/areas';
+    const isHelpRequestsActive = relativePathname.startsWith('/help-requests');
     const totalActiveEvents = areas.reduce((sum, area) => sum + area.activeCount, 0);
 
     const hasMultipleDutyBooks = dutyBooks.length > 1;
@@ -540,6 +548,26 @@ export function VolunteerNavigationItems(props: VolunteerNavigationItemsProps) {
                             </SubMenuList>
                         </Collapse> }
                 </> }
+
+            { helpRequests !== undefined &&
+                <NavigationItem
+                    component={Link}
+                    href={`/schedule2/${slug}/help-requests`}
+                    selected={isHelpRequestsActive}
+                    transitionTypes={getTransitionTypes(relativePathname, '/help-requests')}>
+                    <ListItemIcon>
+                        { isHelpRequestsActive
+                            ? <NotListedLocationIcon fontSize="small" />
+                            : <NotListedLocationOutlinedIcon fontSize="small" /> }
+                    </ListItemIcon>
+                    <ListItemText primary="Help requests" />
+                    { helpRequests.pending > 0 &&
+                        <CounterBadge
+                            aria-label={`${helpRequests.pending} pending help requests`}
+                            tone="urgent">
+                            {helpRequests.pending}
+                        </CounterBadge> }
+                </NavigationItem> }
         </>
     );
 }
