@@ -14,6 +14,9 @@ React View Transitions.
   segments. Push them down into small leaf Client Components wrapped in `<Suspense>`.
 * Cache reusable server reads with `'use cache'`, `cacheLife()`, and `cacheTag()`. Stream live or
   per-user data behind granular `<Suspense>` boundaries with meaningful fallbacks.
+* Keep `<Suspense>` loading skeletons roughly in sync with the actual page content (matching
+  structure, typography variants, row counts, and approximate dimensions) and keep static `<Card>`
+  surfaces outside `<SuspenseReveal>` so card frames do not flash during reveals.
 
 ## No API Routes for Data Fetching & Server Action Auth
 * Do not add or call `/api/*` endpoints to fetch schedule data. Load data directly in React Server
