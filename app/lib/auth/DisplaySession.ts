@@ -3,6 +3,7 @@
 
 import 'server-only';
 import { cookies } from 'next/headers';
+import { io } from 'next/cache';
 
 import { buildCookieOptions } from './Constants';
 import { requireSealingSecret, sealToken, unsealToken } from './SealedToken';
@@ -55,6 +56,8 @@ function unsealDisplaySession(sealedSession: string): { id: number } {
  * or invalid.
  */
 export async function getDisplayId(): Promise<number | undefined> {
+    await io();
+
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get(kDisplaySessionCookieName);
     if (sessionCookie) {

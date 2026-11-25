@@ -3,6 +3,7 @@
 
 import 'server-only';
 import type { cookies } from 'next/headers';
+import { io } from 'next/cache';
 
 import { buildCookieOptions } from './Constants';
 import { requireSealingSecret, sealToken, unsealToken } from './SealedToken';
@@ -76,6 +77,8 @@ export function unsealSession(sealedSession: string): SessionData {
 export async function getSessionFromCookieStore(cookieStore: CookieStoreLike)
     : Promise<SessionData | undefined>
 {
+    await io();
+
     const sessionCookie = (await cookieStore).get(kSessionCookieName);
     if (sessionCookie) {
         try {

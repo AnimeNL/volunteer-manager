@@ -4,6 +4,7 @@
 import 'server-only';
 import { cache } from 'react';
 import { cookies, headers } from 'next/headers';
+import { io } from 'next/cache';
 import { unauthorized } from 'next/navigation';
 
 import type { Grant } from './access/AccessList';
@@ -266,6 +267,8 @@ async function getAuthenticationContextFromSessionData(
  * Resolves the `AuthenticationContext` for the current request from Next.js cookies.
  */
 async function loadAuthenticationContext(bypassCache: boolean): Promise<AuthenticationContext> {
+    await io();
+
     const sessionData = await getSessionFromCookieStore(cookies());
     if (sessionData)
         return getAuthenticationContextFromSessionData(sessionData, bypassCache);
