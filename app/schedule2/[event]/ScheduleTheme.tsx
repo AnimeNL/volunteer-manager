@@ -102,7 +102,7 @@ function createScheduleTheme(themeColor: string) {
                     elevation: 0,
                 },
                 styleOverrides: {
-                    root: ({ theme }) => ({
+                    root: ({ theme }: { theme: any }) => ({
                         backgroundColor: (theme.vars || theme).palette.m3.card,
                         backgroundImage: 'none',
                         borderRadius: kCardBorderRadiusPx,
@@ -111,7 +111,7 @@ function createScheduleTheme(themeColor: string) {
             },
             MuiCardContent: {
                 styleOverrides: {
-                    root: ({ theme }) => ({
+                    root: ({ theme }: { theme: any }) => ({
                         padding: theme.spacing(2),
                         '&:last-child': {
                             paddingBottom: theme.spacing(2),
@@ -121,7 +121,7 @@ function createScheduleTheme(themeColor: string) {
             },
             MuiMenu: {
                 styleOverrides: {
-                    paper: ({ theme }) => ({
+                    paper: ({ theme }: { theme: any }) => ({
                         backgroundColor: (theme.vars || theme).palette.m3.dockActive,
                         backgroundImage: 'none',
                         borderRadius: kCardBorderRadiusPx,
@@ -145,7 +145,7 @@ function createScheduleTheme(themeColor: string) {
             },
             MuiDrawer: {
                 styleOverrides: {
-                    paper: ({ theme }) => ({
+                    paper: ({ theme }: { theme: any }) => ({
                         '&.MuiDrawer-paperAnchorBottom': {
                             backgroundColor: (theme.vars || theme).palette.m3.shell,
                             backgroundImage: 'none',
@@ -155,7 +155,7 @@ function createScheduleTheme(themeColor: string) {
                     }),
                 },
             },
-        },
+        } as any,
         cssVariables: {
             colorSchemeSelector: 'class',
         },
