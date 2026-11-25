@@ -3,7 +3,7 @@
 
 'use client';
 
-import { Roboto } from 'next/font/google';
+import { Inter } from 'next/font/google';
 
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -12,13 +12,12 @@ import { ThemeProvider, createTheme, lighten, styled } from '@mui/material/style
 import { kDefaultThemePalette } from './Constants';
 
 /**
- * The Roboto font, loaded through Next.js' font stack, matching the legacy schedule portal.
+ * The Inter font, loaded through Next.js' font stack, matching the administration panel.
  */
-const kFontRoboto = Roboto({
-    weight: [ '300', '400', '500', '700' ],
+const kInterFont = Inter({
     subsets: [ 'latin' ],
-    display: 'block',
-    fallback: [ 'Helvetica', 'Arial', 'sans-serif' ],
+    display: 'swap',
+    fallback: [ 'Roboto', 'Helvetica', 'Arial', 'sans-serif' ],
 });
 
 /**
@@ -77,7 +76,7 @@ const kScheduleTheme = createTheme({
         colorSchemeSelector: 'class',
     },
     typography: {
-        fontFamily: kFontRoboto.style.fontFamily,
+        fontFamily: kInterFont.style.fontFamily,
     },
 });
 
