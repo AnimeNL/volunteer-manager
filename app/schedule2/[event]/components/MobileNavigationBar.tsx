@@ -99,70 +99,66 @@ interface MobileFloatingPillProps {
 export function MobileFloatingPill(props: MobileFloatingPillProps) {
     const { activeTab, onSelect, showShifts = false } = props;
 
+    const tabs: {
+        ariaLabel?: string;
+        icon: React.ReactNode;
+        id: MobileNavigationTab;
+        label: string;
+        visible: boolean;
+    }[] = [
+        {
+            id: 'overview',
+            label: 'Overview',
+            icon: activeTab === 'overview'
+                ? <HomeIcon fontSize="small" />
+                : <HomeOutlinedIcon fontSize="small" />,
+            visible: true,
+        },
+        {
+            id: 'shifts',
+            label: 'Schedule',
+            ariaLabel: 'Your schedule',
+            icon: <AccessTimeIcon fontSize="small" />,
+            visible: showShifts,
+        },
+        {
+            id: 'areas',
+            label: 'Events',
+            icon: activeTab === 'areas'
+                ? <EventNoteIcon fontSize="small" />
+                : <EventNoteOutlinedIcon fontSize="small" />,
+            visible: true,
+        },
+        {
+            id: 'more',
+            label: 'More',
+            icon: <AppsIcon fontSize="small" />,
+            visible: true,
+        },
+    ];
+
     return (
         <FloatingNavHost>
             <FloatingPill component="nav" aria-label="Primary navigation" elevation={0}>
-                <MobilePillTab
-                    active={activeTab === 'overview'}
-                    icon={ activeTab === 'overview'
-                        ? <HomeIcon fontSize="small" />
-                        : <HomeOutlinedIcon fontSize="small" /> }
-                    label="Overview"
-                    onClick={onSelect ? () => onSelect('overview') : undefined} />
-
-                { showShifts &&
-                    <MobilePillTab
-                        active={activeTab === 'shifts'}
-                        ariaLabel="Your schedule"
-                        icon={ <AccessTimeIcon fontSize="small" /> }
-                        label="Schedule"
-                        onClick={onSelect ? () => onSelect('shifts') : undefined} /> }
-
-                <MobilePillTab
-                    active={activeTab === 'areas'}
-                    icon={ activeTab === 'areas'
-                        ? <EventNoteIcon fontSize="small" />
-                        : <EventNoteOutlinedIcon fontSize="small" /> }
-                    label="Events"
-                    onClick={onSelect ? () => onSelect('areas') : undefined} />
-
-                <MobilePillTab
-                    active={activeTab === 'more'}
-                    icon={ <AppsIcon fontSize="small" /> }
-                    label="More"
-                    onClick={onSelect ? () => onSelect('more') : undefined} />
+                { tabs.filter(tab => tab.visible).map(tab => {
+                    const active = activeTab === tab.id;
+                    return (
+                        <NavPillButton
+                            key={tab.id}
+                            active={active}
+                            aria-current={active ? 'page' : undefined}
+                            aria-label={tab.ariaLabel ?? tab.label}
+                            onClick={onSelect ? () => onSelect(tab.id) : undefined}>
+                            {tab.icon}
+                            { active &&
+                                <Typography variant="caption">
+                                    {tab.label}
+                                </Typography> }
+                        </NavPillButton>
+                    );
+                }) }
             </FloatingPill>
         </FloatingNavHost>
-    );
-}
-
-/**
- * Props accepted by the <MobilePillTab> helper.
- */
-interface MobilePillTabProps {
-    active: boolean;
-    ariaLabel?: string;
-    icon: React.ReactNode;
-    label: string;
-    onClick?: () => void;
-}
-
-/**
- * Single destination button inside `<MobileFloatingPill>`, showing its label only when active.
- */
-function MobilePillTab(props: MobilePillTabProps) {
-    return (
-        <NavPillButton
-            active={props.active}
-            aria-current={props.active ? 'page' : undefined}
-            aria-label={props.ariaLabel ?? props.label}
-            onClick={props.onClick}>
-            {props.icon}
-            { props.active &&
-                <Typography variant="caption">
-                    {props.label}
-                </Typography> }
-        </NavPillButton>
     );
 }
 
