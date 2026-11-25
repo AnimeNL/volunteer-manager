@@ -5,12 +5,13 @@ import { Suspense } from 'react';
 
 import Box from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
+import Stack from '@mui/material/Stack';
 
 import { DesktopNavigationList, VolunteerNavigationItems } from './DesktopNavigationList';
 import { getEvent } from '@lib/cache';
 import { getNavigationData } from '../lib/scheduleData';
 
-import { kDesktopMenuWidthPx } from '../Constants';
+import { kCardBorderRadiusPx, kShellSpacingPx } from '../Constants';
 
 /**
  * Props accepted by the <DesktopNavigation> component.
@@ -49,20 +50,17 @@ async function AuthenticatedNavigationItems(props: DesktopNavigationProps) {
 }
 
 /**
- * Desktop sidebar navigation for the `app/schedule2/` App Shell.
+ * Desktop sidebar navigation for the `app/schedule2/` App Shell, aligned to the 12px C3-C rhythm.
  */
 export function DesktopNavigation(props: DesktopNavigationProps) {
     return (
-        <>
+        <Stack spacing={`${kShellSpacingPx}px`} sx={{ position: 'sticky', top: kShellSpacingPx }}>
             <Box sx={{
                 bgcolor: 'background.paper',
-                borderRadius: 1,
-                height: kDesktopMenuWidthPx / 2,
-                mb: 0.5,
-                ml: 1.5,
-                mt: 1.5,
+                borderRadius: `${kCardBorderRadiusPx}px`,
+                height: 112,
                 overflow: 'hidden',
-                width: kDesktopMenuWidthPx - 24,
+                width: '100%',
             }}>
                 <Suspense fallback={ <Skeleton variant="rectangular" width="100%" height="100%" /> }>
                     <EventBannerImage params={props.params} />
@@ -73,6 +71,6 @@ export function DesktopNavigation(props: DesktopNavigationProps) {
                     <AuthenticatedNavigationItems params={props.params} />
                 </Suspense>
             </DesktopNavigationList>
-        </>
+        </Stack>
     );
 }
