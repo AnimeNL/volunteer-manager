@@ -132,9 +132,6 @@ function createScheduleTheme(themeColor: string) {
         MuiMenu: {
             styleOverrides: {
                 paper: ({ theme }) => ({
-                    backgroundColor: (theme.vars || theme).palette.m3.dockActive,
-                    backgroundImage: 'none',
-                    borderRadius: kCardBorderRadiusPx,
                     marginTop: theme.spacing(1),
                 }),
             },

@@ -6,6 +6,7 @@
 import { useState } from 'react';
 
 import Avatar from '@mui/material/Avatar';
+import Box from '@mui/material/Box';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
@@ -80,8 +81,9 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                   anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                   transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                   onClose={() => setAnchorEl(null)}
-                  open={!!anchorEl}>
-                <MenuItem dense disableRipple disableTouchRipple>
+                  open={!!anchorEl}
+                  slotProps={{ list: { dense: true } }}>
+                <Box sx={{ px: 1.5, py: 0.5 }}>
                     <ToggleButtonGroup exclusive fullWidth onChange={handleModeChange} size="small"
                                        value={mode ?? 'system'}>
                         <ToggleButton aria-label="Light mode" value="light">
@@ -94,15 +96,13 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                             <DarkModeIcon fontSize="small" />
                         </ToggleButton>
                     </ToggleButtonGroup>
-                </MenuItem>
-                <Divider />
-                <MenuItem onClick={handleSignOut}>
+                </Box>
+                <Divider sx={{ my: 0.5 }} />
+                <MenuItem dense onClick={handleSignOut}>
                     <ListItemIcon>
                         <LogoutIcon fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>
-                        Sign out
-                    </ListItemText>
+                    <ListItemText primary="Sign out" />
                 </MenuItem>
             </Menu>
         </>
