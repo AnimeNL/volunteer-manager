@@ -14,6 +14,8 @@ import Collapse from '@mui/material/Collapse';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import GroupIcon from '@mui/icons-material/Group';
+import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import HomeIcon from '@mui/icons-material/Home';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import IconButton from '@mui/material/IconButton';
@@ -31,7 +33,9 @@ import { styled } from '@mui/material/styles';
 /**
  * Spatial order of top-level navigation segments for directional view transitions.
  */
-const kSectionOrder = [ '', '/shifts', '/areas', '/duty-book', '/help-requests', '/knowledge' ];
+const kSectionOrder = [
+    '', '/shifts', '/areas', '/duty-book', '/help-requests', '/knowledge', '/volunteers',
+];
 
 /**
  * Material Design 3 rounded navigation item shared across all desktop sidebar entries, matching the
@@ -402,6 +406,7 @@ export function VolunteerNavigationItems(props: VolunteerNavigationItemsProps) {
     const isEventsActive = relativePathname === '/areas';
     const isHelpRequestsActive = relativePathname.startsWith('/help-requests');
     const isKnowledgeBaseActive = relativePathname.startsWith('/knowledge');
+    const isVolunteersActive = relativePathname.startsWith('/volunteers');
     const totalActiveEvents = areas.reduce((sum, area) => sum + area.activeCount, 0);
 
     const hasMultipleDutyBooks = dutyBooks.length > 1;
@@ -592,6 +597,19 @@ export function VolunteerNavigationItems(props: VolunteerNavigationItemsProps) {
                     </ListItemIcon>
                     <ListItemText primary="Knowledge base" />
                 </NavigationItem> }
+
+            <NavigationItem
+                component={Link}
+                href={`/schedule2/${slug}/volunteers`}
+                selected={isVolunteersActive}
+                transitionTypes={getTransitionTypes(relativePathname, '/volunteers')}>
+                <ListItemIcon>
+                    { isVolunteersActive
+                        ? <GroupIcon fontSize="small" />
+                        : <GroupOutlinedIcon fontSize="small" /> }
+                </ListItemIcon>
+                <ListItemText primary="Volunteers" />
+            </NavigationItem>
         </>
     );
 }
