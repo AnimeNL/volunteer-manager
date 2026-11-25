@@ -11,13 +11,13 @@ import { AccountMenuButton } from './components/AccountMenuButton';
 import { ApplicationBar } from './components/ApplicationBar';
 import { DesktopNavigation } from './components/DesktopNavigation';
 import { MobileNavigation } from './components/MobileNavigation';
-import { ScheduleContentSheet } from './components/ScheduleContentSheet';
 import { ScheduleTheme } from './ScheduleTheme';
 import { ScheduleTitleProvider } from './components/ScheduleTitle';
 import { getAuthenticationContext } from '@lib/auth';
 import { readCachedSetting } from '@lib/Settings';
 
-import { kDefaultThemeColor, kDesktopMaximumWidthPx, kDesktopMenuWidthPx, kShellSpacingPx } from './Constants';
+import { kDefaultThemeColor, kDesktopMaximumWidthPx, kDesktopMenuWidthPx, kSheetBorderRadiusPx,
+    kShellSpacingPx } from './Constants';
 
 /**
  * Regular expression validating a 6-digit RGB hex colour string.
@@ -34,9 +34,9 @@ async function AuthenticatedAccountMenu() {
 }
 
 /**
- * App Shell layout for `app/schedule2/[event]/`. Implements the C3-C desktop geometry (full-height
- * sidebar beside an outer pill dock and concentric 18px content sheet on a uniform 12px rhythm)
- * and M2-A mobile geometry (edge-to-edge top-rounded sheet with floating bottom pill navigation).
+ * App Shell layout for `app/schedule2/[event]/`. Renders a sticky desktop sidebar beside the pill
+ * header dock and rounded content sheet on wide viewports, and an edge-to-edge top-rounded sheet
+ * with floating bottom pill navigation on mobile.
  *
  * Deliberately avoids awaiting `params`, `cookies()`, `headers()`, or `@lib/Environment` so the
  * entire shell prerenders statically and navigates instantly.
@@ -77,9 +77,23 @@ export default async function Schedule2Layout(props: LayoutProps<'/schedule2/[ev
                                     <AuthenticatedAccountMenu />
                                 </Suspense>
                             } />
-                        <ScheduleContentSheet>
+                        <Stack sx={{
+                            bgcolor: 'var(--mui-palette-m3-sheet)',
+                            borderRadius: {
+                                xs: `${kSheetBorderRadiusPx}px ${kSheetBorderRadiusPx}px 0 0`,
+                                md: `${kSheetBorderRadiusPx}px`,
+                            },
+                            flex: '1 1 auto',
+                            gap: `${kShellSpacingPx}px`,
+                            minWidth: 0,
+                            padding: `${kShellSpacingPx}px`,
+                            paddingBottom: {
+                                xs: 'calc(80px + env(safe-area-inset-bottom, 0px))',
+                                md: `${kShellSpacingPx}px`,
+                            },
+                        }}>
                             {props.children}
-                        </ScheduleContentSheet>
+                        </Stack>
                     </Stack>
                 </Stack>
 
