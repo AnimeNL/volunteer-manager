@@ -303,12 +303,12 @@ function selectedHighlightStyles(theme: Theme) {
 
     return {
         '&.Mui-selected': {
-            backgroundColor: palette.m3.secondaryContainer,
-            color: palette.m3.onSecondaryContainer,
+            backgroundColor: palette.secondary.main,
+            color: palette.secondary.contrastText,
             '&:hover': {
                 backgroundColor:
-                    `color-mix(in srgb, ${palette.m3.secondaryContainer} 88%, ` +
-                    `${palette.m3.onSecondaryContainer})`,
+                    `color-mix(in srgb, ${palette.secondary.main} 88%, ` +
+                    `${palette.secondary.contrastText})`,
             },
             '& .MuiListItemIcon-root': {
                 color: 'inherit',
@@ -330,7 +330,7 @@ const NavigationItem = styled(ListItemButton, {
 
     return {
         borderRadius: 9999,
-        color: palette.m3.onSurface,
+        color: palette.text.primary,
         marginBottom: theme.spacing(0.25),
         minHeight: 38,
         paddingBottom: theme.spacing(0.5),
@@ -342,7 +342,7 @@ const NavigationItem = styled(ListItemButton, {
         }),
 
         '& .MuiListItemIcon-root': {
-            color: palette.m3.onSurfaceVariant,
+            color: palette.text.secondary,
             minWidth: 32,
         },
         '& .MuiListItemText-root': {
@@ -411,7 +411,7 @@ const SubNavigationItem = styled(ListItemButton, {
 
     return {
         borderRadius: 9999,
-        color: palette.m3.onSurfaceVariant,
+        color: palette.text.secondary,
         marginBottom: theme.spacing(0.25),
         minHeight: 32,
         paddingBottom: theme.spacing(0.25),

@@ -100,13 +100,7 @@ export function ApplicationBar(props: ApplicationBarProps) {
                                 {title}
                             </TitleText>
                         </Fade>
-                        <Box sx={{
-                            alignItems: 'center',
-                            color: 'text.secondary',
-                            display: 'inline-flex',
-                            flexShrink: 0,
-                            gap: 0.75,
-                        }}>
+                        <SearchTrigger>
                             <Typography variant="caption" sx={{
                                 display: { xs: 'none', sm: 'inline' },
                                 fontWeight: 500,
@@ -114,17 +108,17 @@ export function ApplicationBar(props: ApplicationBarProps) {
                                 Search
                             </Typography>
                             <SearchIcon fontSize="small" />
-                        </Box>
+                        </SearchTrigger>
                     </DockLayer>
                 </Fade>
 
                 <Fade in={searchActive}>
                     <DockLayer aria-hidden={!searchActive} inert={!searchActive}
                                sx={{ px: 0.75 }}>
-                        <IconButton aria-label="Close search" onClick={handleCloseSearch}
-                                    size="small" sx={{ color: 'text.secondary' }}>
+                        <DockIconButton aria-label="Close search" onClick={handleCloseSearch}
+                                        size="small">
                             <ArrowBackIcon fontSize="small" />
-                        </IconButton>
+                        </DockIconButton>
                         <InputBase
                             fullWidth
                             inputProps={{ 'aria-label': 'Search schedule' }}
@@ -137,11 +131,10 @@ export function ApplicationBar(props: ApplicationBarProps) {
                             placeholder="Search shifts, events, volunteers…"
                             sx={{ fontSize: '0.875rem' }}
                             value={query} />
-                        <IconButton aria-label={query ? 'Clear search' : 'Close search'}
-                                    onClick={handleClearOrClose} size="small"
-                                    sx={{ color: 'text.secondary' }}>
+                        <DockIconButton aria-label={query ? 'Clear search' : 'Close search'}
+                                        onClick={handleClearOrClose} size="small">
                             <CloseIcon fontSize="small" />
-                        </IconButton>
+                        </DockIconButton>
                     </DockLayer>
                 </Fade>
             </PillDock>
@@ -199,7 +192,7 @@ const PillDock = styled(Box, {
         backgroundColor: palette.m3.dock,
         borderRadius: 9999,
         boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-        color: palette.m3.onSurface,
+        color: palette.text.primary,
         cursor: 'pointer',
         display: 'flex',
         flex: '1 1 auto',
@@ -213,7 +206,7 @@ const PillDock = styled(Box, {
 
         ...theme.applyStyles('dark', {
             boxShadow:
-                `0 0 0 1px color-mix(in srgb, ${palette.m3.outlineVariant} 65%, transparent)`,
+                `0 0 0 1px color-mix(in srgb, ${palette.divider} 65%, transparent)`,
         }),
 
         variants: [
@@ -237,4 +230,22 @@ const DockLayer = styled(Box)(({ theme }) => ({
     gap: theme.spacing(1),
     inset: 0,
     position: 'absolute',
+}));
+
+/**
+ * Secondary-coloured search affordance on the right edge of the resting dock.
+ */
+const SearchTrigger = styled('div')(({ theme }) => ({
+    alignItems: 'center',
+    color: (theme.vars || theme).palette.text.secondary,
+    display: 'inline-flex',
+    flexShrink: 0,
+    gap: theme.spacing(0.75),
+}));
+
+/**
+ * Secondary-coloured icon button used inside the active search dock.
+ */
+const DockIconButton = styled(IconButton)(({ theme }) => ({
+    color: (theme.vars || theme).palette.text.secondary,
 }));

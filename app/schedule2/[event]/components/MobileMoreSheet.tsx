@@ -6,6 +6,7 @@
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
+import { styled } from '@mui/material/styles';
 
 import type { NavigationData } from '../lib/navigationTypes';
 import { SecondaryNavigationItems } from './NavigationList';
@@ -52,14 +53,7 @@ export function MobileMoreSheet(props: MobileMoreSheetProps) {
                 padding: `${kShellSpacingPx}px`,
                 paddingBottom: `calc(${kShellSpacingPx}px + env(safe-area-inset-bottom, 0px))`,
             }}>
-                <Box sx={{
-                    bgcolor: 'divider',
-                    borderRadius: 9999,
-                    height: 4,
-                    marginX: 'auto',
-                    mb: 1.5,
-                    width: 36,
-                }} />
+                <SheetHandle />
 
                 <List disablePadding>
                     <SecondaryNavigationItems
@@ -72,3 +66,16 @@ export function MobileMoreSheet(props: MobileMoreSheetProps) {
         </Drawer>
     );
 }
+
+/**
+ * Drag handle pill centred at the top of the mobile More bottom sheet.
+ */
+const SheetHandle = styled('div')(({ theme }) => ({
+    backgroundColor: (theme.vars || theme).palette.divider,
+    borderRadius: 9999,
+    height: 4,
+    marginBottom: theme.spacing(1.5),
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width: 36,
+}));

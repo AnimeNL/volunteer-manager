@@ -11,12 +11,12 @@ import { AccountMenuButton } from './components/AccountMenuButton';
 import { ApplicationBar } from './components/ApplicationBar';
 import { DesktopNavigation } from './components/DesktopNavigation';
 import { MobileNavigation } from './components/MobileNavigation';
-import { ScheduleTheme } from './ScheduleTheme';
+import { ScheduleContentSheet, ScheduleTheme } from './ScheduleTheme';
 import { ScheduleTitleProvider } from './components/ScheduleTitle';
 import { getAuthenticationContext } from '@lib/auth';
 import { readCachedSetting } from '@lib/Settings';
 
-import { kDefaultThemeColor, kDesktopMaximumWidthPx, kDesktopMenuWidthPx, kSheetBorderRadiusPx,
+import { kDefaultThemeColor, kDesktopMaximumWidthPx, kDesktopMenuWidthPx,
     kShellSpacingPx } from './Constants';
 
 /**
@@ -77,23 +77,9 @@ export default async function ScheduleLayout(props: LayoutProps<'/schedule2/[eve
                                     <AuthenticatedAccountMenu />
                                 </Suspense>
                             } />
-                        <Stack sx={{
-                            bgcolor: 'var(--mui-palette-m3-sheet)',
-                            borderRadius: {
-                                xs: `${kSheetBorderRadiusPx}px ${kSheetBorderRadiusPx}px 0 0`,
-                                md: `${kSheetBorderRadiusPx}px`,
-                            },
-                            flex: '1 1 auto',
-                            gap: `${kShellSpacingPx}px`,
-                            minWidth: 0,
-                            padding: `${kShellSpacingPx}px`,
-                            paddingBottom: {
-                                xs: 'calc(80px + env(safe-area-inset-bottom, 0px))',
-                                md: `${kShellSpacingPx}px`,
-                            },
-                        }}>
+                        <ScheduleContentSheet>
                             {props.children}
-                        </Stack>
+                        </ScheduleContentSheet>
                     </Stack>
                 </Stack>
 

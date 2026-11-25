@@ -54,7 +54,7 @@ async function PlaceholderContent(props: PlaceholderPageProps) {
                     <Typography variant="subtitle1" sx={{ fontWeight: 600 }} gutterBottom>
                         {title}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    <Typography variant="body2" color="textSecondary">
                         Not yet implemented.
                     </Typography>
                 </CardContent>

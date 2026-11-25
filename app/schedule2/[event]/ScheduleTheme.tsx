@@ -9,11 +9,12 @@ import { useMemo } from 'react';
 import type { Components, PaletteOptions, Theme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
+import Stack from '@mui/material/Stack';
 import { ThemeProvider, createTheme, styled } from '@mui/material/styles';
 
 import { type M3TonalPalette, computeM3ColorScheme } from './lib/m3ColorScheme';
 
-import { kCardBorderRadiusPx, kSheetBorderRadiusPx } from './Constants';
+import { kCardBorderRadiusPx, kSheetBorderRadiusPx, kShellSpacingPx } from './Constants';
 
 declare module '@mui/material/styles' {
     interface Palette {
@@ -100,7 +101,7 @@ function createScheduleTheme(themeColor: string) {
             },
             styleOverrides: {
                 root: ({ theme }) => ({
-                    backgroundColor: (theme.vars || theme).palette.m3.card,
+                    backgroundColor: (theme.vars || theme).palette.background.paper,
                     backgroundImage: 'none',
                     borderRadius: kCardBorderRadiusPx,
                 }),
@@ -120,7 +121,7 @@ function createScheduleTheme(themeColor: string) {
             styleOverrides: {
                 paper: ({ theme }) => ({
                     '&.MuiDrawer-paperAnchorBottom': {
-                        backgroundColor: (theme.vars || theme).palette.m3.shell,
+                        backgroundColor: (theme.vars || theme).palette.background.default,
                         backgroundImage: 'none',
                         borderTopLeftRadius: kSheetBorderRadiusPx,
                         borderTopRightRadius: kSheetBorderRadiusPx,
@@ -182,19 +183,44 @@ function createScheduleTheme(themeColor: string) {
 }
 
 /**
+ * Rounded content sheet container for the schedule App Shell. On mobile, runs edge-to-edge with
+ * top-only corners and bottom clearance for the floating navigation pill; on desktop, sits as an
+ * all-around rounded sheet.
+ */
+export const ScheduleContentSheet = styled(Stack)(({ theme }) => {
+    const palette = (theme.vars || theme).palette;
+
+    return {
+        backgroundColor: palette.m3.sheet,
+        borderTopLeftRadius: kSheetBorderRadiusPx,
+        borderTopRightRadius: kSheetBorderRadiusPx,
+        flex: '1 1 auto',
+        gap: kShellSpacingPx,
+        minWidth: 0,
+        padding: kShellSpacingPx,
+        paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
+
+        [theme.breakpoints.up('md')]: {
+            borderRadius: kSheetBorderRadiusPx,
+            paddingBottom: kShellSpacingPx,
+        },
+    };
+});
+
+/**
  * Full-viewport M3 tonal shell container with a subtle centred top ambient gradient that lightens
  * in dark mode and darkens in light mode via SSR-safe CSS variables.
  */
 const ScheduleBackground = styled(Box)(({ theme }) => {
-    const m3 = (theme.vars || theme).palette.m3;
+    const palette = (theme.vars || theme).palette;
 
     return {
-        backgroundColor: m3.shell,
+        backgroundColor: palette.background.default,
         backgroundImage:
-            `radial-gradient(60% 480px at 50% 0%, ${m3.ambientGlow} 0%, ` +
-            `${m3.ambientGlowSoft} 50%, transparent 100%)`,
+            `radial-gradient(60% 480px at 50% 0%, ${palette.m3.ambientGlow} 0%, ` +
+            `${palette.m3.ambientGlowSoft} 50%, transparent 100%)`,
         backgroundRepeat: 'no-repeat',
-        color: m3.onSurface,
+        color: palette.text.primary,
         display: 'flex',
         flexDirection: 'column',
         minHeight: '100dvh',

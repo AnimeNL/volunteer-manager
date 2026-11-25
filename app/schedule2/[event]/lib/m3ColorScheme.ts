@@ -33,24 +33,9 @@ export interface M3TonalPalette {
     card: string;
 
     /**
-     * Subtle elevated container for icon circles and secondary tonal buttons inside cards.
-     */
-    cardElevated: string;
-
-    /**
      * Elevated background for the mobile floating bottom navigation pill.
      */
     floatingNav: string;
-
-    /**
-     * Expressive primary container fill (e.g. focal hero status cards).
-     */
-    primaryContainer: string;
-
-    /**
-     * High-contrast text/icon colour on `primaryContainer`.
-     */
-    onPrimaryContainer: string;
 
     /**
      * Primary accent fill (e.g. expressive badge on hero cards, primary buttons).
@@ -151,10 +136,7 @@ export function computeM3ColorScheme(seedColor: string): M3ColorScheme {
         dock: hclToHex(hue, neutralChroma * 1.15, 24),
         dockActive: hclToHex(hue, neutralChroma * 1.15, 28),
         card: hclToHex(hue, neutralChroma, 17),
-        cardElevated: hclToHex(hue, neutralChroma, 22.5),
         floatingNav: hclToHex(hue, neutralChroma, 16.5),
-        primaryContainer: hclToHex(hue, primaryChroma * 0.72, 30),
-        onPrimaryContainer: hclToHex(hue, primaryChroma * 0.55, 92),
         primary: hclToHex(hue, primaryChroma * 0.78, 80),
         onPrimary: hclToHex(hue, primaryChroma * 0.65, 19),
         secondaryContainer: hclToHex(hue, secondaryChroma * 1.05, 32),
@@ -173,10 +155,7 @@ export function computeM3ColorScheme(seedColor: string): M3ColorScheme {
         dock: '#ffffff',
         dockActive: '#ffffff',
         card: hclToHex(hue, neutralChroma * 1.15, 95.5),
-        cardElevated: hclToHex(hue, secondaryChroma * 0.9, 91),
         floatingNav: hclToHex(hue, neutralChroma * 1.25, 93),
-        primaryContainer: hclToHex(hue, primaryChroma * 0.72, 90),
-        onPrimaryContainer: hclToHex(hue, primaryChroma * 0.65, 20),
         primary: hclToHex(hue, primaryChroma * 0.85, 42),
         onPrimary: '#ffffff',
         secondaryContainer: hclToHex(hue, secondaryChroma * 1.1, 84),

@@ -4,6 +4,7 @@
 import { Suspense } from 'react';
 
 import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 
@@ -11,7 +12,7 @@ import { DesktopNavigationList, VolunteerNavigationItems } from './DesktopNaviga
 import { getEvent } from '@lib/cache';
 import { getNavigationData } from '../lib/scheduleData';
 
-import { kCardBorderRadiusPx, kShellSpacingPx } from '../Constants';
+import { kShellSpacingPx } from '../Constants';
 
 /**
  * Props accepted by the <DesktopNavigation> component.
@@ -30,18 +31,12 @@ interface DesktopNavigationProps {
 export function DesktopNavigation(props: DesktopNavigationProps) {
     return (
         <Stack spacing={`${kShellSpacingPx}px`} sx={{ position: 'sticky', top: kShellSpacingPx }}>
-            <Box sx={{
-                bgcolor: 'background.paper',
-                borderRadius: `${kCardBorderRadiusPx}px`,
-                height: 112,
-                overflow: 'hidden',
-                width: '100%',
-            }}>
+            <Card sx={{ height: 112 }}>
                 <Suspense
                     fallback={ <Skeleton variant="rectangular" width="100%" height="100%" /> }>
                     <EventBannerImage params={props.params} />
                 </Suspense>
-            </Box>
+            </Card>
             <DesktopNavigationList>
                 <Suspense fallback={null}>
                     <AuthenticatedNavigationItems params={props.params} />

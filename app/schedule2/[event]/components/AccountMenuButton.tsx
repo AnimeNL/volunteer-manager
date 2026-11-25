@@ -127,8 +127,8 @@ const TonalAccountButton = styled(IconButton)(({ theme }) => {
     const palette = (theme.vars || theme).palette;
 
     return {
-        backgroundColor: palette.m3.secondaryContainer,
-        color: palette.m3.onSecondaryContainer,
+        backgroundColor: palette.secondary.main,
+        color: palette.secondary.contrastText,
         flexShrink: 0,
         height: kHeaderBarHeightPx,
         overflow: 'hidden',
@@ -136,8 +136,8 @@ const TonalAccountButton = styled(IconButton)(({ theme }) => {
         width: kHeaderBarHeightPx,
         '&:hover': {
             backgroundColor:
-                `color-mix(in srgb, ${palette.m3.secondaryContainer} 88%, ` +
-                `${palette.m3.onSecondaryContainer})`,
+                `color-mix(in srgb, ${palette.secondary.main} 88%, ` +
+                `${palette.secondary.contrastText})`,
         },
     };
 });
@@ -145,15 +145,11 @@ const TonalAccountButton = styled(IconButton)(({ theme }) => {
 /**
  * Circular avatar filling `<TonalAccountButton>`, falling back to tonal initials or a person icon.
  */
-const AccountAvatar = styled(Avatar)(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
-
-    return {
-        backgroundColor: 'transparent',
-        color: palette.m3.onSecondaryContainer,
-        fontSize: '0.875rem',
-        fontWeight: 600,
-        height: kHeaderBarHeightPx,
-        width: kHeaderBarHeightPx,
-    };
+const AccountAvatar = styled(Avatar)({
+    backgroundColor: 'transparent',
+    color: 'inherit',
+    fontSize: '0.875rem',
+    fontWeight: 600,
+    height: kHeaderBarHeightPx,
+    width: kHeaderBarHeightPx,
 });

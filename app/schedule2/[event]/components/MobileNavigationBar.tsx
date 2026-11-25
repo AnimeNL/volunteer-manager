@@ -218,7 +218,7 @@ const NavPillButton = styled(ButtonBase, {
     return {
         alignItems: 'center',
         borderRadius: 9999,
-        color: palette.m3.onSurfaceVariant,
+        color: palette.text.secondary,
         display: 'inline-flex',
         gap: theme.spacing(0.75),
         height: 40,
@@ -238,8 +238,8 @@ const NavPillButton = styled(ButtonBase, {
             {
                 props: { active: true },
                 style: {
-                    backgroundColor: palette.m3.secondaryContainer,
-                    color: palette.m3.onSecondaryContainer,
+                    backgroundColor: palette.secondary.main,
+                    color: palette.secondary.contrastText,
                     paddingLeft: theme.spacing(2),
                     paddingRight: theme.spacing(2),
                 },
