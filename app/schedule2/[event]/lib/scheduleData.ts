@@ -5,30 +5,12 @@ import 'server-only';
 import { cache } from 'react';
 import { cacheLife, cacheTag } from 'next/cache';
 
-import type { NavigationData } from './navigationTypes';
+import type { NavigationArea, NavigationData } from './navigationTypes';
 import { getScheduleAccess } from './getScheduleAccess';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots, tContent,
-    tContentCategories, tDisplaysRequests, tDutyBook, tDutyBookViewers, tEventsTeams, tSchedule,
-    tShifts, tTeams, tUsersEvents } from '@lib/database';
+    tContentCategories, tEventsTeams, tSchedule, tShifts, tTeams, tUsersEvents } from '@lib/database';
 
 import { kActivityType, kRegistrationStatus } from '@lib/database/Types';
-
-/**
- * Serializable time range returned from cached shift and program loaders.
- */
-interface TimeWindow {
-    endEpochMs: number;
-    startEpochMs: number;
-}
-
-/**
- * Serializable program area record returned from the cached program loader.
- */
-interface ProgramAreaRecord {
-    id: number;
-    name: string;
-    timeslots: TimeWindow[];
-}
 
 /**
  * Serializable Duty Book-enabled team record cached per event.
@@ -58,89 +40,60 @@ export const getNavigationData = cache(
         if (!access)
             return undefined;
 
-        const { access: permissions, currentTime, event, events, user } = access;
+        const { access: permissions, event, events, user } = access;
         const festivalId = event.integrations?.anPlanFestivalId;
         const memberTeams = events.get(event.slug);
 
-        const [ shiftWindows, programAreas, dutyBookTeams, knowledgeCategories ] =
-            await Promise.all([
-                getUserEventShiftWindows(event.id, user.id),
-                festivalId ? getProgramAreas(festivalId) : Promise.resolve([]),
-                getEventDutyBookTeams(event.id),
-                getEventKnowledgeCategories(event.id),
-            ]);
+        const [ hasShifts, areas, dutyBookTeams, knowledgeCategories ] = await Promise.all([
+            hasUserEventShifts(event.id, user.id),
+            festivalId ? getProgramAreas(festivalId) : Promise.resolve([]),
+            getEventDutyBookTeams(event.id),
+            getEventKnowledgeCategories(event.id),
+        ]);
 
-        const accessibleDutyBooks = dutyBookTeams.filter(team =>
-            memberTeams?.has(team.slug) ||
-            permissions.can('event.duty-book', 'read', { event: event.slug, team: team.slug }));
+        const dutyBooks = dutyBookTeams
+            .filter(team =>
+                memberTeams?.has(team.slug) ||
+                permissions.can('event.duty-book', 'read', { event: event.slug, team: team.slug }))
+            .map(team => ({ name: team.name, team: team.slug }));
 
-        const canViewHelpRequests = permissions.can('event.help-requests', { event: event.slug });
+        const hasHelpRequests = permissions.can('event.help-requests', { event: event.slug });
         const hasSettings = permissions.can('event.settings', { event: event.slug });
         const hasUnrestrictedKnowledge = permissions.can('event.knowledge', { event: event.slug });
 
-        const [ unreadByTeam, pendingHelpRequests, hasKnowledgeBase ] = await Promise.all([
-            getUnreadDutyBookCounts(event.id, user.id, accessibleDutyBooks.map(t => t.id)),
-            canViewHelpRequests ? getPendingHelpRequestCount(event.id) : Promise.resolve(undefined),
-            resolveKnowledgeBaseVisibility(
-                knowledgeCategories, event.id, user.id, hasUnrestrictedKnowledge, memberTeams),
-        ]);
-
-        const currentMs = currentTime.epochMilliseconds;
-        const isActive = (window: TimeWindow) =>
-            window.startEpochMs <= currentMs && window.endEpochMs > currentMs;
-
-        const areas = programAreas.map(area => ({
-            activeCount: area.timeslots.filter(isActive).length,
-            id: area.id,
-            name: area.name,
-        }));
-
-        const dutyBooks = accessibleDutyBooks.map(team => ({
-            name: team.name,
-            team: team.slug,
-            unread: unreadByTeam.get(team.id) ?? 0,
-        }));
+        const hasKnowledgeBase = await resolveKnowledgeBaseVisibility(
+            knowledgeCategories, event.id, user.id, hasUnrestrictedKnowledge, memberTeams);
 
         return {
             areas,
             dutyBooks,
             eventSlug: event.slug,
-            hasActiveShift: shiftWindows.some(isActive),
+            hasHelpRequests,
             hasKnowledgeBase,
             hasSettings,
-            hasShifts: shiftWindows.length > 0,
-            helpRequests: pendingHelpRequests !== undefined
-                ? { pending: pendingHelpRequests }
-                : undefined,
+            hasShifts,
         };
     });
 
 /**
- * Loads scheduled shift start/end windows for `userId` in `eventId`. Timestamps are returned as
- * epoch milliseconds so the result serializes cleanly across `'use cache'` boundaries.
+ * Returns whether `userId` has at least one scheduled shift in `eventId`.
  */
-async function getUserEventShiftWindows(eventId: number, userId: number): Promise<TimeWindow[]> {
+async function hasUserEventShifts(eventId: number, userId: number): Promise<boolean> {
     'use cache';
     cacheLife('minutes');
     cacheTag('schedule2-shifts', `schedule2-shifts:${eventId}:${userId}`);
 
-    const rows = await db.selectFrom(tSchedule)
+    const count = await db.selectFrom(tSchedule)
         .innerJoin(tShifts)
             .on(tShifts.shiftId.equals(tSchedule.shiftId))
                 .and(tShifts.shiftDeleted.isNull())
         .where(tSchedule.eventId.equals(eventId))
             .and(tSchedule.userId.equals(userId))
             .and(tSchedule.scheduleDeleted.isNull())
-        .select({
-            start: tSchedule.scheduleTimeStart,
-            end: tSchedule.scheduleTimeEnd,
-        })
-        .executeSelectMany();
+        .selectCountAll()
+        .executeSelectOne();
 
-    return rows.map(row => ({
-        startEpochMs: row.start.epochMilliseconds,
-        endEpochMs: row.end.epochMilliseconds,
-    }));
+    return count > 0;
 }
 
 /**
@@ -191,10 +144,10 @@ async function getEventKnowledgeCategories(eventId: number): Promise<KnowledgeCa
 }
 
 /**
- * Loads all program areas and timeslot windows for `festivalId`, sorted alphabetically by area
- * name. Callers compute live active counts against the effective portal clock.
+ * Loads all program areas for `festivalId` that have at least one scheduled timeslot, sorted
+ * alphabetically by display name.
  */
-async function getProgramAreas(festivalId: number): Promise<ProgramAreaRecord[]> {
+async function getProgramAreas(festivalId: number): Promise<NavigationArea[]> {
     'use cache';
     cacheLife('minutes');
     cacheTag('schedule2-program', `schedule2-program:${festivalId}`);
@@ -213,71 +166,13 @@ async function getProgramAreas(festivalId: number): Promise<ProgramAreaRecord[]>
             .and(tActivities.activityType.equals(kActivityType.Program))
             .and(tActivities.activityDeleted.isNull())
         .select({
-            areaId: tActivitiesAreas.areaId,
-            areaName: tActivitiesAreas.areaDisplayName.valueWhenNull(tActivitiesAreas.areaName),
-            start: tActivitiesTimeslots.timeslotStartTime,
-            end: tActivitiesTimeslots.timeslotEndTime,
+            id: tActivitiesAreas.areaId,
+            name: tActivitiesAreas.areaDisplayName.valueWhenNull(tActivitiesAreas.areaName),
         })
+        .groupBy(tActivitiesAreas.areaId)
         .executeSelectMany();
 
-    const areas = new Map<number, ProgramAreaRecord>();
-    for (const row of rows) {
-        let area = areas.get(row.areaId);
-        if (!area) {
-            area = { id: row.areaId, name: row.areaName, timeslots: [] };
-            areas.set(row.areaId, area);
-        }
-
-        area.timeslots.push({
-            startEpochMs: row.start.epochMilliseconds,
-            endEpochMs: row.end.epochMilliseconds,
-        });
-    }
-
-    return [ ...areas.values() ].sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
-}
-
-/**
- * Fetches live unread Duty Book entry counts per team for `userId` in `eventId`.
- */
-async function getUnreadDutyBookCounts(
-    eventId: number, userId: number, teamIds: number[]): Promise<Map<number, number>>
-{
-    const unreadByTeam = new Map<number, number>();
-    if (!teamIds.length)
-        return unreadByTeam;
-
-    const dutyBookViewersJoin = tDutyBookViewers.forUseInLeftJoin();
-    const rows = await db.selectFrom(tDutyBook)
-        .leftJoin(dutyBookViewersJoin)
-            .on(dutyBookViewersJoin.dutyBookId.equals(tDutyBook.dutyBookId))
-                .and(dutyBookViewersJoin.dutyBookViewerUserId.equals(userId))
-        .where(tDutyBook.dutyBookEventId.equals(eventId))
-            .and(tDutyBook.dutyBookTeamId.in(teamIds))
-            .and(tDutyBook.dutyBookDeleted.isNull())
-            .and(dutyBookViewersJoin.dutyBookId.isNull())
-        .select({
-            teamId: tDutyBook.dutyBookTeamId,
-            unread: db.countAll(),
-        })
-        .groupBy(tDutyBook.dutyBookTeamId)
-        .executeSelectMany();
-
-    for (const row of rows)
-        unreadByTeam.set(row.teamId, row.unread);
-
-    return unreadByTeam;
-}
-
-/**
- * Fetches the live count of unacknowledged Help Requests for `eventId`.
- */
-async function getPendingHelpRequestCount(eventId: number): Promise<number> {
-    return await db.selectFrom(tDisplaysRequests)
-        .where(tDisplaysRequests.requestEventId.equals(eventId))
-            .and(tDisplaysRequests.requestAcknowledgedBy.isNull())
-        .selectCountAll()
-        .executeSelectOne();
+    return rows.sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
 }
 
 /**

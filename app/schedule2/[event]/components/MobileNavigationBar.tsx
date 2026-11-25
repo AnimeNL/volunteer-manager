@@ -8,7 +8,6 @@ import { useParams, usePathname, useRouter } from 'next/navigation';
 
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AppsIcon from '@mui/icons-material/Apps';
-import Badge from '@mui/material/Badge';
 import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
 import EventNoteIcon from '@mui/icons-material/EventNote';
@@ -21,7 +20,7 @@ import { styled } from '@mui/material/styles';
 
 import type { MobileNavigationTab, NavigationData } from '../lib/navigationTypes';
 import { MobileMoreSheet } from './MobileMoreSheet';
-import { getActiveMobileTab, getMoreMenuActivityCount, getNavigationTransitionTypes,
+import { getActiveMobileTab, getNavigationTransitionTypes,
     getRelativeNavigationPath } from '../lib/navigationTypes';
 
 import { kShellSpacingPx } from '../Constants';
@@ -34,8 +33,8 @@ interface MobileNavigationBarProps {
 }
 
 /**
- * Route-aware mobile floating pill bar with active-only labels, More activity badge, and the
- * `<MobileMoreSheet>` bottom drawer for secondary routes.
+ * Route-aware mobile floating pill bar with active-only labels and the `<MobileMoreSheet>` bottom
+ * drawer for secondary routes.
  */
 export function MobileNavigationBar(props: MobileNavigationBarProps) {
     const { data } = props;
@@ -49,7 +48,6 @@ export function MobileNavigationBar(props: MobileNavigationBarProps) {
     const slug = data?.eventSlug ?? (typeof params.event === 'string' ? params.event : undefined);
     const relativePathname = getRelativeNavigationPath(pathname, slug);
     const activeTab = getActiveMobileTab(relativePathname);
-    const moreActivityCount = getMoreMenuActivityCount(data);
 
     function handleSelect(tab: MobileNavigationTab) {
         if (tab === 'more') {
@@ -75,8 +73,6 @@ export function MobileNavigationBar(props: MobileNavigationBarProps) {
         <>
             <MobileFloatingPill
                 activeTab={moreOpen ? 'more' : activeTab}
-                hasActiveShift={data?.hasActiveShift}
-                moreActivityCount={moreActivityCount}
                 onSelect={handleSelect}
                 showShifts={data?.hasShifts ?? false} />
 
@@ -94,8 +90,6 @@ export function MobileNavigationBar(props: MobileNavigationBarProps) {
  */
 interface MobileFloatingPillProps {
     activeTab: MobileNavigationTab;
-    hasActiveShift?: boolean;
-    moreActivityCount?: number;
     onSelect?: (tab: MobileNavigationTab) => void;
     showShifts?: boolean;
 }
@@ -105,13 +99,7 @@ interface MobileFloatingPillProps {
  * `<Suspense>` fallback and the route-aware live bar to prevent layout shift.
  */
 export function MobileFloatingPill(props: MobileFloatingPillProps) {
-    const {
-        activeTab,
-        hasActiveShift = false,
-        moreActivityCount = 0,
-        onSelect,
-        showShifts = false,
-    } = props;
+    const { activeTab, onSelect, showShifts = false } = props;
 
     return (
         <FloatingNavHost>
@@ -128,11 +116,7 @@ export function MobileFloatingPill(props: MobileFloatingPillProps) {
                     <MobilePillTab
                         active={activeTab === 'shifts'}
                         ariaLabel="Your schedule"
-                        icon={
-                            <Badge color="success" invisible={!hasActiveShift} variant="dot">
-                                <AccessTimeIcon fontSize="small" />
-                            </Badge>
-                        }
+                        icon={ <AccessTimeIcon fontSize="small" /> }
                         label="Schedule"
                         onClick={onSelect ? () => onSelect('shifts') : undefined} /> }
 
@@ -146,14 +130,7 @@ export function MobileFloatingPill(props: MobileFloatingPillProps) {
 
                 <MobilePillTab
                     active={activeTab === 'more'}
-                    ariaLabel={moreActivityCount > 0
-                        ? `More (${moreActivityCount} active items)`
-                        : 'More'}
-                    icon={
-                        <Badge badgeContent={moreActivityCount} color="error" max={99}>
-                            <AppsIcon fontSize="small" />
-                        </Badge>
-                    }
+                    icon={ <AppsIcon fontSize="small" /> }
                     label="More"
                     onClick={onSelect ? () => onSelect('more') : undefined} />
             </FloatingPill>

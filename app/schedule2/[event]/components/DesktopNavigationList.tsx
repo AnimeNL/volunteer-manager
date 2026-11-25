@@ -15,8 +15,7 @@ import List from '@mui/material/List';
 
 import type { NavigationData } from '../lib/navigationTypes';
 import type { NavigationSubItem } from './NavigationList';
-import { ActivityDot, ExpandableNavigationSection, NavigationLink,
-    SecondaryNavigationItems } from './NavigationList';
+import { ExpandableNavigationSection, NavigationLink, SecondaryNavigationItems } from './NavigationList';
 import { getNavigationTransitionTypes, getRelativeNavigationPath } from '../lib/navigationTypes';
 
 /**
@@ -38,17 +37,14 @@ export function DesktopNavigationList(props: React.PropsWithChildren) {
  * Renders volunteer-specific desktop sidebar entries streamed in behind `<Suspense>`.
  */
 export function VolunteerNavigationItems(props: { data: NavigationData }) {
-    const { areas, eventSlug, hasActiveShift, hasShifts } = props.data;
+    const { areas, eventSlug, hasShifts } = props.data;
 
     const pathname = usePathname();
     const relativePathname = getRelativeNavigationPath(pathname, eventSlug);
 
-    const totalActiveEvents = areas.reduce((sum, area) => sum + area.activeCount, 0);
     const areaItems: NavigationSubItem[] = areas.map(area => {
         const path = `/areas/${area.id}`;
         return {
-            badge: area.activeCount,
-            badgeLabel: `${area.activeCount} active events`,
             href: `/schedule2/${eventSlug}${path}`,
             key: area.id,
             label: area.name,
@@ -60,9 +56,6 @@ export function VolunteerNavigationItems(props: { data: NavigationData }) {
         <>
             { hasShifts &&
                 <NavigationLink
-                    badge={ hasActiveShift
-                        ? <ActivityDot aria-label="Active shift" title="Active shift" />
-                        : undefined }
                     href={`/schedule2/${eventSlug}/shifts`}
                     icon={ <AccessTimeIcon fontSize="small" /> }
                     label="Your schedule"
@@ -73,8 +66,6 @@ export function VolunteerNavigationItems(props: { data: NavigationData }) {
 
             <ExpandableNavigationSection
                 activeIcon={ <EventNoteIcon fontSize="small" /> }
-                badge={totalActiveEvents}
-                badgeLabel={`${totalActiveEvents} active events`}
                 defaultExpanded
                 expandLabel="areas"
                 href={`/schedule2/${eventSlug}/areas`}

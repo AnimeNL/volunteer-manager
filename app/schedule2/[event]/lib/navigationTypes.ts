@@ -13,7 +13,6 @@ const kNavigationSectionOrder = [
  * Program area summary rendered in schedule2 navigation menus.
  */
 export interface NavigationArea {
-    activeCount: number;
     id: number;
     name: string;
 }
@@ -24,7 +23,6 @@ export interface NavigationArea {
 export interface NavigationDutyBook {
     name: string;
     team: string;
-    unread: number;
 }
 
 /**
@@ -34,11 +32,10 @@ export interface NavigationData {
     areas: NavigationArea[];
     dutyBooks: NavigationDutyBook[];
     eventSlug: string;
-    hasActiveShift: boolean;
+    hasHelpRequests: boolean;
     hasKnowledgeBase: boolean;
     hasSettings: boolean;
     hasShifts: boolean;
-    helpRequests?: { pending: number };
 }
 
 /**
@@ -83,18 +80,4 @@ export function getActiveMobileTab(relativePathname: string): MobileNavigationTa
         return 'areas';
 
     return 'more';
-}
-
-/**
- * Computes the total urgent activity count across secondary routes housed inside the mobile "More"
- * sheet (unread Duty Book entries + pending Help Requests).
- */
-export function getMoreMenuActivityCount(data?: NavigationData): number {
-    if (!data)
-        return 0;
-
-    const unreadDutyBooks = data.dutyBooks.reduce((sum, entry) => sum + entry.unread, 0);
-    const pendingHelpRequests = data.helpRequests?.pending ?? 0;
-
-    return unreadDutyBooks + pendingHelpRequests;
 }

@@ -41,11 +41,6 @@ interface NavigationLinkProps {
     activeIcon?: React.ReactNode;
 
     /**
-     * Optional trailing badge (such as a counter or activity indicator dot).
-     */
-    badge?: React.ReactNode;
-
-    /**
      * Destination URL. When omitted, renders a non-interactive placeholder item.
      */
     href?: string;
@@ -92,7 +87,6 @@ export function NavigationLink(props: NavigationLinkProps) {
                 { props.selected && props.activeIcon ? props.activeIcon : props.icon }
             </ListItemIcon>
             <ListItemText primary={props.label} />
-            {props.badge}
         </>
     );
 
@@ -117,8 +111,6 @@ export function NavigationLink(props: NavigationLinkProps) {
  * Sub-item rendered inside an <ExpandableNavigationSection>.
  */
 export interface NavigationSubItem {
-    badge?: number;
-    badgeLabel?: string;
     href: string;
     key: string | number;
     label: string;
@@ -130,9 +122,6 @@ export interface NavigationSubItem {
  */
 interface ExpandableNavigationSectionProps {
     activeIcon: React.ReactNode;
-    badge?: number;
-    badgeLabel?: string;
-    badgeTone?: 'subtle' | 'urgent';
     defaultExpanded?: boolean;
     expandLabel: string;
     href: string;
@@ -152,7 +141,6 @@ interface ExpandableNavigationSectionProps {
 export function ExpandableNavigationSection(props: ExpandableNavigationSectionProps) {
     const [ expanded, setExpanded ] = useState<boolean>(props.defaultExpanded ?? false);
     const hasSubItems = props.items.length > 0;
-
     const expandAriaLabel = `${expanded ? 'Collapse' : 'Expand'} ${props.expandLabel}`;
 
     return (
@@ -178,10 +166,6 @@ export function ExpandableNavigationSection(props: ExpandableNavigationSectionPr
                         { props.selected ? props.activeIcon : props.icon }
                     </ListItemIcon>
                     <ListItemText primary={props.label} />
-                    { !!props.badge && props.badge > 0 &&
-                        <CounterBadge aria-label={props.badgeLabel} tone={props.badgeTone}>
-                            {props.badge}
-                        </CounterBadge> }
                 </NavigationItem>
             </ListItem>
 
@@ -194,11 +178,6 @@ export function ExpandableNavigationSection(props: ExpandableNavigationSectionPr
                                                sheet={props.sheet}
                                                transitionTypes={props.transitionTypes}>
                                 <ListItemText primary={item.label} />
-                                { !!item.badge && item.badge > 0 &&
-                                    <CounterBadge aria-label={item.badgeLabel}
-                                                  tone={props.badgeTone}>
-                                        {item.badge}
-                                    </CounterBadge> }
                             </SubNavigationItem>
                         )) }
                     </SubMenuList>
@@ -223,10 +202,9 @@ interface SecondaryNavigationItemsProps {
  */
 export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
     const { data, onNavigate, relativePathname, sheet } = props;
-    const { dutyBooks, eventSlug, hasKnowledgeBase, hasSettings, helpRequests } = data;
+    const { dutyBooks, eventSlug, hasHelpRequests, hasKnowledgeBase, hasSettings } = data;
 
     const hasMultipleDutyBooks = dutyBooks.length > 1;
-    const totalUnreadDutyBooks = dutyBooks.reduce((sum, entry) => sum + entry.unread, 0);
     const isDutyBookActive = hasMultipleDutyBooks
         ? relativePathname === '/duty-book'
         : relativePathname.startsWith('/duty-book');
@@ -238,8 +216,6 @@ export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
         ? dutyBooks.map(entry => {
             const path = `/duty-book/${entry.team}`;
             return {
-                badge: entry.unread,
-                badgeLabel: `${entry.unread} unread duty book items`,
                 href: `/schedule2/${eventSlug}${path}`,
                 key: entry.team,
                 label: entry.name,
@@ -253,9 +229,6 @@ export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
             { dutyBooks.length > 0 &&
                 <ExpandableNavigationSection
                     activeIcon={ <BookIcon fontSize="small" /> }
-                    badge={totalUnreadDutyBooks}
-                    badgeLabel={`${totalUnreadDutyBooks} unread duty book items`}
-                    badgeTone="urgent"
                     expandLabel="duty books"
                     href={dutyBookHref}
                     icon={ <BookOutlinedIcon fontSize="small" /> }
@@ -268,16 +241,9 @@ export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
                         getNavigationTransitionTypes(relativePathname, '/duty-book')
                     } /> }
 
-            { helpRequests !== undefined &&
+            { hasHelpRequests &&
                 <NavigationLink
                     activeIcon={ <NotListedLocationIcon fontSize="small" /> }
-                    badge={ helpRequests.pending > 0 ? (
-                        <CounterBadge
-                            aria-label={`${helpRequests.pending} pending help requests`}
-                            tone="urgent">
-                            {helpRequests.pending}
-                        </CounterBadge>
-                    ) : undefined }
                     href={`/schedule2/${eventSlug}/help-requests`}
                     icon={ <NotListedLocationOutlinedIcon fontSize="small" /> }
                     label="Help requests"
@@ -328,60 +294,6 @@ export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
         </>
     );
 }
-
-/**
- * Green activity indicator dot displayed when the signed-in volunteer has a currently active shift.
- */
-export const ActivityDot = styled('span')(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
-
-    return {
-        backgroundColor: palette.success.main,
-        borderRadius: '50%',
-        boxShadow: `0 0 0 3px color-mix(in srgb, ${palette.success.main} 25%, transparent)`,
-        flexShrink: 0,
-        height: 8,
-        width: 8,
-    };
-});
-
-/**
- * Pill counter badge supporting subtle (active events) and urgent (unread duty book / help
- * requests) tones.
- */
-const CounterBadge = styled('span', {
-    shouldForwardProp: prop => prop !== 'tone',
-})<{ tone?: 'subtle' | 'urgent' }>(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
-
-    return {
-        alignItems: 'center',
-        backgroundColor: `color-mix(in srgb, ${palette.text.primary} 10%, transparent)`,
-        borderRadius: 9999,
-        color: palette.text.secondary,
-        display: 'inline-flex',
-        flexShrink: 0,
-        fontSize: '0.6875rem',
-        fontVariantNumeric: 'tabular-nums',
-        fontWeight: 600,
-        height: 20,
-        justifyContent: 'center',
-        lineHeight: 1,
-        minWidth: 20,
-        paddingLeft: theme.spacing(0.75),
-        paddingRight: theme.spacing(0.75),
-
-        variants: [
-            {
-                props: { tone: 'urgent' },
-                style: {
-                    backgroundColor: palette.error.main,
-                    color: palette.error.contrastText,
-                },
-            },
-        ],
-    };
-});
 
 /**
  * Shared M3 tonal secondary-container selected highlight styles for navigation items.
