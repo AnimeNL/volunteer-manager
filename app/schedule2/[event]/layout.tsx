@@ -14,6 +14,7 @@ import { MobileNavigation } from './components/MobileNavigation';
 import { ScheduleTheme } from './ScheduleTheme';
 import { ScheduleTitleProvider } from './components/ScheduleTitle';
 import { getAuthenticationContext } from '@lib/auth';
+import { getScheduleAccess } from './lib/getScheduleAccess';
 import { readCachedSetting } from '@lib/Settings';
 
 import { kDefaultThemeColor, kDesktopMenuWidthPx, kSheetBorderRadiusPx } from './Constants';
@@ -24,12 +25,20 @@ import { kDefaultThemeColor, kDesktopMenuWidthPx, kSheetBorderRadiusPx } from '.
 const kHexColorRegex = /^#[0-9a-fA-F]{6}$/;
 
 /**
- * Streams the signed-in user's avatar into `<AccountMenuButton>` behind `<Suspense>` so the static
- * App Shell prerenders without reading session cookies.
+ * Streams the signed-in user's avatar and event-scoped account links into `<AccountMenuButton>`
+ * behind `<Suspense>` so the static App Shell prerenders without reading session cookies or
+ * dynamic route params.
  */
-async function AuthenticatedAccountMenu() {
-    const { user } = await getAuthenticationContext();
-    return <AccountMenuButton avatarUrl={user?.avatarUrl} userName={user?.name} />;
+async function AuthenticatedAccountMenu(props: { params: Promise<{ event: string }> }) {
+    const { event: eventSlug } = await props.params;
+    const access = await getScheduleAccess(eventSlug);
+    const user = access?.user ?? (await getAuthenticationContext()).user;
+
+    return (
+        <AccountMenuButton avatarUrl={user?.avatarUrl}
+                           eventSlug={access?.event.slug}
+                           userName={user?.name} />
+    );
 }
 
 /**
@@ -69,7 +78,7 @@ export default async function ScheduleLayout(props: LayoutProps<'/schedule2/[eve
                         <ApplicationBar
                             accountMenu={
                                 <Suspense fallback={ <AccountMenuButton /> }>
-                                    <AuthenticatedAccountMenu />
+                                    <AuthenticatedAccountMenu params={props.params} />
                                 </Suspense>
                             } />
                         <Stack component="main" spacing={1.5} sx={{

@@ -3,12 +3,14 @@
 
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import Divider from '@mui/material/Divider';
+import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
 import IconButton from '@mui/material/IconButton';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -36,17 +38,22 @@ interface AccountMenuButtonProps {
     avatarUrl?: string;
 
     /**
+     * Slug of the active event when the signed-in user has schedule access.
+     */
+    eventSlug?: string;
+
+    /**
      * Display name of the signed-in user for alt text and initials fallback.
      */
     userName?: string;
 }
 
 /**
- * Circular M3 tonal account button and dropdown menu providing colour-scheme switching and
- * sign-out for the schedule App Shell.
+ * Circular M3 tonal account button and dropdown menu providing colour-scheme switching, event
+ * account links, and sign-out for the schedule App Shell.
  */
 export function AccountMenuButton(props: AccountMenuButtonProps) {
-    const { avatarUrl, userName } = props;
+    const { avatarUrl, eventSlug, userName } = props;
     const { mode, setMode } = useColorScheme();
     const [ anchorEl, setAnchorEl ] = useState<HTMLElement | null>(null);
 
@@ -101,6 +108,14 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                     </ToggleButtonGroup>
                 </Box>
                 <Divider sx={{ my: 1 }} />
+                { !!eventSlug &&
+                    <MenuItem component={Link} dense href={`/schedule2/${eventSlug}/feedback`}
+                              onClick={() => setAnchorEl(null)}>
+                        <ListItemIcon>
+                            <FeedbackOutlinedIcon fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText primary="Feedback" />
+                    </MenuItem> }
                 <MenuItem dense onClick={handleSignOut}>
                     <ListItemIcon>
                         <LogoutIcon fontSize="small" />
