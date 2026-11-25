@@ -37,3 +37,27 @@ React View Transitions.
 * Use MUI CSS variables (`colorSchemes` + `cssVariables: { colorSchemeSelector: 'class' }`) backed
   by the root `<InitColorSchemeScript />` so the App Shell prerenders cleanly on the server without
   client-only gating (`if (!isClient) return null`).
+
+## Component Factoring & MUI Styling
+* Default to plain React function components as Server Components. Only extract a component for a
+  meaningful boundary: a `'use client'` leaf, a `<Suspense>` data or skeleton boundary, a reusable
+  domain unit, or a repeated styled primitive. Avoid wrapper components created solely to style a
+  one-off element.
+* Stay 100% on MUI for component styling. Do not use hoisted `const kStyles` objects (they signal
+  that `styled()`, concise inline `sx`, or theme overrides should be used instead), and do not add
+  CSS Modules (`*.module.css`). Reserve plain CSS files for global or animation rules that MUI does
+  not express (such as `view-transitions.css`).
+* Put app-wide MUI component defaults in `ScheduleTheme.tsx` (`components.*.styleOverrides`) rather
+  than exporting custom `styled(MuiX)` wrappers.
+* Use concise, plain-object inline `sx={{ ... }}` for small (1–3 property) layout, spacing, and
+  responsive visibility tweaks, and for styling inside Server Components where `styled()` cannot be
+  called. Never add `'use client'` solely to use `styled()`, and avoid function-valued `sx`
+  (`sx={theme => ...}`); prefer theme shorthands (`color: 'text.secondary'`, `borderRadius: 1`) or
+  CSS variables so styles remain RSC-serializable.
+* In Client Components, use `styled()` from `@mui/material/styles` for non-trivial styles, complex
+  selectors, reusable primitives, and repeated list or grid items (static `styled()` objects bypass
+  per-render `styleFunctionSx` overhead). Use `variants: [...]` and `shouldForwardProp` for
+  prop-driven styles, and `theme.applyStyles('dark', ...)` with `(theme.vars || theme).palette.*`
+  for colour-scheme styling—never branch on `theme.palette.mode`.
+* Always use direct MUI subpath imports (e.g. `import Box from '@mui/material/Box'`) rather than
+  barrel imports from `@mui/material`.
