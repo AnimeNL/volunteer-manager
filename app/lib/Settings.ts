@@ -1,6 +1,8 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { cacheLife, cacheTag, updateTag } from 'next/cache';
+
 import type { AiSupportedModel } from './integrations/genai/Models';
 import type { GeminiApi, TextGenerationComplexity, TextGenerationThinkingLevel } from './integrations/genai/Client';
 import type { TwilioRegion } from './integrations/twilio/TwilioTypes';
@@ -199,6 +201,46 @@ export type Settings = {
 export type Setting = keyof Settings;
 
 /**
+ * Settings eligible for Next.js `'use cache'` reads via `readCachedSetting()`. Whenever one of
+ * these settings changes in `writeSettings()`, its cache tag is invalidated via `updateTag()`, so
+ * these settings must only be written from Server Actions.
+ */
+const kCacheTaggedSettings = [
+    'theme-color',
+    'web-vitals-reporting',
+] as const satisfies readonly Setting[];
+
+const kCacheTaggedSettingSet = new Set<string>(kCacheTaggedSettings);
+
+/**
+ * Type containing all setting names that support tagged Next.js caching.
+ */
+type CacheTaggedSetting = (typeof kCacheTaggedSettings)[number];
+
+/**
+ * Reads the cache-tagged `setting` inside a Next.js `'use cache'` scope, returning `fallback` when
+ * unset or during a database-less production build. Cached entries are invalidated automatically
+ * when `writeSettings()` updates the setting.
+ */
+export async function readCachedSetting<T extends CacheTaggedSetting>(
+    setting: T, fallback: Settings[T]): Promise<Settings[T]>
+{
+    'use cache';
+    cacheTag('settings', `setting:${setting}`);
+
+    // Docker builds run `next build` without a database connection. Keep `stale` and `expire` at
+    // least 5 minutes so Next.js still embeds the fallback in build-time App Shells, while a 1s
+    // `revalidate` refreshes from MariaDB on the first production request.
+    if (process.env.NEXT_PHASE === 'phase-production-build') {
+        cacheLife({ stale: 300, revalidate: 1, expire: 300 });
+        return fallback;
+    }
+
+    cacheLife('max');
+    return (await readSetting(setting)) ?? fallback;
+}
+
+/**
  * Reads the setting with the given `setting`, or `undefined` when it cannot be loaded. This
  * function will end up issuing a database call.
  */
@@ -313,6 +355,11 @@ export async function writeSettings<T extends keyof Settings>(
 
     const cache = Cache.getInstance('Settings');
 
-    for (const [ setting, value ] of Object.entries(settings))
+    for (const [ setting, value ] of Object.entries(settings)) {
+        const previous = cache.get(setting);
         cache.set(setting, { value });
+
+        if (kCacheTaggedSettingSet.has(setting) && (!previous || previous.value !== value))
+            updateTag(`setting:${setting}`);
+    }
 }

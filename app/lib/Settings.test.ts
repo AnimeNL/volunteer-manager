@@ -1,15 +1,26 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { cacheLife, cacheTag, updateTag } from 'next/cache';
+
 import { Cache } from '@lib/cache/Cache';
-import { readSetting, readSettings, writeSetting } from './Settings';
+import { readCachedSetting, readSetting, readSettings, writeSetting } from './Settings';
 import { useMockConnection } from '@lib/database/Connection';
+
+vi.mock('next/cache', () => ({
+    cacheLife: vi.fn(),
+    cacheTag: vi.fn(),
+    updateTag: vi.fn(),
+}));
 
 describe('Settings', () => {
     const mockConnection = useMockConnection();
     const cache = Cache.getInstance('Settings');
 
-    beforeEach(() => cache.clear());
+    beforeEach(() => {
+        cache.clear();
+        vi.clearAllMocks();
+    });
 
     it('should query the database on cache miss and cache the result', async () => {
         // First read: cache miss, query database
@@ -129,5 +140,63 @@ describe('Settings', () => {
             'display-confirm-volume-change': true,
             'display-check-in-rate-seconds': 60,
         });
+    });
+
+    it('should invalidate Next.js cache tags only when cache-tagged settings change', async () => {
+        const expectWrite = () => {
+            mockConnection.expect('beginTransaction');
+            mockConnection.expect('delete', () => 1);
+            mockConnection.expect('insert', () => 1);
+            mockConnection.expect('commit');
+        };
+
+        // Non-tagged setting: must not call updateTag.
+        expectWrite();
+        await writeSetting('display-check-in-rate-seconds', 120);
+        expect(updateTag).not.toHaveBeenCalled();
+
+        // Cache-tagged setting (initial write): must call updateTag.
+        expectWrite();
+        await writeSetting('theme-color', '#e91e63');
+        expect(updateTag).toHaveBeenCalledTimes(1);
+        expect(updateTag).toHaveBeenCalledWith('setting:theme-color');
+
+        // Same value again: must not call updateTag redundantly.
+        expectWrite();
+        await writeSetting('theme-color', '#e91e63');
+        expect(updateTag).toHaveBeenCalledTimes(1);
+
+        // Changed value: must call updateTag again.
+        expectWrite();
+        await writeSetting('theme-color', '#2196f3');
+        expect(updateTag).toHaveBeenCalledTimes(2);
+    });
+
+    it('should read cache-tagged settings with fallback and build-phase handling', async () => {
+        // Production build phase: returns fallback without querying the database.
+        const previousPhase = process.env.NEXT_PHASE;
+        process.env.NEXT_PHASE = 'phase-production-build';
+        try {
+            const buildValue = await readCachedSetting('theme-color', '#303f9f');
+            expect(buildValue).toBe('#303f9f');
+            expect(cacheTag).toHaveBeenCalledWith('settings', 'setting:theme-color');
+            expect(cacheLife).toHaveBeenCalledWith({ stale: 300, revalidate: 1, expire: 300 });
+        } finally {
+            process.env.NEXT_PHASE = previousPhase;
+        }
+
+        // Runtime read: queries DB on cache miss and caches with 'max' lifetime.
+        vi.clearAllMocks();
+        mockConnection.expect('selectManyRows', () => [
+            {
+                name: 'web-vitals-reporting',
+                value: 'true',
+            },
+        ]);
+
+        const runtimeValue = await readCachedSetting('web-vitals-reporting', false);
+        expect(runtimeValue).toBe(true);
+        expect(cacheTag).toHaveBeenCalledWith('settings', 'setting:web-vitals-reporting');
+        expect(cacheLife).toHaveBeenCalledWith('max');
     });
 });
