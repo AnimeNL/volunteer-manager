@@ -16,6 +16,7 @@ export default function ScheduleHelpRequestPage(
             description="Details and status for this request for assistance."
             icon={ <NotListedLocationOutlinedIcon /> }
             params={props.params}
+            permission="event.help-requests"
             title="Help requests" />
     );
 }

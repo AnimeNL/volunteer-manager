@@ -23,13 +23,11 @@ interface VolunteerHotelBooking {
  */
 const loadVolunteerHotelBookings = cache(
     async (eventId: number, userId: number): Promise<VolunteerHotelBooking[]> => {
-        const dbInstance = db;
-
         const firstUserJoin = tUsers.forUseInLeftJoinAs('fu');
         const secondUserJoin = tUsers.forUseInLeftJoinAs('su');
         const thirdUserJoin = tUsers.forUseInLeftJoinAs('tu');
 
-        const rows = await dbInstance.selectFrom(tHotelsBookings)
+        const rows = await db.selectFrom(tHotelsBookings)
             .innerJoin(tHotels)
                 .on(tHotels.hotelId.equals(tHotelsBookings.bookingHotelId))
                     .and(tHotels.hotelRoomDeleted.isNull())
