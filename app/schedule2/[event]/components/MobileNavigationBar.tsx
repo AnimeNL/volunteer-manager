@@ -114,11 +114,11 @@ interface MobileFloatingPillProps {
     hasActiveShift?: boolean;
     moreActivityCount?: number;
     onSelect?: (tab: MobileNavigationTab) => void;
-    shiftsDisabled?: boolean;
+    showShifts?: boolean;
 }
 
 /**
- * Stateless presenter for the 4-item M3 Expressive floating pill bar. Shared between the static
+ * Stateless presenter for the M3 Expressive floating pill bar. Shared between the static
  * `<Suspense>` fallback and the route-aware live bar to prevent layout shift.
  */
 export function MobileFloatingPill(props: MobileFloatingPillProps) {
@@ -127,7 +127,7 @@ export function MobileFloatingPill(props: MobileFloatingPillProps) {
         hasActiveShift = false,
         moreActivityCount = 0,
         onSelect,
-        shiftsDisabled = false,
+        showShifts = false,
     } = props;
 
     return (
@@ -147,20 +147,20 @@ export function MobileFloatingPill(props: MobileFloatingPillProps) {
                         </Typography> }
                 </NavPillButton>
 
-                <NavPillButton
-                    active={activeTab === 'shifts'}
-                    aria-current={activeTab === 'shifts' ? 'page' : undefined}
-                    aria-label="Your schedule"
-                    disabled={shiftsDisabled}
-                    onClick={onSelect ? () => onSelect('shifts') : undefined}>
-                    <Badge color="success" invisible={!hasActiveShift} variant="dot">
-                        <AccessTimeIcon fontSize="small" />
-                    </Badge>
-                    { activeTab === 'shifts' &&
-                        <Typography variant="caption" sx={{ fontWeight: 600, lineHeight: 1 }}>
-                            Schedule
-                        </Typography> }
-                </NavPillButton>
+                { showShifts &&
+                    <NavPillButton
+                        active={activeTab === 'shifts'}
+                        aria-current={activeTab === 'shifts' ? 'page' : undefined}
+                        aria-label="Your schedule"
+                        onClick={onSelect ? () => onSelect('shifts') : undefined}>
+                        <Badge color="success" invisible={!hasActiveShift} variant="dot">
+                            <AccessTimeIcon fontSize="small" />
+                        </Badge>
+                        { activeTab === 'shifts' &&
+                            <Typography variant="caption" sx={{ fontWeight: 600, lineHeight: 1 }}>
+                                Schedule
+                            </Typography> }
+                    </NavPillButton> }
 
                 <NavPillButton
                     active={activeTab === 'areas'}
@@ -199,10 +199,8 @@ export function MobileFloatingPill(props: MobileFloatingPillProps) {
 /**
  * Props accepted by the route-aware <MobileNavigationBar> client component.
  */
-export interface MobileNavigationBarProps {
+interface MobileNavigationBarProps {
     data?: NavigationData;
-    eventBannerUrl?: string;
-    eventName?: string;
 }
 
 /**
@@ -210,7 +208,7 @@ export interface MobileNavigationBarProps {
  * `<MobileMoreSheet>` bottom drawer for secondary routes.
  */
 export function MobileNavigationBar(props: MobileNavigationBarProps) {
-    const { data, eventBannerUrl, eventName } = props;
+    const { data } = props;
 
     const params = useParams<{ event?: string }>();
     const pathname = usePathname();
@@ -250,13 +248,10 @@ export function MobileNavigationBar(props: MobileNavigationBarProps) {
                 hasActiveShift={data?.hasActiveShift}
                 moreActivityCount={moreActivityCount}
                 onSelect={handleSelect}
-                shiftsDisabled={data !== undefined && !data.hasShifts} />
+                showShifts={data?.hasShifts ?? false} />
 
             <MobileMoreSheet
                 data={data}
-                eventBannerUrl={eventBannerUrl}
-                eventName={eventName}
-                eventSlug={slug}
                 onClose={handleCloseMore}
                 open={moreOpen}
                 relativePathname={relativePathname} />

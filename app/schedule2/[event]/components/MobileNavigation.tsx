@@ -4,7 +4,6 @@
 import { Suspense } from 'react';
 
 import { MobileFloatingPill, MobileNavigationBar } from './MobileNavigationBar';
-import { getEvent } from '@lib/cache';
 import { getNavigationData } from '../lib/scheduleData';
 
 /**
@@ -18,22 +17,14 @@ interface MobileNavigationProps {
 }
 
 /**
- * Streams live volunteer navigation counts (for the More activity badge and More sheet items) and
- * the event identity banner behind `<Suspense>`, reusing the request-cached `getNavigationData()`.
+ * Streams live volunteer navigation state behind `<Suspense>`, reusing the request-cached
+ * `getNavigationData()`.
  */
 async function AuthenticatedMobileNavigation(props: MobileNavigationProps) {
     const { event: eventSlug } = await props.params;
-    const [ data, event ] = await Promise.all([
-        getNavigationData(eventSlug),
-        getEvent(eventSlug),
-    ]);
+    const data = await getNavigationData(eventSlug);
 
-    return (
-        <MobileNavigationBar
-            data={data}
-            eventBannerUrl={event?.imageUrl ?? '/images/admin/event-header.jpg'}
-            eventName={event?.name} />
-    );
+    return <MobileNavigationBar data={data} />;
 }
 
 /**
