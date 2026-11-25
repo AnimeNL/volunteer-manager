@@ -42,14 +42,6 @@ const kScheduleTheme = createTheme({
                     darkBg: kDefaultThemePalette.light,
                     darkColor: '#ffffff',
                 },
-                animecon: {
-                    activeBackground: '#144618',
-                    activeBackgroundHover: '#15581a',
-                    pastBackground: '#212121',
-                    pastBackgroundHover: '#292929',
-                    pastForeground: 'rgba(255, 255, 255, .7)',
-                } as any,
-                backgroundHighlight: '#212121',
                 background: {
                     default: '#181818',
                     paper: '#212121',
@@ -57,19 +49,10 @@ const kScheduleTheme = createTheme({
                 primary: {
                     main: kDefaultThemePalette.dark,
                 },
-                primaryPalette: undefined as any,
-            },
+            } as any,
         },
         light: {
             palette: {
-                animecon: {
-                    activeBackground: '#edf7ed',
-                    activeBackgroundHover: '#dbeddb',
-                    pastBackground: '#e0e0e0',
-                    pastBackgroundHover: '#d8d8d8',
-                    pastForeground: 'rgba(0, 0, 0, .25)',
-                } as any,
-                backgroundHighlight: '#ffffff',
                 background: {
                     default: lighten(kDefaultThemePalette.light, 0.94),
                     paper: '#ffffff',
@@ -77,14 +60,10 @@ const kScheduleTheme = createTheme({
                 primary: {
                     main: kDefaultThemePalette.light,
                 },
-                primaryPalette: undefined as any,
-            },
+            } as any,
         },
     },
     components: {
-        acThemeDarkColor: kDefaultThemePalette.dark,
-        acThemeLightColor: kDefaultThemePalette.light,
-
         MuiAppBar: {
             styleOverrides: {
                 root: {
@@ -93,7 +72,7 @@ const kScheduleTheme = createTheme({
                 },
             },
         },
-    },
+    } as any,
     cssVariables: {
         colorSchemeSelector: 'class',
     },
