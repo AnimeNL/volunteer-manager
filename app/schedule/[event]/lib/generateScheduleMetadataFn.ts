@@ -8,7 +8,7 @@ import db, { tEvents } from '@lib/database';
 
 interface TitleCache {
     cache: Map<string, string>;
-    expiration: Temporal.Instant;
+    expirationMs: number;
 }
 
 declare namespace globalThis {
@@ -82,13 +82,13 @@ export function generateScheduleMetadataFn(title?: string[]) {
  * after a certain period of time.
  */
 export function getTitleCache(cacheIdentifier: string): Map<string, string> {
-    const currentTime = Temporal.Now.instant();
+    const currentTimeMs = performance.now();
 
     let titleCache = globalThis.animeConScheduleTitleCache.get(cacheIdentifier);
-    if (!titleCache || Temporal.Instant.compare(currentTime, titleCache.expiration) >= 0) {
+    if (!titleCache || currentTimeMs >= titleCache.expirationMs) {
         globalThis.animeConScheduleTitleCache.set(cacheIdentifier, {
             cache: new Map,
-            expiration: currentTime.add({ seconds: kTitleCacheExpirationTimeSeconds }),
+            expirationMs: currentTimeMs + kTitleCacheExpirationTimeSeconds * 1000,
         });
 
         titleCache = globalThis.animeConScheduleTitleCache.get(cacheIdentifier)!;

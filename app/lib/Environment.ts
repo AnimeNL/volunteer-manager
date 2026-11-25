@@ -102,10 +102,12 @@ async function loadCachedEnvironmentsFromDatabase() {
  * Will return "undefined" in case no appropriate environment can be found.
  */
 export async function determineEnvironment(): Promise<Environment | undefined> {
-    const environments = await loadCachedEnvironmentsFromDatabase() || [];
+    const requestHeaders = await headers();
     const requestOrigin =
         /* dev environment= */ process.env.APP_ENVIRONMENT_OVERRIDE ??
-        /* production server= */ (await headers()).get('Host');
+        /* production server= */ requestHeaders.get('Host');
+
+    const environments = await loadCachedEnvironmentsFromDatabase() || [];
 
     for (const environment of environments) {
         if (requestOrigin?.endsWith(environment.domain))
