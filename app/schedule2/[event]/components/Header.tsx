@@ -6,7 +6,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import { kCardBorderRadiusPx } from '../Constants';
+import { kCardBorderRadiusPx, kSheetBorderRadiusPx } from '../Constants';
 
 /**
  * Props accepted by the <Header> component.
@@ -39,31 +39,28 @@ interface HeaderProps {
 
 /**
  * Shared Material Design 3 page header for the schedule portal. Sits directly on the outer shell
- * above the content sheet on mobile and renders as a tonal banner card inside the sheet on
- * desktop, with fixed-metric slots so any prop can stream behind `<Suspense>` without layout shift.
+ * above the content sheet on mobile and renders frameless at the top of the sheet on desktop, with
+ * fixed-metric slots so any prop can stream behind `<Suspense>` without layout shift.
  */
 export function Header(props: HeaderProps) {
     return (
         <Stack component="section" direction="row" spacing={1.75} sx={{
             alignItems: 'center',
-            background: {
-                md:
-                    'linear-gradient(135deg, var(--mui-palette-m3-secondaryContainer) 0%, ' +
-                    'var(--mui-palette-m3-card) 135%)',
-            },
-            borderRadius: { md: `${kCardBorderRadiusPx}px` },
-            px: { xs: 1.5, md: 2 },
-            py: { xs: 0.5, md: 1.75 },
+            borderBottom: { md: 1 },
+            borderColor: { md: 'divider' },
+            px: { xs: 1.5, md: 0 },
+            pt: { xs: 0.5, md: 0 },
+            pb: { xs: 0.5, md: 1.5 },
         }}>
             <Avatar aria-hidden="true" variant="rounded" sx={{
-                bgcolor: {
-                    xs: 'm3.secondaryContainer',
-                    md: 'color-mix(in srgb, var(--mui-palette-m3-sheet) 38%, transparent)',
+                bgcolor: 'm3.secondaryContainer',
+                borderRadius: {
+                    xs: `${kCardBorderRadiusPx}px`,
+                    md: `${kSheetBorderRadiusPx - 12}px`,
                 },
-                borderRadius: `${kCardBorderRadiusPx}px`,
                 color: 'text.primary',
-                height: 44,
-                width: 44,
+                height: 46,
+                width: 46,
             }}>
                 {props.icon}
             </Avatar>
