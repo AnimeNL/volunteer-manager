@@ -104,6 +104,11 @@ export const assignmentsDataSource = createDataSource('admin/event/hotels/assign
     thirdCommunication: z.record(z.string(), z.string()).optional(),
 
     /**
+     * Reservation or booking number assigned by the hotel, if known.
+     */
+    reservation: z.string().nullish(),
+
+    /**
      * ID and formatted label of the hotel room option associated with this booking.
      */
     hotelId: z.number().nullish(),
@@ -155,6 +160,7 @@ export const assignmentsDataSource = createDataSource('admin/event/hotels/assign
                 bookingSecondName: typeof assignments[1] === 'string' ? assignments[1] : null,
                 bookingThirdUserId: typeof assignments[2] === 'number' ? assignments[2] : null,
                 bookingThirdName: typeof assignments[2] === 'string' ? assignments[2] : null,
+                bookingReservation: partialRow.reservation?.trim() || null,
                 bookingConfirmed: partialRow.confirmed ? dbInstance.currentZonedDateTime() : null,
             })
             .returningLastInsertedId()
@@ -238,6 +244,8 @@ export const assignmentsDataSource = createDataSource('admin/event/hotels/assign
                 thirdName: tHotelsBookings.bookingThirdName.valueWhenNull(thirdUserJoin.name),
                 thirdUserId: tHotelsBookings.bookingThirdUserId,
                 thirdLanguage: thirdUserJoin.language,
+
+                reservation: tHotelsBookings.bookingReservation,
 
                 hotelId: tHotelsBookings.bookingHotelId,
                 hotelName: hotelsJoin.hotelName,
@@ -379,6 +387,8 @@ export const assignmentsDataSource = createDataSource('admin/event/hotels/assign
                     typeof updatedAssignments[2] === 'number' ? updatedAssignments[2] : null,
                 bookingThirdName:
                     typeof updatedAssignments[2] === 'string' ? updatedAssignments[2] : null,
+
+                bookingReservation: row.reservation?.trim() || null,
 
                 bookingConfirmed:
                     previousRow.confirmed !== row.confirmed

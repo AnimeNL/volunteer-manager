@@ -63,6 +63,7 @@ export async function HotelConfirmation(props: HotelConfirmationProps) {
             secondName: tHotelsBookings.bookingSecondName.valueWhenNull(secondUserJoin.name),
             thirdUserId: tHotelsBookings.bookingThirdUserId,
             thirdName: tHotelsBookings.bookingThirdName.valueWhenNull(thirdUserJoin.name),
+            reservation: tHotelsBookings.bookingReservation,
         })
         .orderBy('checkIn', 'asc')
         .executeSelectMany();
@@ -90,9 +91,13 @@ export async function HotelConfirmation(props: HotelConfirmationProps) {
                     !!otherNames.length
                         ? `You'll share this room with ${otherNames.join(' & ')}`
                         : 'You won\'t share this room with anyone';
+                const quaternary =
+                    booking.reservation
+                        ? `Booking number: ${booking.reservation}`
+                        : undefined;
 
                 return <ConfirmationBox key={index} primary={primary} secondary={secondary}
-                                        tertiary={tertiary} />;
+                                        tertiary={tertiary} quaternary={quaternary} />;
             }) }
         </Box>
     );

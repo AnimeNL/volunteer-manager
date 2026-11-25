@@ -3037,7 +3037,7 @@ tables:
       KEY `idx_web_vitals_route_metric_date` (`vital_route`,`vital_metric`,`vital_date`),
       KEY `idx_web_vitals_date_metric` (`vital_date`,`vital_metric`),
       KEY `idx_web_vitals_build_hash` (`vital_build_hash`,`vital_metric`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: permissions
   type: BASE TABLE
   columns:
@@ -5560,6 +5560,10 @@ tables:
     type: text
     nullable: true
     default: "NULL"
+  - name: booking_reservation
+    type: text
+    nullable: true
+    default: "NULL"
   - name: booking_confirmed
     type: datetime
     nullable: true
@@ -5603,6 +5607,7 @@ tables:
       `booking_second_name` text DEFAULT NULL,
       `booking_third_user_id` int(4) unsigned DEFAULT NULL,
       `booking_third_name` text DEFAULT NULL,
+      `booking_reservation` text DEFAULT NULL,
       `booking_confirmed` datetime DEFAULT NULL,
       `booking_created` datetime NOT NULL DEFAULT current_timestamp(),
       `booking_deleted` datetime DEFAULT NULL,

@@ -14,6 +14,7 @@ interface VolunteerHotelBooking {
     checkIn: Temporal.PlainDate;
     checkOut: Temporal.PlainDate;
     hotelName: string;
+    reservation?: string;
     roomName: string;
     sharingWith: string[];
 }
@@ -47,6 +48,7 @@ const loadVolunteerHotelBookings = cache(
                 checkIn: tHotelsBookings.bookingCheckIn,
                 checkOut: tHotelsBookings.bookingCheckOut,
                 hotelName: tHotels.hotelName,
+                reservation: tHotelsBookings.bookingReservation,
                 roomName: tHotels.hotelRoomName,
                 firstUserId: tHotelsBookings.bookingFirstUserId,
                 firstName: tHotelsBookings.bookingFirstName.valueWhenNull(firstUserJoin.name),
@@ -71,6 +73,7 @@ const loadVolunteerHotelBookings = cache(
                 checkIn: row.checkIn,
                 checkOut: row.checkOut,
                 hotelName: row.hotelName,
+                reservation: row.reservation,
                 roomName: row.roomName,
                 sharingWith,
             };

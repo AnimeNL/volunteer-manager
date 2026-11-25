@@ -45,6 +45,11 @@ interface ConfirmationBoxProps {
      * Third line of text to display in the box.
      */
     tertiary?: string;
+
+    /**
+     * Fourth line of text to display in the box.
+     */
+    quaternary?: string;
 }
 
 /**
@@ -64,6 +69,10 @@ export function ConfirmationBox(props: ConfirmationBoxProps) {
             { props.tertiary &&
                 <Typography variant="body1">
                     {props.tertiary}
+                </Typography> }
+            { props.quaternary &&
+                <Typography variant="body1">
+                    {props.quaternary}
                 </Typography> }
         </Box>
     );

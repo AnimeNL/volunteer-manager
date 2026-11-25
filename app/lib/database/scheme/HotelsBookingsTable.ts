@@ -24,6 +24,7 @@ export class HotelsBookingsTable extends Table<DBConnection, 'HotelsBookingsTabl
     bookingSecondName = this.optionalColumnWithDefaultValue('booking_second_name', 'string');
     bookingThirdUserId = this.optionalColumnWithDefaultValue('booking_third_user_id', 'int');
     bookingThirdName = this.optionalColumnWithDefaultValue('booking_third_name', 'string');
+    bookingReservation = this.optionalColumnWithDefaultValue('booking_reservation', 'string');
     bookingConfirmed = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('booking_confirmed', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     bookingCreated = this.columnWithDefaultValue<Temporal.ZonedDateTime>('booking_created', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     bookingDeleted = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('booking_deleted', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);

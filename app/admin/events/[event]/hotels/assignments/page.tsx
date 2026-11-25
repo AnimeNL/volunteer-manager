@@ -110,6 +110,15 @@ export default async function EventHotelAssignmentsPage(
             },
         },
         {
+            field: 'reservation',
+            headerName: 'Booking #',
+            editable: true,
+            sortable: true,
+            width: 140,
+
+            template: 'text',
+        },
+        {
             field: 'hotelId',
             headerName: 'Hotel room',
             editable: true,
