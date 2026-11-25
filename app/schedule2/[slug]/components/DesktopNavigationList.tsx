@@ -7,15 +7,8 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { useParams, usePathname } from 'next/navigation';
 
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import EventNoteIcon from '@mui/icons-material/EventNote';
-import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
-import GroupIcon from '@mui/icons-material/Group';
-import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import HomeIcon from '@mui/icons-material/Home';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
-import InfoIcon from '@mui/icons-material/Info';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -75,55 +68,6 @@ const NavigationItem = styled(ListItemButton)(({ theme }) => {
 }) as typeof ListItemButton;
 
 /**
- * Navigation entries shown in the desktop sidebar shell, ordered spatially for directional view
- * transitions.
- */
-const kNavigationItems = [
-    {
-        activeIcon: <HomeIcon fontSize="small" />,
-        icon: <HomeOutlinedIcon fontSize="small" />,
-        label: 'Overview',
-        segment: '',
-    },
-    {
-        activeIcon: <AccessTimeIcon fontSize="small" />,
-        icon: <AccessTimeIcon fontSize="small" />,
-        label: 'Your schedule',
-        segment: '/shifts',
-    },
-    {
-        activeIcon: <EventNoteIcon fontSize="small" />,
-        icon: <EventNoteOutlinedIcon fontSize="small" />,
-        label: 'Events',
-        segment: '/areas',
-    },
-    {
-        activeIcon: <InfoIcon fontSize="small" />,
-        disabled: true,
-        icon: <InfoOutlinedIcon fontSize="small" />,
-        label: 'Knowledge base',
-        segment: '/knowledge',
-    },
-    {
-        activeIcon: <GroupIcon fontSize="small" />,
-        disabled: true,
-        icon: <GroupOutlinedIcon fontSize="small" />,
-        label: 'Volunteers',
-        segment: '/volunteers',
-    },
-];
-
-/**
- * Determines directional view-transition types based on the spatial order of navigation entries.
- */
-function getTransitionTypes(currentIndex: number, targetIndex: number): string[] | undefined {
-    if (currentIndex < 0 || currentIndex === targetIndex)
-        return undefined;
-
-    return targetIndex > currentIndex ? [ 'nav-forward' ] : [ 'nav-back' ];
-}
-
-/**
  * Props accepted by the <NavigationListView> component.
  */
 interface NavigationListViewProps {
@@ -139,49 +83,36 @@ interface NavigationListViewProps {
 }
 
 /**
- * Renders the sidebar navigation items. When `slug` is omitted (during static App Shell
- * prerendering), renders the exact same visual list without URL-dependent links or active state.
+ * Renders the sidebar navigation items. Only the Overview entry is visible by default; additional
+ * volunteer-specific entries will stream in conditionally in subsequent iterations.
  */
 function NavigationListView(props: NavigationListViewProps) {
     const { relativePathname, slug } = props;
 
-    const activeIndex = relativePathname === undefined
-        ? -1
-        : kNavigationItems.findIndex(item =>
-            item.segment === ''
-                ? relativePathname === ''
-                : relativePathname.startsWith(item.segment));
+    const isOverviewActive = relativePathname === '';
+    const overviewIcon = isOverviewActive
+        ? <HomeIcon fontSize="small" />
+        : <HomeOutlinedIcon fontSize="small" />;
 
     return (
         <List sx={{ paddingLeft: 2, paddingRight: 0, paddingY: 1 }}>
-            { kNavigationItems.map((item, index) => {
-                const isActive = index === activeIndex;
-                const icon = isActive ? item.activeIcon : item.icon;
-
-                if (!slug || item.disabled) {
-                    return (
-                        <NavigationItem key={item.label} disabled={item.disabled}
-                                        selected={isActive}>
-                            <ListItemIcon>
-                                {icon}
-                            </ListItemIcon>
-                            <ListItemText primary={item.label} />
-                        </NavigationItem>
-                    );
-                }
-
-                return (
-                    <NavigationItem key={item.label} component={Link}
-                                    href={`/schedule2/${slug}${item.segment}`}
-                                    selected={isActive}
-                                    transitionTypes={getTransitionTypes(activeIndex, index)}>
-                        <ListItemIcon>
-                            {icon}
-                        </ListItemIcon>
-                        <ListItemText primary={item.label} />
-                    </NavigationItem>
-                );
-            }) }
+            { !slug ? (
+                <NavigationItem selected={isOverviewActive}>
+                    <ListItemIcon>
+                        {overviewIcon}
+                    </ListItemIcon>
+                    <ListItemText primary="Overview" />
+                </NavigationItem>
+            ) : (
+                <NavigationItem component={Link} href={`/schedule2/${slug}`}
+                                selected={isOverviewActive}
+                                transitionTypes={relativePathname ? [ 'nav-back' ] : undefined}>
+                    <ListItemIcon>
+                        {overviewIcon}
+                    </ListItemIcon>
+                    <ListItemText primary="Overview" />
+                </NavigationItem>
+            ) }
         </List>
     );
 }
