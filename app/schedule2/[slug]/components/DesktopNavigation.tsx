@@ -21,7 +21,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import { darken } from '@mui/material/styles';
 
-import { kDefaultThemePalette, kDesktopMenuWidthPx } from '../Constants';
+import { kDesktopMenuWidthPx } from '../Constants';
 
 /**
  * Styling for the <DesktopNavigation> sidebar, matching the legacy schedule portal's proportions.
@@ -49,14 +49,6 @@ const kStyles: { [key: string]: SxProps<Theme> } = {
         marginBottom: 1,
     },
 };
-
-/**
- * Precomputed query parameters for the tinted schedule logo SVG.
- */
-const kLogoUrl = '/images/logo.svg?' + new URLSearchParams([
-    [ 'color', darken(kDefaultThemePalette.light, 0.3) ],
-    [ 'title', /* empty= */ '' ],
-]);
 
 /**
  * Navigation entries shown in the desktop sidebar shell, ordered spatially for directional view
@@ -159,13 +151,28 @@ function RouteAwareDesktopNavigationList() {
 }
 
 /**
+ * Props accepted by the <DesktopNavigation> component.
+ */
+interface DesktopNavigationProps {
+    /**
+     * Primary hex colour from the `theme-color` setting used to tint the sidebar logo.
+     */
+    themeColor: string;
+}
+
+/**
  * Desktop sidebar navigation for the `app/schedule2/` App Shell.
  */
-export function DesktopNavigation() {
+export function DesktopNavigation(props: DesktopNavigationProps) {
+    const logoUrl = '/images/logo.svg?' + new URLSearchParams([
+        [ 'color', darken(props.themeColor, 0.3) ],
+        [ 'title', /* empty= */ '' ],
+    ]);
+
     return (
         <>
             <Box sx={kStyles.header}>
-                <object type="image/svg+xml" style={{ marginTop: '-35px' }} data={kLogoUrl} />
+                <object type="image/svg+xml" style={{ marginTop: '-35px' }} data={logoUrl} />
             </Box>
             <Suspense fallback={ <DesktopNavigationList /> }>
                 <RouteAwareDesktopNavigationList />

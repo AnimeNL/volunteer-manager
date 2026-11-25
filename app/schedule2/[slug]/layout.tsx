@@ -13,8 +13,14 @@ import { DesktopNavigation } from './components/DesktopNavigation';
 import { MobileNavigation } from './components/MobileNavigation';
 import { ScheduleTheme } from './ScheduleTheme';
 import { ScheduleTitleProvider } from './components/ScheduleTitle';
+import { readCachedSetting } from '@lib/Settings';
 
-import { kDesktopMaximumWidthPx, kDesktopMenuWidthPx } from './Constants';
+import { kDefaultThemeColor, kDesktopMaximumWidthPx, kDesktopMenuWidthPx } from './Constants';
+
+/**
+ * Regular expression validating a 6-digit RGB hex colour string.
+ */
+const kHexColorRegex = /^#[0-9a-fA-F]{6}$/;
 
 /**
  * Styling rules for the <Schedule2Layout> App Shell, matching the legacy schedule layout.
@@ -45,14 +51,19 @@ const kStyles: { [key: string]: SxProps<Theme> } = {
  * `headers()`, or `@lib/Environment` so the entire shell prerenders statically and navigates
  * instantly.
  */
-export default function Schedule2Layout(props: LayoutProps<'/schedule2/[slug]'>) {
+export default async function Schedule2Layout(props: LayoutProps<'/schedule2/[slug]'>) {
+    const configuredThemeColor = await readCachedSetting('theme-color', kDefaultThemeColor);
+    const themeColor = kHexColorRegex.test(configuredThemeColor)
+        ? configuredThemeColor
+        : kDefaultThemeColor;
+
     return (
-        <ScheduleTheme>
+        <ScheduleTheme themeColor={themeColor}>
             <ScheduleTitleProvider defaultTitle="AnimeCon">
                 <ApplicationBar />
                 <Stack direction="row" sx={kStyles.container}>
                     <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-                        <DesktopNavigation />
+                        <DesktopNavigation themeColor={themeColor} />
                     </Box>
                     <Stack direction="column" spacing={2} sx={kStyles.content}>
                         {props.children}

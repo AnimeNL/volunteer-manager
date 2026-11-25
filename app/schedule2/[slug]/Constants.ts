@@ -5,12 +5,9 @@ import type { SxProps } from '@mui/system';
 import type { Theme } from '@mui/material/styles';
 
 /**
- * Default primary palette colours for the schedule portal, independent of any host environment.
+ * Default primary theme colour for the schedule portal when the `theme-color` setting is unset.
  */
-export const kDefaultThemePalette = {
-    dark: '#7986cb',
-    light: '#303f9f',
-};
+export const kDefaultThemeColor = '#2196f3';
 
 /**
  * Maximum width, in pixels, the portal should use on desktop platforms. We use the `md` breakpoint
