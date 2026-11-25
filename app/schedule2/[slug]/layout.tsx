@@ -12,14 +12,9 @@ import { ApplicationBar } from './components/ApplicationBar';
 import { DesktopNavigation } from './components/DesktopNavigation';
 import { MobileNavigation } from './components/MobileNavigation';
 import { ScheduleTheme } from './ScheduleTheme';
+import { ScheduleTitleProvider } from './components/ScheduleTitle';
 
 import { kDesktopMaximumWidthPx, kDesktopMenuWidthPx } from './Constants';
-
-/**
- * Opt into Next.js Instant Navigation validation and Partial Prefetching for `app/schedule2/`.
- */
-export const instant = true;
-export const prefetch = 'partial';
 
 /**
  * Styling rules for the <Schedule2Layout> App Shell, matching the legacy schedule layout.
@@ -53,18 +48,23 @@ const kStyles: { [key: string]: SxProps<Theme> } = {
 export default function Schedule2Layout(props: LayoutProps<'/schedule2/[slug]'>) {
     return (
         <ScheduleTheme>
-            <ApplicationBar title="AnimeCon" />
-            <Stack direction="row" sx={kStyles.container}>
-                <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-                    <DesktopNavigation />
-                </Box>
-                <Stack direction="column" spacing={2} sx={kStyles.content}>
-                    {props.children}
+            <ScheduleTitleProvider defaultTitle="AnimeCon">
+                <ApplicationBar />
+                <Stack direction="row" sx={kStyles.container}>
+                    <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+                        <DesktopNavigation />
+                    </Box>
+                    <Stack direction="column" spacing={2} sx={kStyles.content}>
+                        {props.children}
+                    </Stack>
                 </Stack>
-            </Stack>
-            <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-                <MobileNavigation />
-            </Box>
+                <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+                    <MobileNavigation />
+                </Box>
+            </ScheduleTitleProvider>
         </ScheduleTheme>
     );
 }
+
+export const instant = true;
+export const prefetch = 'partial';

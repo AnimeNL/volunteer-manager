@@ -21,6 +21,8 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { useColorScheme } from '@mui/material/styles';
 
+import { useScheduleTitle } from './ScheduleTitle';
+
 import { kDesktopMaximumWidthPx, kDesktopMenuWidthPx, kEnforceSingleLine } from '../Constants';
 
 /**
@@ -51,20 +53,11 @@ const kStyles: { [key: string]: SxProps<Theme> } = {
 };
 
 /**
- * Props accepted by the <ApplicationBar> component.
+ * Sticky top bar of the schedule2 App Shell, anchored across view transitions. Provides the active
+ * page title from <ScheduleTitleProvider> and an account menu with the colour-scheme toggle.
  */
-interface ApplicationBarProps {
-    /**
-     * Title displayed in the top bar. Kept URL-independent in the App Shell.
-     */
-    title: string;
-}
-
-/**
- * Sticky top bar of the schedule2 App Shell, anchored across view transitions. Provides the portal
- * title and a minimal account menu with the colour-scheme toggle.
- */
-export function ApplicationBar(props: ApplicationBarProps) {
+export function ApplicationBar() {
+    const title = useScheduleTitle();
     const { mode, setMode } = useColorScheme();
 
     const [ userMenuAnchor, setUserMenuAnchor ] = useState<HTMLElement | null>(null);
@@ -92,7 +85,7 @@ export function ApplicationBar(props: ApplicationBarProps) {
             <AppBar position="sticky" sx={kStyles.container}>
                 <Toolbar sx={kStyles.toolbar}>
                     <Typography variant="h6" component="div" sx={kStyles.title}>
-                        {props.title}
+                        {title}
                     </Typography>
                     <IconButton aria-label="Account menu" color="inherit"
                                 onClick={handleMenuOpen} size="large">
