@@ -22,29 +22,34 @@ interface PlaceholderPageProps {
     params: Promise<{ event: string }>;
 
     /**
-     * Title displayed in the AppBar and placeholder card heading.
+     * Title displayed in the AppBar and placeholder card heading. When omitted, defaults to the
+     * resolved event's `shortName`.
      */
-    title: string;
+    title?: string;
 }
 
 /**
  * Authenticates the request behind `<Suspense>` and renders a simple "Not yet implemented" card.
  */
 async function PlaceholderContent(props: PlaceholderPageProps) {
-    const { event } = await props.params;
-    await requireScheduleAccess(event);
+    const { event: eventSlug } = await props.params;
+    const { event } = await requireScheduleAccess(eventSlug);
+    const title = props.title ?? event.shortName;
 
     return (
-        <Card>
-            <CardContent>
-                <Typography variant="h6" gutterBottom>
-                    {props.title}
-                </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                    Not yet implemented.
-                </Typography>
-            </CardContent>
-        </Card>
+        <>
+            { !props.title && <SetTitle title={title} /> }
+            <Card>
+                <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                        {title}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        Not yet implemented.
+                    </Typography>
+                </CardContent>
+            </Card>
+        </>
     );
 }
 
@@ -54,7 +59,7 @@ async function PlaceholderContent(props: PlaceholderPageProps) {
 export function PlaceholderPage(props: PlaceholderPageProps) {
     return (
         <PageTransition>
-            <SetTitle title={props.title} />
+            { props.title && <SetTitle title={props.title} /> }
             <Suspense
                 fallback={
                     <ViewTransition exit="schedule2-slide-down" default="none">
