@@ -21,7 +21,7 @@ import { styled } from '@mui/material/styles';
 import type { MobileNavigationTab, NavigationData } from '../lib/navigationTypes';
 import { MobileMoreSheet } from './MobileMoreSheet';
 import { getActiveMobileTab, getNavigationTransitionTypes,
-    getRelativeNavigationPath } from '../lib/navigationTypes';
+    getRelativeNavigationPath, getSchedulePath } from '../lib/navigationTypes';
 
 /**
  * Props accepted by the route-aware <MobileNavigationBar> client component.
@@ -57,9 +57,7 @@ export function MobileNavigationBar(props: MobileNavigationBarProps) {
             return;
 
         const targetSegment = tab === 'overview' ? '' : `/${tab}`;
-        const destination = targetSegment
-            ? `/schedule2/${slug}${targetSegment}`
-            : `/schedule2/${slug}`;
+        const destination = getSchedulePath(slug, targetSegment);
         if (destination === pathname)
             return;
 

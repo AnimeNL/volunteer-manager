@@ -16,7 +16,8 @@ import List from '@mui/material/List';
 import type { NavigationData } from '../lib/navigationTypes';
 import type { NavigationSubItem } from './NavigationList';
 import { ExpandableNavigationSection, NavigationLink, SecondaryNavigationItems } from './NavigationList';
-import { getNavigationTransitionTypes, getRelativeNavigationPath } from '../lib/navigationTypes';
+import { getNavigationTransitionTypes, getRelativeNavigationPath, getSchedulePath,
+    isNavigationPathActive } from '../lib/navigationTypes';
 
 /**
  * Route-aware desktop sidebar list. Renders Overview immediately in the static App Shell, and
@@ -45,10 +46,10 @@ export function VolunteerNavigationItems(props: { data: NavigationData }) {
     const areaItems: NavigationSubItem[] = areas.map(area => {
         const path = `/areas/${area.id}`;
         return {
-            href: `/schedule2/${eventSlug}${path}`,
+            href: getSchedulePath(eventSlug, path),
             key: area.id,
             label: area.name,
-            selected: relativePathname === path || relativePathname.startsWith(`${path}/`),
+            selected: isNavigationPathActive(relativePathname, path),
         };
     });
 
@@ -56,10 +57,10 @@ export function VolunteerNavigationItems(props: { data: NavigationData }) {
         <>
             { hasShifts &&
                 <NavigationLink
-                    href={`/schedule2/${eventSlug}/shifts`}
+                    href={getSchedulePath(eventSlug, '/shifts')}
                     icon={ <AccessTimeIcon fontSize="small" /> }
                     label="Your schedule"
-                    selected={relativePathname.startsWith('/shifts')}
+                    selected={isNavigationPathActive(relativePathname, '/shifts')}
                     transitionTypes={
                         getNavigationTransitionTypes(relativePathname, '/shifts')
                     } /> }
@@ -68,7 +69,7 @@ export function VolunteerNavigationItems(props: { data: NavigationData }) {
                 activeIcon={ <EventNoteIcon fontSize="small" /> }
                 defaultExpanded={expandEvents}
                 expandLabel="areas"
-                href={`/schedule2/${eventSlug}/areas`}
+                href={getSchedulePath(eventSlug, '/areas')}
                 icon={ <EventNoteOutlinedIcon fontSize="small" /> }
                 items={areaItems}
                 label="Events"
@@ -91,10 +92,10 @@ function OverviewItem(props: { eventSlug?: string; relativePathname?: string }) 
     return (
         <NavigationLink
             activeIcon={ <HomeIcon fontSize="small" /> }
-            href={eventSlug ? `/schedule2/${eventSlug}` : undefined}
+            href={eventSlug ? getSchedulePath(eventSlug) : undefined}
             icon={ <HomeOutlinedIcon fontSize="small" /> }
             label="Overview"
-            selected={relativePathname === ''}
+            selected={relativePathname !== undefined && isNavigationPathActive(relativePathname, '')}
             transitionTypes={relativePathname ? [ 'nav-back' ] : undefined} />
     );
 }

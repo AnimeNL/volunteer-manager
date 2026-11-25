@@ -28,7 +28,8 @@ import { styled } from '@mui/material/styles';
 
 import type { ExpandableNavigationSectionId } from './NavigationActions';
 import type { NavigationData } from '../lib/navigationTypes';
-import { getNavigationTransitionTypes } from '../lib/navigationTypes';
+import { getNavigationTransitionTypes, getSchedulePath,
+    isNavigationPathActive } from '../lib/navigationTypes';
 
 import { updateNavigationSectionExpanded } from './NavigationActions';
 
@@ -206,19 +207,19 @@ export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
     const hasMultipleDutyBooks = dutyBooks.length > 1;
     const isDutyBookActive = hasMultipleDutyBooks
         ? relativePathname === '/duty-book'
-        : relativePathname.startsWith('/duty-book');
+        : isNavigationPathActive(relativePathname, '/duty-book');
     const dutyBookHref = hasMultipleDutyBooks
-        ? `/schedule2/${eventSlug}/duty-book`
-        : `/schedule2/${eventSlug}/duty-book/${dutyBooks[0]?.team}`;
+        ? getSchedulePath(eventSlug, '/duty-book')
+        : getSchedulePath(eventSlug, `/duty-book/${dutyBooks[0]?.team}`);
 
     const dutyBookItems: NavigationSubItem[] = hasMultipleDutyBooks
         ? dutyBooks.map(entry => {
             const path = `/duty-book/${entry.team}`;
             return {
-                href: `/schedule2/${eventSlug}${path}`,
+                href: getSchedulePath(eventSlug, path),
                 key: entry.team,
                 label: entry.name,
-                selected: relativePathname === path || relativePathname.startsWith(`${path}/`),
+                selected: isNavigationPathActive(relativePathname, path),
             };
         })
         : [];
@@ -270,11 +271,11 @@ export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
                 <NavigationLink
                     key={link.segment}
                     activeIcon={link.activeIcon}
-                    href={`/schedule2/${eventSlug}${link.segment}`}
+                    href={getSchedulePath(eventSlug, link.segment)}
                     icon={link.icon}
                     label={link.label}
                     onClick={onNavigate}
-                    selected={relativePathname.startsWith(link.segment)}
+                    selected={isNavigationPathActive(relativePathname, link.segment)}
                     sheet={sheet}
                     transitionTypes={
                         getNavigationTransitionTypes(relativePathname, link.segment)

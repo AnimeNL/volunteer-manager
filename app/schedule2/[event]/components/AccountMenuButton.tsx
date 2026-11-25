@@ -4,6 +4,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
 import Avatar from '@mui/material/Avatar';
@@ -26,6 +27,9 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
 import { useColorScheme } from '@mui/material/styles';
+
+import { getNavigationTransitionTypes, getRelativeNavigationPath,
+    getSchedulePath } from '../lib/navigationTypes';
 
 import { kHeaderBarHeightPx } from '../Constants';
 
@@ -126,47 +130,13 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                     </ToggleButtonGroup>
                 </Box>
                 <Divider sx={{ my: 1 }} />
-                { !!eventSlug && (hasHotelRoom || hasTicket) && (
-                    <>
-                        { !!hasHotelRoom &&
-                            <MenuItem component={Link} dense href={`/schedule2/${eventSlug}/hotel`}
-                                      onClick={() => setAnchorEl(null)}
-                                      transitionTypes={[ 'nav-forward' ]}>
-                                <ListItemIcon>
-                                    <HotelOutlinedIcon fontSize="small" />
-                                </ListItemIcon>
-                                <ListItemText primary="Hotel room" />
-                            </MenuItem> }
-                        { !!hasTicket &&
-                            <MenuItem component={Link} dense href={`/schedule2/${eventSlug}/ticket`}
-                                      onClick={() => setAnchorEl(null)}
-                                      transitionTypes={[ 'nav-forward' ]}>
-                                <ListItemIcon>
-                                    <ConfirmationNumberOutlinedIcon fontSize="small" />
-                                </ListItemIcon>
-                                <ListItemText primary="Your ticket" />
-                            </MenuItem> }
-                        <Divider sx={{ my: 1 }} />
-                    </>
-                ) }
-                { !!eventSlug && !!hasDevelopment &&
-                    <MenuItem component={Link} dense href={`/schedule2/${eventSlug}/settings`}
-                              onClick={() => setAnchorEl(null)}
-                              transitionTypes={[ 'nav-forward' ]}>
-                        <ListItemIcon>
-                            <CodeIcon fontSize="small" />
-                        </ListItemIcon>
-                        <ListItemText primary="Development" />
-                    </MenuItem> }
                 { !!eventSlug &&
-                    <MenuItem component={Link} dense href={`/schedule2/${eventSlug}/feedback`}
-                              onClick={() => setAnchorEl(null)}
-                              transitionTypes={[ 'nav-forward' ]}>
-                        <ListItemIcon>
-                            <FeedbackOutlinedIcon fontSize="small" />
-                        </ListItemIcon>
-                        <ListItemText primary="Feedback" />
-                    </MenuItem> }
+                    <EventAccountMenuItems
+                        eventSlug={eventSlug}
+                        hasDevelopment={hasDevelopment}
+                        hasHotelRoom={hasHotelRoom}
+                        hasTicket={hasTicket}
+                        onClose={() => setAnchorEl(null)} /> }
                 <MenuItem dense onClick={handleSignOut}>
                     <ListItemIcon>
                         <LogoutIcon fontSize="small" />
@@ -174,6 +144,75 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                     <ListItemText primary="Sign out" />
                 </MenuItem>
             </Menu>
+        </>
+    );
+}
+
+/**
+ * Leaf client component reading `usePathname()` for event-scoped account menu links so the static
+ * `<AccountMenuButton />` fallback never suspends during prerendering.
+ */
+function EventAccountMenuItems(props: {
+    eventSlug: string;
+    hasDevelopment?: boolean;
+    hasHotelRoom?: boolean;
+    hasTicket?: boolean;
+    onClose: () => void;
+}) {
+    const { eventSlug, hasDevelopment, hasHotelRoom, hasTicket, onClose } = props;
+    const pathname = usePathname();
+    const relativePathname = getRelativeNavigationPath(pathname, eventSlug);
+
+    return (
+        <>
+            { (hasHotelRoom || hasTicket) && (
+                <>
+                    { !!hasHotelRoom &&
+                        <MenuItem component={Link} dense href={getSchedulePath(eventSlug, '/hotel')}
+                                  onClick={onClose}
+                                  transitionTypes={
+                                      getNavigationTransitionTypes(relativePathname, '/hotel')
+                                  }>
+                            <ListItemIcon>
+                                <HotelOutlinedIcon fontSize="small" />
+                            </ListItemIcon>
+                            <ListItemText primary="Hotel room" />
+                        </MenuItem> }
+                    { !!hasTicket &&
+                        <MenuItem component={Link} dense href={getSchedulePath(eventSlug, '/ticket')}
+                                  onClick={onClose}
+                                  transitionTypes={
+                                      getNavigationTransitionTypes(relativePathname, '/ticket')
+                                  }>
+                            <ListItemIcon>
+                                <ConfirmationNumberOutlinedIcon fontSize="small" />
+                            </ListItemIcon>
+                            <ListItemText primary="Your ticket" />
+                        </MenuItem> }
+                    <Divider sx={{ my: 1 }} />
+                </>
+            ) }
+            { !!hasDevelopment &&
+                <MenuItem component={Link} dense href={getSchedulePath(eventSlug, '/settings')}
+                          onClick={onClose}
+                          transitionTypes={
+                              getNavigationTransitionTypes(relativePathname, '/settings')
+                          }>
+                    <ListItemIcon>
+                        <CodeIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText primary="Development" />
+                </MenuItem> }
+            <MenuItem component={Link} dense href={getSchedulePath(eventSlug, '/feedback')}
+                      onClick={onClose}
+                      transitionTypes={
+                          getNavigationTransitionTypes(relativePathname, '/feedback')
+                      }>
+                <ListItemIcon>
+                    <FeedbackOutlinedIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="Feedback" />
+            </MenuItem>
         </>
     );
 }

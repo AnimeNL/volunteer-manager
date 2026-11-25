@@ -40,11 +40,32 @@ export interface NavigationData {
 }
 
 /**
- * Resolves `pathname` relative to the event schedule root.
+ * Builds an absolute URL path within the event schedule portal.
+ */
+export function getSchedulePath(eventSlug: string, segment?: string): string {
+    return segment ? `/schedule2/${eventSlug}${segment}` : `/schedule2/${eventSlug}`;
+}
+
+/**
+ * Resolves `pathname` relative to the event schedule root, normalizing a trailing slash to `''`.
  */
 export function getRelativeNavigationPath(pathname: string, eventSlug?: string): string {
-    const baseUrl = eventSlug ? `/schedule2/${eventSlug}` : '';
-    return baseUrl && pathname.startsWith(baseUrl) ? pathname.slice(baseUrl.length) : '';
+    const baseUrl = eventSlug ? getSchedulePath(eventSlug) : '';
+    if (!baseUrl || !pathname.startsWith(baseUrl))
+        return '';
+
+    const relative = pathname.slice(baseUrl.length);
+    return relative === '/' ? '' : relative;
+}
+
+/**
+ * Returns whether `relativePathname` matches `targetPath` exactly or as a descendant path segment.
+ */
+export function isNavigationPathActive(relativePathname: string, targetPath: string): boolean {
+    if (targetPath === '')
+        return relativePathname === '';
+
+    return relativePathname === targetPath || relativePathname.startsWith(`${targetPath}/`);
 }
 
 /**
@@ -55,7 +76,7 @@ export function getNavigationTransitionTypes(
     relativePathname: string, targetSegment: string): string[] | undefined
 {
     const currentIndex = kNavigationSectionOrder.findIndex(segment =>
-        segment === '' ? relativePathname === '' : relativePathname.startsWith(segment));
+        isNavigationPathActive(relativePathname, segment));
     const targetIndex = kNavigationSectionOrder.indexOf(targetSegment);
 
     if (currentIndex < 0 || targetIndex < 0 || currentIndex === targetIndex)
@@ -73,11 +94,11 @@ export type MobileNavigationTab = 'overview' | 'shifts' | 'areas' | 'more';
  * Resolves the active mobile bottom navigation tab from a relative schedule pathname.
  */
 export function getActiveMobileTab(relativePathname: string): MobileNavigationTab {
-    if (relativePathname === '' || relativePathname === '/')
+    if (isNavigationPathActive(relativePathname, ''))
         return 'overview';
-    if (relativePathname.startsWith('/shifts'))
+    if (isNavigationPathActive(relativePathname, '/shifts'))
         return 'shifts';
-    if (relativePathname.startsWith('/areas'))
+    if (isNavigationPathActive(relativePathname, '/areas'))
         return 'areas';
 
     return 'more';
