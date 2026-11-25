@@ -137,7 +137,7 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                         hasHotelRoom={hasHotelRoom}
                         hasTicket={hasTicket}
                         onClose={() => setAnchorEl(null)} /> }
-                <MenuItem dense onClick={handleSignOut}>
+                <MenuItem onClick={handleSignOut}>
                     <ListItemIcon>
                         <LogoutIcon fontSize="small" />
                     </ListItemIcon>
@@ -163,56 +163,55 @@ function EventAccountMenuItems(props: {
     const pathname = usePathname();
     const relativePathname = getRelativeNavigationPath(pathname, eventSlug);
 
+    const personalItems = [
+        hasHotelRoom && {
+            icon: <HotelOutlinedIcon fontSize="small" />,
+            label: 'Hotel room',
+            segment: '/hotel',
+        },
+        hasTicket && {
+            icon: <ConfirmationNumberOutlinedIcon fontSize="small" />,
+            label: 'Your ticket',
+            segment: '/ticket',
+        },
+    ].filter((item): item is Exclude<typeof item, false | undefined> => !!item);
+
+    const portalItems = [
+        hasDevelopment && {
+            icon: <CodeIcon fontSize="small" />,
+            label: 'Development',
+            segment: '/settings',
+        },
+        {
+            icon: <FeedbackOutlinedIcon fontSize="small" />,
+            label: 'Feedback',
+            segment: '/feedback',
+        },
+    ].filter((item): item is Exclude<typeof item, false | undefined> => !!item);
+
+    function renderMenuItem(item: { icon: React.ReactNode; label: string; segment: string }) {
+        return (
+            <MenuItem
+                key={item.segment}
+                component={Link}
+                href={getSchedulePath(eventSlug, item.segment)}
+                onClick={onClose}
+                transitionTypes={getNavigationTransitionTypes(relativePathname, item.segment)}>
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.label} />
+            </MenuItem>
+        );
+    }
+
     return (
         <>
-            { (hasHotelRoom || hasTicket) && (
+            { personalItems.length > 0 && (
                 <>
-                    { !!hasHotelRoom &&
-                        <MenuItem component={Link} dense href={getSchedulePath(eventSlug, '/hotel')}
-                                  onClick={onClose}
-                                  transitionTypes={
-                                      getNavigationTransitionTypes(relativePathname, '/hotel')
-                                  }>
-                            <ListItemIcon>
-                                <HotelOutlinedIcon fontSize="small" />
-                            </ListItemIcon>
-                            <ListItemText primary="Hotel room" />
-                        </MenuItem> }
-                    { !!hasTicket &&
-                        <MenuItem component={Link} dense href={getSchedulePath(eventSlug, '/ticket')}
-                                  onClick={onClose}
-                                  transitionTypes={
-                                      getNavigationTransitionTypes(relativePathname, '/ticket')
-                                  }>
-                            <ListItemIcon>
-                                <ConfirmationNumberOutlinedIcon fontSize="small" />
-                            </ListItemIcon>
-                            <ListItemText primary="Your ticket" />
-                        </MenuItem> }
+                    { personalItems.map(renderMenuItem) }
                     <Divider sx={{ my: 1 }} />
                 </>
             ) }
-            { !!hasDevelopment &&
-                <MenuItem component={Link} dense href={getSchedulePath(eventSlug, '/settings')}
-                          onClick={onClose}
-                          transitionTypes={
-                              getNavigationTransitionTypes(relativePathname, '/settings')
-                          }>
-                    <ListItemIcon>
-                        <CodeIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText primary="Development" />
-                </MenuItem> }
-            <MenuItem component={Link} dense href={getSchedulePath(eventSlug, '/feedback')}
-                      onClick={onClose}
-                      transitionTypes={
-                          getNavigationTransitionTypes(relativePathname, '/feedback')
-                      }>
-                <ListItemIcon>
-                    <FeedbackOutlinedIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText primary="Feedback" />
-            </MenuItem>
+            { portalItems.map(renderMenuItem) }
         </>
     );
 }

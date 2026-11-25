@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Box from '@mui/material/Box';
@@ -16,7 +16,6 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
-import { AccountMenuButton } from './AccountMenuButton';
 import { useScheduleTitle } from './ScheduleTitle';
 
 import { kHeaderBarHeightPx } from '../Constants';
@@ -26,10 +25,10 @@ import { kHeaderBarHeightPx } from '../Constants';
  */
 interface ApplicationBarProps {
     /**
-     * Optional account menu button slot streamed behind `<Suspense>` from the Server Component
-     * layout so the user's avatar loads without blocking static App Shell prerendering.
+     * Account menu button slot streamed behind `<Suspense>` from the Server Component layout so
+     * the user's avatar loads without blocking static App Shell prerendering.
      */
-    accountMenu?: React.ReactNode;
+    accountMenu: React.ReactNode;
 }
 
 /**
@@ -44,28 +43,28 @@ export function ApplicationBar(props: ApplicationBarProps) {
     const [ searchActive, setSearchActive ] = useState<boolean>(false);
     const [ query, setQuery ] = useState<string>('');
 
+    const openSearch = useCallback((select?: boolean) => {
+        setSearchActive(true);
+        requestAnimationFrame(() => {
+            inputRef.current?.focus();
+            if (select)
+                inputRef.current?.select();
+        });
+    }, []);
+
     useEffect(() => {
         function handleWindowKeyDown(event: KeyboardEvent) {
             if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey &&
                 event.key.toLowerCase() === 'f')
             {
                 event.preventDefault();
-                setSearchActive(true);
-                requestAnimationFrame(() => {
-                    inputRef.current?.focus();
-                    inputRef.current?.select();
-                });
+                openSearch(/* select= */ true);
             }
         }
 
         window.addEventListener('keydown', handleWindowKeyDown);
         return () => window.removeEventListener('keydown', handleWindowKeyDown);
-    }, []);
-
-    function handleOpenSearch() {
-        setSearchActive(true);
-        requestAnimationFrame(() => inputRef.current?.focus());
-    }
+    }, [ openSearch ]);
 
     function handleCloseSearch() {
         setQuery('');
@@ -98,7 +97,7 @@ export function ApplicationBar(props: ApplicationBarProps) {
     function handleDockKeyDown(event: React.KeyboardEvent<HTMLElement>) {
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
-            handleOpenSearch();
+            openSearch();
         }
     }
 
@@ -106,7 +105,7 @@ export function ApplicationBar(props: ApplicationBarProps) {
         <HeaderRow>
             <PillDock
                 onBlur={handleDockBlur}
-                onClick={searchActive ? undefined : handleOpenSearch}
+                onClick={searchActive ? undefined : () => openSearch()}
                 onKeyDown={searchActive ? undefined : handleDockKeyDown}
                 role={searchActive ? 'search' : 'button'}
                 searchActive={searchActive}
@@ -155,7 +154,7 @@ export function ApplicationBar(props: ApplicationBarProps) {
                 ) }
             </PillDock>
 
-            { props.accountMenu ?? <AccountMenuButton /> }
+            {props.accountMenu}
         </HeaderRow>
     );
 }
