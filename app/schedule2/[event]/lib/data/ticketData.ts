@@ -8,10 +8,18 @@ import type { CachedEvent } from '@lib/cache';
 import { createTicketService, isTicketServiceConfigured } from '@lib/tickets';
 
 /**
- * Request-cached query loading the assigned festival ticket barcode for `userId` in `eventId`.
+ * Details of a volunteer's valid festival ticket for display in the schedule portal.
  */
-const loadVolunteerTicketBarcode = cache(
-    async (eventId: number, userId: number): Promise<string | undefined> => {
+interface VolunteerTicketDetails {
+    barcode: string;
+    orderNumber: string;
+}
+
+/**
+ * Request-cached query loading the assigned festival ticket for `userId` in `eventId`.
+ */
+const loadVolunteerTicket = cache(
+    async (eventId: number, userId: number): Promise<VolunteerTicketDetails | undefined> => {
         const service = await createTicketService(eventId);
         if (!service)
             return undefined;
@@ -21,19 +29,23 @@ const loadVolunteerTicketBarcode = cache(
         if (!ticket || ticket.cancelled || !ticket.barcode)
             return undefined;
 
-        return ticket.barcode;
+        return {
+            barcode: ticket.barcode,
+            orderNumber: service.formatPurchaseId(ticket.purchaseId),
+        };
     });
 
 /**
- * Returns the barcode of the valid, non-cancelled festival ticket assigned to `userId` for `event`,
- * or `undefined` when ticketing is not configured or no ticket has been issued.
+ * Returns the barcode and formatted order number of the valid, non-cancelled festival ticket
+ * assigned to `userId` for `event`, or `undefined` when ticketing is not configured or no ticket
+ * has been issued.
  */
-export async function getVolunteerTicketBarcode(
+export async function getVolunteerTicket(
     event: Pick<CachedEvent, 'id' | 'integrations' | 'tickets'>, userId: number)
-    : Promise<string | undefined>
+    : Promise<VolunteerTicketDetails | undefined>
 {
     if (!isTicketServiceConfigured(event))
         return undefined;
 
-    return loadVolunteerTicketBarcode(event.id, userId);
+    return loadVolunteerTicket(event.id, userId);
 }

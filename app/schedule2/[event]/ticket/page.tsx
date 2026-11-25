@@ -15,7 +15,7 @@ import { Page } from '../components/Page';
 import { QrCode } from '@components/QrCode';
 import { SetTitle } from '../components/ScheduleTitle';
 import { getEvent } from '@lib/cache';
-import { getVolunteerTicketBarcode } from '../lib/data/ticketData';
+import { getVolunteerTicket } from '../lib/data/ticketData';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
 
 /**
@@ -34,9 +34,9 @@ async function TicketDescription(props: { params: Promise<{ event: string }> }) 
 async function TicketContent(props: { params: Promise<{ event: string }> }) {
     const { event: eventSlug } = await props.params;
     const { event, user } = await requireScheduleAccess(eventSlug);
-    const barcode = await getVolunteerTicketBarcode(event, user.id);
+    const ticket = await getVolunteerTicket(event, user.id);
 
-    if (!barcode) {
+    if (!ticket) {
         return (
             <Card>
                 <CardContent>
@@ -60,14 +60,23 @@ async function TicketContent(props: { params: Promise<{ event: string }> }) {
                         head straight to the Registration Desk. Just ask a Steward if you need any
                         help.
                     </Typography>
-                    <QrCode content={barcode} framed sx={{ maxWidth: 400, width: '80%' }} />
-                    <Typography variant="body2" sx={{
-                        color: 'text.secondary',
-                        fontFamily: 'monospace',
-                        letterSpacing: 1,
-                    }}>
-                        {barcode}
-                    </Typography>
+                    <QrCode content={ticket.barcode} framed sx={{ maxWidth: 400, width: '80%' }} />
+                    <Stack spacing={0.25} sx={{ alignItems: 'center' }}>
+                        <Typography variant="body2" sx={{
+                            color: 'text.secondary',
+                            fontFamily: 'monospace',
+                            letterSpacing: 1,
+                        }}>
+                            {ticket.barcode}
+                        </Typography>
+                        <Typography variant="body2" sx={{
+                            color: 'text.secondary',
+                            fontFamily: 'monospace',
+                            letterSpacing: 1,
+                        }}>
+                            Order: {ticket.orderNumber}
+                        </Typography>
+                    </Stack>
                 </Stack>
             </CardContent>
         </Card>
@@ -92,7 +101,10 @@ function TicketSkeleton() {
                         maxWidth: 400,
                         width: '80%',
                     }} />
-                    <Skeleton variant="text" width={140} />
+                    <Stack spacing={0.25} sx={{ alignItems: 'center' }}>
+                        <Skeleton variant="text" width={140} />
+                        <Skeleton variant="text" width={100} />
+                    </Stack>
                 </Stack>
             </CardContent>
         </Card>

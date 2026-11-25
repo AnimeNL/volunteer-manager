@@ -17,7 +17,7 @@ import { ScheduleTitleProvider } from './components/ScheduleTitle';
 import { getAuthenticationContext } from '@lib/auth';
 import { getScheduleAccess } from './lib/getScheduleAccess';
 import { getVolunteerHotelBookings } from './lib/data/hotelData';
-import { getVolunteerTicketBarcode } from './lib/data/ticketData';
+import { getVolunteerTicket } from './lib/data/ticketData';
 import { readCachedSetting } from '@lib/Settings';
 
 import { kDefaultCheckInRateSeconds, kDefaultThemeColor, kDesktopMenuWidthPx,
@@ -38,10 +38,10 @@ async function AuthenticatedAccountMenu(props: { params: Promise<{ event: string
     const access = await getScheduleAccess(eventSlug);
     const user = access?.user ?? (await getAuthenticationContext()).user;
 
-    const [ hotelBookings, ticketBarcode ] = access
+    const [ hotelBookings, ticket ] = access
         ? await Promise.all([
             getVolunteerHotelBookings(access.event, access.user.id),
-            getVolunteerTicketBarcode(access.event, access.user.id),
+            getVolunteerTicket(access.event, access.user.id),
         ])
         : [ [], undefined ];
 
@@ -53,7 +53,7 @@ async function AuthenticatedAccountMenu(props: { params: Promise<{ event: string
                            eventSlug={access?.event.slug}
                            hasDevelopment={hasDevelopment}
                            hasHotelRoom={hotelBookings.length > 0}
-                           hasTicket={!!ticketBarcode}
+                           hasTicket={!!ticket}
                            userName={user?.name} />
     );
 }
