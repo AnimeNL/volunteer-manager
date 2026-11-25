@@ -7,6 +7,21 @@
 export const kDefaultThemeColor = '#689f38';
 
 /**
+ * Default check-in cadence, in seconds, when `schedule-check-in-rate-seconds` is unset.
+ */
+export const kDefaultCheckInRateSeconds = /* five minutes= */ 5 * 60;
+
+/**
+ * Minimum allowed check-in cadence, in seconds, for automatic schedule refreshes.
+ */
+export const kMinCheckInRateSeconds = 5;
+
+/**
+ * Maximum allowed check-in cadence, in seconds, for automatic schedule refreshes.
+ */
+export const kMaxCheckInRateSeconds = 900;
+
+/**
  * Width, in pixels, the main menu should occupy on desktop platforms. This is a fixed size, and
  * will be applied no matter the width that will be taken by the content.
  */

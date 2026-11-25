@@ -206,6 +206,7 @@ export type Setting = keyof Settings;
  * these settings must only be written from Server Actions.
  */
 const kCacheTaggedSettings = [
+    'schedule-check-in-rate-seconds',
     'theme-color',
     'web-vitals-reporting',
 ] as const satisfies readonly Setting[];

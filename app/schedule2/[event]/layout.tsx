@@ -11,6 +11,7 @@ import { AccountMenuButton } from './components/AccountMenuButton';
 import { ApplicationBar } from './components/ApplicationBar';
 import { DesktopNavigation } from './components/DesktopNavigation';
 import { MobileNavigation } from './components/MobileNavigation';
+import { ScheduleAutoRefresh } from './components/ScheduleAutoRefresh';
 import { ScheduleTheme } from './ScheduleTheme';
 import { ScheduleTitleProvider } from './components/ScheduleTitle';
 import { getAuthenticationContext } from '@lib/auth';
@@ -18,7 +19,8 @@ import { getScheduleAccess } from './lib/getScheduleAccess';
 import { getVolunteerHotelBookings } from './lib/data/hotelData';
 import { readCachedSetting } from '@lib/Settings';
 
-import { kDefaultThemeColor, kDesktopMenuWidthPx, kSheetBorderRadiusPx } from './Constants';
+import { kDefaultCheckInRateSeconds, kDefaultThemeColor, kDesktopMenuWidthPx,
+    kSheetBorderRadiusPx } from './Constants';
 
 /**
  * Regular expression validating a 6-digit RGB hex colour string.
@@ -56,13 +58,18 @@ async function AuthenticatedAccountMenu(props: { params: Promise<{ event: string
  * entire shell prerenders statically and navigates instantly.
  */
 export default async function ScheduleLayout(props: LayoutProps<'/schedule2/[event]'>) {
-    const configuredThemeColor = await readCachedSetting('theme-color', kDefaultThemeColor);
+    const [ configuredCheckInRateSeconds, configuredThemeColor ] = await Promise.all([
+        readCachedSetting('schedule-check-in-rate-seconds', kDefaultCheckInRateSeconds),
+        readCachedSetting('theme-color', kDefaultThemeColor),
+    ]);
+
     const themeColor = kHexColorRegex.test(configuredThemeColor)
         ? configuredThemeColor
         : kDefaultThemeColor;
 
     return (
         <ScheduleTheme themeColor={themeColor}>
+            <ScheduleAutoRefresh intervalSeconds={configuredCheckInRateSeconds} />
             <ScheduleTitleProvider defaultTitle="AnimeCon">
                 <Stack direction="row" sx={{
                     flex: '1 1 auto',
