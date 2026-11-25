@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 
 import Avatar from '@mui/material/Avatar';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
@@ -24,6 +24,87 @@ import { styled, useColorScheme } from '@mui/material/styles';
 import { kHeaderBarHeightPx } from '../Constants';
 
 import { signOutAction } from '@lib/auth/actions';
+
+/**
+ * Props accepted by the <AccountMenuButton> component.
+ */
+interface AccountMenuButtonProps {
+    /**
+     * URL of the signed-in user's avatar image, if set.
+     */
+    avatarUrl?: string;
+
+    /**
+     * Display name of the signed-in user for alt text and initials fallback.
+     */
+    userName?: string;
+}
+
+/**
+ * Circular M3 tonal account button and dropdown menu providing colour-scheme switching and
+ * sign-out for the `app/schedule2/` App Shell.
+ */
+export function AccountMenuButton(props: AccountMenuButtonProps) {
+    const { avatarUrl, userName } = props;
+    const { mode, setMode } = useColorScheme();
+    const [ anchorEl, setAnchorEl ] = useState<HTMLElement | null>(null);
+
+    function handleModeChange(_event: unknown, value: string | null) {
+        if (value === 'dark' || value === 'light' || value === 'system')
+            setMode(value);
+    }
+
+    async function handleSignOut() {
+        setAnchorEl(null);
+
+        const response = await signOutAction();
+        if (response.success)
+            window.location.href = response.returnUrl ?? '/';
+    }
+
+    const initials = userName ? getInitials(userName) : '';
+
+    return (
+        <>
+            <TonalAccountButton aria-label="Account menu"
+                                onClick={event => setAnchorEl(event.currentTarget)}>
+                <AccountAvatar alt={userName} src={avatarUrl}>
+                    { initials || <PersonIcon fontSize="small" /> }
+                </AccountAvatar>
+            </TonalAccountButton>
+
+            <Menu anchorEl={anchorEl}
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                  onClose={() => setAnchorEl(null)}
+                  open={!!anchorEl}>
+                <MenuItem dense disableRipple disableTouchRipple>
+                    <ToggleButtonGroup exclusive fullWidth onChange={handleModeChange} size="small"
+                                       value={mode ?? 'system'}>
+                        <ToggleButton aria-label="Light mode" value="light">
+                            <LightModeIcon fontSize="small" />
+                        </ToggleButton>
+                        <ToggleButton aria-label="System colour scheme" value="system">
+                            <SettingsBrightnessIcon fontSize="small" />
+                        </ToggleButton>
+                        <ToggleButton aria-label="Dark mode" value="dark">
+                            <DarkModeIcon fontSize="small" />
+                        </ToggleButton>
+                    </ToggleButtonGroup>
+                </MenuItem>
+                <Divider />
+                <MenuItem onClick={handleSignOut}>
+                    <ListItemIcon>
+                        <LogoutIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>
+                        Sign out
+                    </ListItemText>
+                </MenuItem>
+            </Menu>
+        </>
+    );
+}
 
 /**
  * Extracts up to two uppercase initials from a user's display name for the avatar fallback.
@@ -54,7 +135,9 @@ const TonalAccountButton = styled(IconButton)(({ theme }) => {
         padding: 0,
         width: kHeaderBarHeightPx,
         '&:hover': {
-            backgroundColor: `color-mix(in srgb, ${palette.m3.secondaryContainer} 88%, ${palette.m3.onSecondaryContainer})`,
+            backgroundColor:
+                `color-mix(in srgb, ${palette.m3.secondaryContainer} 88%, ` +
+                `${palette.m3.onSecondaryContainer})`,
         },
     };
 });
@@ -74,89 +157,3 @@ const AccountAvatar = styled(Avatar)(({ theme }) => {
         width: kHeaderBarHeightPx,
     };
 });
-
-/**
- * Props accepted by the <AccountMenuButton> component.
- */
-interface AccountMenuButtonProps {
-    /**
-     * URL of the signed-in user's avatar image, if set.
-     */
-    avatarUrl?: string;
-
-    /**
-     * Display name of the signed-in user for alt text and initials fallback.
-     */
-    userName?: string;
-}
-
-/**
- * Circular M3 tonal account button and dropdown menu providing colour-scheme switching and
- * sign-out for the `app/schedule2/` App Shell.
- */
-export function AccountMenuButton(props: AccountMenuButtonProps) {
-    const { avatarUrl, userName } = props;
-    const { mode, setMode } = useColorScheme();
-    const [ anchorEl, setAnchorEl ] = useState<HTMLElement | null>(null);
-
-    const handleOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
-        setAnchorEl(event.currentTarget);
-    }, []);
-
-    const handleClose = useCallback(() => setAnchorEl(null), []);
-
-    const handleModeChange = useCallback((_event: unknown, value: string | null) => {
-        if (value === 'dark' || value === 'light' || value === 'system')
-            setMode(value);
-    }, [ setMode ]);
-
-    const handleSignOut = useCallback(async () => {
-        setAnchorEl(null);
-
-        const response = await signOutAction();
-        if (response.success)
-            window.location.href = response.returnUrl ?? '/';
-    }, []);
-
-    const initials = userName ? getInitials(userName) : '';
-
-    return (
-        <>
-            <TonalAccountButton aria-label="Account menu" onClick={handleOpen}>
-                <AccountAvatar alt={userName} src={avatarUrl}>
-                    { initials || <PersonIcon fontSize="small" /> }
-                </AccountAvatar>
-            </TonalAccountButton>
-
-            <Menu anchorEl={anchorEl}
-                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                  onClose={handleClose}
-                  open={!!anchorEl}>
-                <MenuItem dense disableRipple disableTouchRipple>
-                    <ToggleButtonGroup exclusive fullWidth onChange={handleModeChange} size="small"
-                                       value={mode ?? 'system'}>
-                        <ToggleButton aria-label="Light mode" value="light">
-                            <LightModeIcon fontSize="small" />
-                        </ToggleButton>
-                        <ToggleButton aria-label="System colour scheme" value="system">
-                            <SettingsBrightnessIcon fontSize="small" />
-                        </ToggleButton>
-                        <ToggleButton aria-label="Dark mode" value="dark">
-                            <DarkModeIcon fontSize="small" />
-                        </ToggleButton>
-                    </ToggleButtonGroup>
-                </MenuItem>
-                <Divider />
-                <MenuItem onClick={handleSignOut}>
-                    <ListItemIcon>
-                        <LogoutIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>
-                        Sign out
-                    </ListItemText>
-                </MenuItem>
-            </Menu>
-        </>
-    );
-}

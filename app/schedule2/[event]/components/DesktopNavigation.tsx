@@ -24,6 +24,34 @@ interface DesktopNavigationProps {
 }
 
 /**
+ * Sticky desktop sidebar navigation for the `app/schedule2/` App Shell, displaying the event
+ * banner above the route-aware navigation list.
+ */
+export function DesktopNavigation(props: DesktopNavigationProps) {
+    return (
+        <Stack spacing={`${kShellSpacingPx}px`} sx={{ position: 'sticky', top: kShellSpacingPx }}>
+            <Box sx={{
+                bgcolor: 'background.paper',
+                borderRadius: `${kCardBorderRadiusPx}px`,
+                height: 112,
+                overflow: 'hidden',
+                width: '100%',
+            }}>
+                <Suspense
+                    fallback={ <Skeleton variant="rectangular" width="100%" height="100%" /> }>
+                    <EventBannerImage params={props.params} />
+                </Suspense>
+            </Box>
+            <DesktopNavigationList>
+                <Suspense fallback={null}>
+                    <AuthenticatedNavigationItems params={props.params} />
+                </Suspense>
+            </DesktopNavigationList>
+        </Stack>
+    );
+}
+
+/**
  * Streams the event's identity image from `getEvent()` inside `<Suspense>` so the sidebar header
  * stays decoupled from the static App Shell.
  */
@@ -47,30 +75,4 @@ async function AuthenticatedNavigationItems(props: DesktopNavigationProps) {
     const data = await getNavigationData(event);
 
     return data ? <VolunteerNavigationItems data={data} /> : null;
-}
-
-/**
- * Desktop sidebar navigation for the `app/schedule2/` App Shell, aligned to the 12px C3-C rhythm.
- */
-export function DesktopNavigation(props: DesktopNavigationProps) {
-    return (
-        <Stack spacing={`${kShellSpacingPx}px`} sx={{ position: 'sticky', top: kShellSpacingPx }}>
-            <Box sx={{
-                bgcolor: 'background.paper',
-                borderRadius: `${kCardBorderRadiusPx}px`,
-                height: 112,
-                overflow: 'hidden',
-                width: '100%',
-            }}>
-                <Suspense fallback={ <Skeleton variant="rectangular" width="100%" height="100%" /> }>
-                    <EventBannerImage params={props.params} />
-                </Suspense>
-            </Box>
-            <DesktopNavigationList>
-                <Suspense fallback={null}>
-                    <AuthenticatedNavigationItems params={props.params} />
-                </Suspense>
-            </DesktopNavigationList>
-        </Stack>
-    );
 }
