@@ -1,7 +1,6 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { Suspense, ViewTransition } from 'react';
 import { forbidden } from 'next/navigation';
 
 import Card from '@mui/material/Card';
@@ -11,7 +10,7 @@ import Typography from '@mui/material/Typography';
 
 import type { BooleanPermission } from '@lib/auth/access/Access';
 import { Header } from './Header';
-import { Page } from './Page';
+import { Page, SuspenseReveal } from './Page';
 import { SetTitle } from './ScheduleTitle';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
 
@@ -86,24 +85,19 @@ export function PlaceholderPage(props: PlaceholderPageProps) {
     ) : undefined;
 
     return (
-        <Page header={header}>
-            { props.title && <SetTitle title={props.title} /> }
-            <Suspense
+        <Page header={header} title={props.title}>
+            <SuspenseReveal
                 fallback={
-                    <ViewTransition exit="schedule-slide-down" default="none">
-                        <Card>
-                            <CardContent>
-                                <Skeleton variant="text" width="35%" height={28} />
-                                <Skeleton variant="text" width="50%" height={20} sx={{ mt: 1 }} />
-                            </CardContent>
-                        </Card>
-                    </ViewTransition>
+                    <Card>
+                        <CardContent>
+                            <Skeleton variant="text" width="35%" height={28} />
+                            <Skeleton variant="text" width="50%" height={20} sx={{ mt: 1 }} />
+                        </CardContent>
+                    </Card>
                 }>
-                <ViewTransition enter="schedule-slide-up" default="none">
-                    <PlaceholderContent params={props.params} permission={props.permission}
-                                        title={props.title} />
-                </ViewTransition>
-            </Suspense>
+                <PlaceholderContent params={props.params} permission={props.permission}
+                                    title={props.title} />
+            </SuspenseReveal>
         </Page>
     );
 }

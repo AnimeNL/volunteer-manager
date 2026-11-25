@@ -1,9 +1,11 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { Suspense, ViewTransition } from 'react';
+
 import Stack from '@mui/material/Stack';
 
-import { PageTransition } from './PageTransition';
+import { SetTitle } from './ScheduleTitle';
 
 import { kSheetBorderRadiusPx } from '../Constants';
 
@@ -16,6 +18,11 @@ interface PageProps {
      * the leading element inside the sheet on desktop.
      */
     header?: React.ReactNode;
+
+    /**
+     * Optional static AppBar title to apply while this page is active.
+     */
+    title?: string;
 }
 
 /**
@@ -25,7 +32,19 @@ interface PageProps {
  */
 export function Page(props: React.PropsWithChildren<PageProps>) {
     return (
-        <PageTransition>
+        <ViewTransition
+            enter={{
+                'nav-forward': 'schedule-nav-forward',
+                'nav-back': 'schedule-nav-back',
+                default: 'none',
+            }}
+            exit={{
+                'nav-forward': 'schedule-nav-forward',
+                'nav-back': 'schedule-nav-back',
+                default: 'none',
+            }}
+            default="none">
+            { props.title && <SetTitle title={props.title} /> }
             {props.header}
             <Stack spacing={1.5} useFlexGap sx={{
                 bgcolor: { xs: 'm3.sheet', md: 'transparent' },
@@ -43,6 +62,35 @@ export function Page(props: React.PropsWithChildren<PageProps>) {
             }}>
                 {props.children}
             </Stack>
-        </PageTransition>
+        </ViewTransition>
+    );
+}
+
+/**
+ * Props accepted by the <SuspenseReveal> component.
+ */
+interface SuspenseRevealProps {
+    /**
+     * Skeleton fallback displayed while the child subtree is streaming.
+     */
+    fallback: React.ReactNode;
+}
+
+/**
+ * Wraps async content in a `<Suspense>` boundary paired with smooth slide-down/slide-up
+ * `<ViewTransition>` reveals between the skeleton fallback and resolved content.
+ */
+export function SuspenseReveal(props: React.PropsWithChildren<SuspenseRevealProps>) {
+    return (
+        <Suspense
+            fallback={
+                <ViewTransition exit="schedule-slide-down" default="none">
+                    {props.fallback}
+                </ViewTransition>
+            }>
+            <ViewTransition enter="schedule-slide-up" default="none">
+                {props.children}
+            </ViewTransition>
+        </Suspense>
     );
 }

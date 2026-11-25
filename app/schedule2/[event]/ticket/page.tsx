@@ -1,7 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { Suspense, ViewTransition } from 'react';
+import { Suspense } from 'react';
 
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -11,9 +11,8 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { Header } from '../components/Header';
-import { Page } from '../components/Page';
+import { Page, SuspenseReveal } from '../components/Page';
 import { QrCode } from '@components/QrCode';
-import { SetTitle } from '../components/ScheduleTitle';
 import { getEvent } from '@lib/cache';
 import { getVolunteerTicket } from '../lib/data/ticketData';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
@@ -127,18 +126,11 @@ export default function ScheduleTicketPage(props: PageProps<'/schedule2/[event]/
                     }
                     icon={ <ConfirmationNumberOutlinedIcon /> }
                     title="Your ticket" />
-            }>
-            <SetTitle title="Your ticket" />
-            <Suspense
-                fallback={
-                    <ViewTransition exit="schedule-slide-down" default="none">
-                        <TicketSkeleton />
-                    </ViewTransition>
-                }>
-                <ViewTransition enter="schedule-slide-up" default="none">
-                    <TicketContent params={props.params} />
-                </ViewTransition>
-            </Suspense>
+            }
+            title="Your ticket">
+            <SuspenseReveal fallback={ <TicketSkeleton /> }>
+                <TicketContent params={props.params} />
+            </SuspenseReveal>
         </Page>
     );
 }

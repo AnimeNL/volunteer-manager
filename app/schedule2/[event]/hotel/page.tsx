@@ -1,15 +1,12 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { Suspense, ViewTransition } from 'react';
-
 import HotelOutlinedIcon from '@mui/icons-material/HotelOutlined';
 import Paper from '@mui/material/Paper';
 import Skeleton from '@mui/material/Skeleton';
 
 import { Header } from '../components/Header';
-import { Page } from '../components/Page';
-import { SetTitle } from '../components/ScheduleTitle';
+import { Page, SuspenseReveal } from '../components/Page';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
 
 /**
@@ -36,20 +33,16 @@ export default function ScheduleHotelPage(props: PageProps<'/schedule2/[event]/h
                 <Header icon={ <HotelOutlinedIcon /> }
                         title="Hotel room"
                         description="Your assigned hotel room and weekend stay." />
-            }>
-            <SetTitle title="Hotel room" />
-            <Suspense
+            }
+            title="Hotel room">
+            <SuspenseReveal
                 fallback={
-                    <ViewTransition exit="schedule-slide-down" default="none">
-                        <Paper sx={{ p: 2 }}>
-                            <Skeleton variant="text" width="40%" />
-                        </Paper>
-                    </ViewTransition>
+                    <Paper sx={{ p: 2 }}>
+                        <Skeleton variant="text" width="40%" />
+                    </Paper>
                 }>
-                <ViewTransition enter="schedule-slide-up" default="none">
-                    <HotelContent params={props.params} />
-                </ViewTransition>
-            </Suspense>
+                <HotelContent params={props.params} />
+            </SuspenseReveal>
         </Page>
     );
 }
