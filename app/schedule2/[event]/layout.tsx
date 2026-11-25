@@ -9,11 +9,12 @@ import Stack from '@mui/material/Stack';
 import { ApplicationBar } from './components/ApplicationBar';
 import { DesktopNavigation } from './components/DesktopNavigation';
 import { MobileNavigation } from './components/MobileNavigation';
+import { ScheduleContentSheet } from './components/ScheduleContentSheet';
 import { ScheduleTheme } from './ScheduleTheme';
 import { ScheduleTitleProvider } from './components/ScheduleTitle';
 import { readCachedSetting } from '@lib/Settings';
 
-import { kDefaultThemeColor, kDesktopMaximumWidthPx, kDesktopMenuWidthPx } from './Constants';
+import { kDefaultThemeColor, kDesktopMaximumWidthPx, kDesktopMenuWidthPx, kShellSpacingPx } from './Constants';
 
 /**
  * Regular expression validating a 6-digit RGB hex colour string.
@@ -21,9 +22,12 @@ import { kDefaultThemeColor, kDesktopMaximumWidthPx, kDesktopMenuWidthPx } from 
 const kHexColorRegex = /^#[0-9a-fA-F]{6}$/;
 
 /**
- * App Shell layout for `app/schedule2/[event]/`. Deliberately avoids awaiting `params`, `cookies()`,
- * `headers()`, or `@lib/Environment` so the entire shell prerenders statically and navigates
- * instantly.
+ * App Shell layout for `app/schedule2/[event]/`. Implements the C3-C desktop geometry (full-height
+ * sidebar beside an outer pill dock and concentric 18px content sheet on a uniform 12px rhythm)
+ * and M2-A mobile geometry (edge-to-edge top-rounded sheet with floating bottom pill navigation).
+ *
+ * Deliberately avoids awaiting `params`, `cookies()`, `headers()`, or `@lib/Environment` so the
+ * entire shell prerenders statically and navigates instantly.
  */
 export default async function Schedule2Layout(props: LayoutProps<'/schedule2/[event]'>) {
     const configuredThemeColor = await readCachedSetting('theme-color', kDefaultThemeColor);
@@ -34,24 +38,34 @@ export default async function Schedule2Layout(props: LayoutProps<'/schedule2/[ev
     return (
         <ScheduleTheme themeColor={themeColor}>
             <ScheduleTitleProvider defaultTitle="AnimeCon">
-                <ApplicationBar />
                 <Stack direction="row" sx={{
-                    margin: 'auto',
+                    flex: '1 1 auto',
+                    gap: { md: `${kShellSpacingPx}px` },
+                    marginX: 'auto',
                     maxWidth: { md: kDesktopMaximumWidthPx },
-                    paddingRight: { md: 1.5 },
+                    padding: { xs: 0, md: `${kShellSpacingPx}px` },
+                    width: '100%',
                 }}>
-                    <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+                    <Box sx={{
+                        display: { xs: 'none', md: 'block' },
+                        flexShrink: 0,
+                        width: kDesktopMenuWidthPx,
+                    }}>
                         <DesktopNavigation params={props.params} />
                     </Box>
-                    <Stack direction="column" spacing={1.5} sx={{
-                        flexGrow: 1,
-                        maxWidth: '100%',
-                        width: { md: `calc(100% - ${2 * kDesktopMenuWidthPx}px)` },
-                        padding: 1.5,
+
+                    <Stack direction="column" sx={{
+                        flex: '1 1 auto',
+                        gap: `${kShellSpacingPx}px`,
+                        minWidth: 0,
                     }}>
-                        {props.children}
+                        <ApplicationBar />
+                        <ScheduleContentSheet>
+                            {props.children}
+                        </ScheduleContentSheet>
                     </Stack>
                 </Stack>
+
                 <Box sx={{ display: { xs: 'block', md: 'none' } }}>
                     <MobileNavigation />
                 </Box>
