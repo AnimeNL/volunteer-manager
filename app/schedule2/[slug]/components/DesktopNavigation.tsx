@@ -59,15 +59,26 @@ const kLogoUrl = '/images/logo.svg?' + new URLSearchParams([
 ]);
 
 /**
- * Mocked navigation entries shown in the desktop sidebar shell.
+ * Navigation entries shown in the desktop sidebar shell, ordered spatially for directional view
+ * transitions.
  */
-const kMockNavigationItems = [
+const kNavigationItems = [
     { icon: <HomeIcon />, label: 'Overview', segment: '' },
-    { icon: <AccessTimeIcon />, label: 'Your schedule', segment: '/shifts', disabled: true },
-    { icon: <EventNoteIcon />, label: 'Events', segment: '/areas', disabled: true },
+    { icon: <AccessTimeIcon />, label: 'Your schedule', segment: '/shifts' },
+    { icon: <EventNoteIcon />, label: 'Events', segment: '/areas' },
     { icon: <InfoOutlinedIcon />, label: 'Knowledge base', segment: '/knowledge', disabled: true },
     { icon: <GroupIcon />, label: 'Volunteers', segment: '/volunteers', disabled: true },
 ];
+
+/**
+ * Determines directional view-transition types based on the spatial order of navigation entries.
+ */
+function getTransitionTypes(currentIndex: number, targetIndex: number): string[] | undefined {
+    if (currentIndex < 0 || currentIndex === targetIndex)
+        return undefined;
+
+    return targetIndex > currentIndex ? [ 'nav-forward' ] : [ 'nav-back' ];
+}
 
 /**
  * Props accepted by the <DesktopNavigationList> component.
@@ -91,13 +102,17 @@ interface DesktopNavigationListProps {
 function DesktopNavigationList(props: DesktopNavigationListProps) {
     const { relativePathname, slug } = props;
 
+    const activeIndex = relativePathname === undefined
+        ? -1
+        : kNavigationItems.findIndex(item =>
+            item.segment === ''
+                ? relativePathname === ''
+                : relativePathname.startsWith(item.segment));
+
     return (
         <List sx={kStyles.container}>
-            { kMockNavigationItems.map(item => {
-                const isActive = relativePathname !== undefined &&
-                    (item.segment === ''
-                        ? relativePathname === ''
-                        : relativePathname.startsWith(item.segment));
+            { kNavigationItems.map((item, index) => {
+                const isActive = index === activeIndex;
 
                 if (!slug || item.disabled) {
                     return (
@@ -114,7 +129,8 @@ function DesktopNavigationList(props: DesktopNavigationListProps) {
                 return (
                     <ListItemButton key={item.label} component={Link}
                                     href={`/schedule2/${slug}${item.segment}`}
-                                    selected={isActive} sx={kStyles.item}>
+                                    selected={isActive} sx={kStyles.item}
+                                    transitionTypes={getTransitionTypes(activeIndex, index)}>
                         <ListItemIcon>
                             {item.icon}
                         </ListItemIcon>

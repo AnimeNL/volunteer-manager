@@ -16,6 +16,11 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Paper from '@mui/material/Paper';
 
 /**
+ * Spatial order of mobile navigation tabs for directional view transitions.
+ */
+const kTabOrder = [ '', 'shifts', 'areas', 'knowledge', 'volunteers' ];
+
+/**
  * Props accepted by the <MobileNavigationBar> component.
  */
 interface MobileNavigationBarProps {
@@ -38,10 +43,8 @@ function MobileNavigationBar(props: MobileNavigationBarProps) {
     return (
         <BottomNavigation onChange={props.onChange} value={props.value ?? ''}>
             <BottomNavigationAction icon={ <HomeIcon /> } label="Overview" value="" />
-            <BottomNavigationAction disabled icon={ <AccessTimeIcon /> } label="You"
-                                    value="shifts" />
-            <BottomNavigationAction disabled icon={ <EventNoteIcon /> } label="Events"
-                                    value="areas" />
+            <BottomNavigationAction icon={ <AccessTimeIcon /> } label="You" value="shifts" />
+            <BottomNavigationAction icon={ <EventNoteIcon /> } label="Events" value="areas" />
             <BottomNavigationAction disabled icon={ <InfoOutlinedIcon /> } label="FAQ"
                                     value="knowledge" />
             <BottomNavigationAction disabled icon={ <GroupIcon /> } label="Volunteers"
@@ -65,12 +68,18 @@ function RouteAwareMobileNavigationBar() {
         : '';
 
     const handleNavigation = useCallback((_event: React.SyntheticEvent, nextValue: string) => {
-        if (!baseUrl)
+        if (!baseUrl || nextValue === value)
             return;
 
-        if (nextValue === '')
-            router.push(baseUrl);
-    }, [ baseUrl, router ]);
+        const currentIndex = kTabOrder.indexOf(value);
+        const nextIndex = kTabOrder.indexOf(nextValue);
+        const transitionTypes = currentIndex >= 0 && nextIndex >= 0
+            ? [ nextIndex > currentIndex ? 'nav-forward' : 'nav-back' ]
+            : undefined;
+
+        const destination = nextValue === '' ? baseUrl : `${baseUrl}/${nextValue}`;
+        router.push(destination, { transitionTypes });
+    }, [ baseUrl, router, value ]);
 
     return <MobileNavigationBar onChange={handleNavigation} value={value} />;
 }
