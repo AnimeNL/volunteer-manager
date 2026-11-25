@@ -4,9 +4,9 @@
 import { PlaceholderPage } from '../components/PlaceholderPage';
 
 /**
- * Placeholder Help requests page for `app/schedule2/[event]/help-requests`.
+ * Placeholder Help requests page for the schedule portal.
  */
-export default function Schedule2HelpRequestsPage(
+export default function ScheduleHelpRequestsPage(
     props: PageProps<'/schedule2/[event]/help-requests'>)
 {
     return <PlaceholderPage params={props.params} title="Help requests" />;

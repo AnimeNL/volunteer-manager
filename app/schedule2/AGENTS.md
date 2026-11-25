@@ -31,6 +31,12 @@ React View Transitions.
   modules inside `app/schedule2/`. Depending on anything else in `app/` (such as `app/schedule/`,
   `app/admin/`, `app/components/`, or `@app/LinkProxy`) is prohibited.
 
+## Naming & Comments
+* Always refer to this portal as `schedule` (never `schedule2`) in symbol names, component names,
+  CSS custom properties, view-transition names, cache tags, and comments. Reserve `schedule2`
+  strictly for actual route URLs (`/schedule2/...`) and Next.js `PageProps`/`LayoutProps` route
+  literals until `app/schedule2/` replaces `app/schedule/`.
+
 ## No `Environment` Dependency & SSR-Safe Theming
 * Do not depend on `@lib/Environment` (`determineEnvironment()`) in layouts, themes, or the App
   Shell. Reading the `Host` header couples the shell to request-time headers.

@@ -4,9 +4,9 @@
 import { PlaceholderPage } from '../components/PlaceholderPage';
 
 /**
- * Placeholder program areas page for `app/schedule2/[event]/areas`.
+ * Placeholder program areas page for the schedule portal.
  */
-export default function Schedule2AreasPage(props: PageProps<'/schedule2/[event]/areas'>) {
+export default function ScheduleAreasPage(props: PageProps<'/schedule2/[event]/areas'>) {
     return <PlaceholderPage params={props.params} title="Events" />;
 }
 

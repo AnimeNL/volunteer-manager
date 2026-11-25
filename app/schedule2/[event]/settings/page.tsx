@@ -4,9 +4,9 @@
 import { PlaceholderPage } from '../components/PlaceholderPage';
 
 /**
- * Placeholder Settings page for `app/schedule2/[event]/settings`.
+ * Placeholder Settings page for the schedule portal.
  */
-export default function Schedule2SettingsPage(props: PageProps<'/schedule2/[event]/settings'>) {
+export default function ScheduleSettingsPage(props: PageProps<'/schedule2/[event]/settings'>) {
     return <PlaceholderPage params={props.params} permission="event.settings" title="Settings" />;
 }
 

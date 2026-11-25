@@ -32,9 +32,9 @@ interface ApplicationBarProps {
 }
 
 /**
- * Outer M3 Expressive pill dock header for `app/schedule2/`. Displays the active page title with a
- * subtle search trigger, morphing in place across the content width minus the circular account
- * button when search is activated.
+ * Outer M3 Expressive pill dock header for the schedule portal. Displays the active page title
+ * with a subtle search trigger, morphing in place across the content width minus the circular
+ * account button when search is activated.
  */
 export function ApplicationBar(props: ApplicationBarProps) {
     const title = useScheduleTitle();
@@ -176,7 +176,7 @@ const HeaderRow = styled('header')(({ theme }) => ({
     paddingTop: kShellSpacingPx,
     position: 'sticky',
     top: 0,
-    viewTransitionName: 'schedule2-header',
+    viewTransitionName: 'schedule-header',
     zIndex: theme.zIndex.appBar,
 
     [theme.breakpoints.up('md')]: {

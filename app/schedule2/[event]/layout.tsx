@@ -34,14 +34,14 @@ async function AuthenticatedAccountMenu() {
 }
 
 /**
- * App Shell layout for `app/schedule2/[event]/`. Renders a sticky desktop sidebar beside the pill
- * header dock and rounded content sheet on wide viewports, and an edge-to-edge top-rounded sheet
- * with floating bottom pill navigation on mobile.
+ * App Shell layout for the volunteer schedule portal. Renders a sticky desktop sidebar beside the
+ * pill header dock and rounded content sheet on wide viewports, and an edge-to-edge top-rounded
+ * sheet with floating bottom pill navigation on mobile.
  *
  * Deliberately avoids awaiting `params`, `cookies()`, `headers()`, or `@lib/Environment` so the
  * entire shell prerenders statically and navigates instantly.
  */
-export default async function Schedule2Layout(props: LayoutProps<'/schedule2/[event]'>) {
+export default async function ScheduleLayout(props: LayoutProps<'/schedule2/[event]'>) {
     const configuredThemeColor = await readCachedSetting('theme-color', kDefaultThemeColor);
     const themeColor = kHexColorRegex.test(configuredThemeColor)
         ? configuredThemeColor

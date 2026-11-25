@@ -16,7 +16,7 @@ import db, { tEnvironmentsEvents, tEventsTeams, tTeams, tUsersEvents } from '@li
 import { kRegistrationStatus } from '@lib/database/Types';
 
 /**
- * Resolved authentication, event metadata, and effective portal clock for `app/schedule2/[event]/`.
+ * Resolved authentication, event metadata, and effective portal clock for the schedule portal.
  */
 interface ScheduleAccessContext extends UserAuthenticationContext {
     currentTime: Temporal.ZonedDateTime;

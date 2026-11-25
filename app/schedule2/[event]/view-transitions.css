@@ -3,9 +3,9 @@
  */
 
 :root {
-    --schedule2-vt-exit: 150ms;
-    --schedule2-vt-enter: 210ms;
-    --schedule2-vt-move: 320ms;
+    --schedule-vt-exit: 150ms;
+    --schedule-vt-enter: 210ms;
+    --schedule-vt-move: 320ms;
 }
 
 /* Keep the live page interactive while a view transition runs. */
@@ -14,65 +14,65 @@
 }
 
 /* Anchor persistent shell chrome so only page content transitions. */
-::view-transition-group(schedule2-header),
-::view-transition-group(schedule2-mobile-nav) {
+::view-transition-group(schedule-header),
+::view-transition-group(schedule-mobile-nav) {
     animation: none;
     z-index: 100;
 }
 
-::view-transition-old(schedule2-header),
-::view-transition-old(schedule2-mobile-nav) {
+::view-transition-old(schedule-header),
+::view-transition-old(schedule-mobile-nav) {
     display: none;
 }
 
-::view-transition-new(schedule2-header),
-::view-transition-new(schedule2-mobile-nav) {
+::view-transition-new(schedule-header),
+::view-transition-new(schedule-mobile-nav) {
     animation: none;
 }
 
 /* Suspense skeleton-to-content reveal. */
-::view-transition-old(.schedule2-slide-down) {
+::view-transition-old(.schedule-slide-down) {
     animation:
-        var(--schedule2-vt-exit) ease-out both schedule2-fade reverse,
-        var(--schedule2-vt-exit) ease-out both schedule2-slide-y reverse;
+        var(--schedule-vt-exit) ease-out both schedule-fade reverse,
+        var(--schedule-vt-exit) ease-out both schedule-slide-y reverse;
 }
 
-::view-transition-new(.schedule2-slide-up) {
+::view-transition-new(.schedule-slide-up) {
     animation:
-        var(--schedule2-vt-enter) ease-in var(--schedule2-vt-exit) both schedule2-fade,
-        var(--schedule2-vt-move) ease-in both schedule2-slide-y;
+        var(--schedule-vt-enter) ease-in var(--schedule-vt-exit) both schedule-fade,
+        var(--schedule-vt-move) ease-in both schedule-slide-y;
 }
 
 /* Directional route transitions. */
-::view-transition-old(.schedule2-nav-forward) {
-    --schedule2-slide-x: -48px;
+::view-transition-old(.schedule-nav-forward) {
+    --schedule-slide-x: -48px;
     animation:
-        var(--schedule2-vt-exit) ease-in both schedule2-fade reverse,
-        var(--schedule2-vt-move) ease-in-out both schedule2-slide-x reverse;
+        var(--schedule-vt-exit) ease-in both schedule-fade reverse,
+        var(--schedule-vt-move) ease-in-out both schedule-slide-x reverse;
 }
 
-::view-transition-new(.schedule2-nav-forward) {
-    --schedule2-slide-x: 48px;
+::view-transition-new(.schedule-nav-forward) {
+    --schedule-slide-x: 48px;
     animation:
-        var(--schedule2-vt-enter) ease-out var(--schedule2-vt-exit) both schedule2-fade,
-        var(--schedule2-vt-move) ease-in-out both schedule2-slide-x;
+        var(--schedule-vt-enter) ease-out var(--schedule-vt-exit) both schedule-fade,
+        var(--schedule-vt-move) ease-in-out both schedule-slide-x;
 }
 
-::view-transition-old(.schedule2-nav-back) {
-    --schedule2-slide-x: 48px;
+::view-transition-old(.schedule-nav-back) {
+    --schedule-slide-x: 48px;
     animation:
-        var(--schedule2-vt-exit) ease-in both schedule2-fade reverse,
-        var(--schedule2-vt-move) ease-in-out both schedule2-slide-x reverse;
+        var(--schedule-vt-exit) ease-in both schedule-fade reverse,
+        var(--schedule-vt-move) ease-in-out both schedule-slide-x reverse;
 }
 
-::view-transition-new(.schedule2-nav-back) {
-    --schedule2-slide-x: -48px;
+::view-transition-new(.schedule-nav-back) {
+    --schedule-slide-x: -48px;
     animation:
-        var(--schedule2-vt-enter) ease-out var(--schedule2-vt-exit) both schedule2-fade,
-        var(--schedule2-vt-move) ease-in-out both schedule2-slide-x;
+        var(--schedule-vt-enter) ease-out var(--schedule-vt-exit) both schedule-fade,
+        var(--schedule-vt-move) ease-in-out both schedule-slide-x;
 }
 
-@keyframes schedule2-fade {
+@keyframes schedule-fade {
     from {
         opacity: 0;
     }
@@ -81,7 +81,7 @@
     }
 }
 
-@keyframes schedule2-slide-y {
+@keyframes schedule-slide-y {
     from {
         transform: translateY(8px);
     }
@@ -90,9 +90,9 @@
     }
 }
 
-@keyframes schedule2-slide-x {
+@keyframes schedule-slide-x {
     from {
-        translate: var(--schedule2-slide-x);
+        translate: var(--schedule-slide-x);
     }
     to {
         translate: 0;

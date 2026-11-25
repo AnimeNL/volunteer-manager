@@ -44,7 +44,7 @@ interface ScheduleThemeProps {
 }
 
 /**
- * Provides the SSR-safe MUI theme and background container for the `app/schedule2/` App Shell.
+ * Provides the SSR-safe MUI theme and background container for the schedule App Shell.
  */
 export function ScheduleTheme(props: React.PropsWithChildren<ScheduleThemeProps>) {
     const theme = useMemo(() => createScheduleTheme(props.themeColor), [ props.themeColor ]);

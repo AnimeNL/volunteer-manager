@@ -4,9 +4,9 @@
 import { ScheduleErrorCard } from './components/ScheduleErrorCard';
 
 /**
- * Boundary rendered when an unauthenticated visitor accesses a protected `app/schedule2/` route.
+ * Boundary rendered when an unauthenticated visitor accesses a protected schedule route.
  */
-export default function Schedule2UnauthorizedPage() {
+export default function ScheduleUnauthorizedPage() {
     return (
         <ScheduleErrorCard
             statusCode={401}

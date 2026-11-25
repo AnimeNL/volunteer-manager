@@ -42,7 +42,7 @@ interface AccountMenuButtonProps {
 
 /**
  * Circular M3 tonal account button and dropdown menu providing colour-scheme switching and
- * sign-out for the `app/schedule2/` App Shell.
+ * sign-out for the schedule App Shell.
  */
 export function AccountMenuButton(props: AccountMenuButtonProps) {
     const { avatarUrl, userName } = props;

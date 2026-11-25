@@ -4,9 +4,9 @@
 import { PlaceholderPage } from '../components/PlaceholderPage';
 
 /**
- * Placeholder Duty book overview page for `app/schedule2/[event]/duty-book`.
+ * Placeholder Duty book overview page for the schedule portal.
  */
-export default function Schedule2DutyBookPage(props: PageProps<'/schedule2/[event]/duty-book'>) {
+export default function ScheduleDutyBookPage(props: PageProps<'/schedule2/[event]/duty-book'>) {
     return <PlaceholderPage params={props.params} title="Duty book" />;
 }
 

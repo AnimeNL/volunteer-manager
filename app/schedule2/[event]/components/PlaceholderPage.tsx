@@ -64,7 +64,7 @@ async function PlaceholderContent(props: PlaceholderPageProps) {
 }
 
 /**
- * Generic "Not yet implemented" page shared by unbuilt `app/schedule2/` routes.
+ * Generic "Not yet implemented" page shared by unbuilt schedule routes.
  */
 export function PlaceholderPage(props: PlaceholderPageProps) {
     return (
@@ -72,7 +72,7 @@ export function PlaceholderPage(props: PlaceholderPageProps) {
             { props.title && <SetTitle title={props.title} /> }
             <Suspense
                 fallback={
-                    <ViewTransition exit="schedule2-slide-down" default="none">
+                    <ViewTransition exit="schedule-slide-down" default="none">
                         <Card>
                             <CardContent>
                                 <Skeleton variant="text" width="35%" height={28} />
@@ -81,7 +81,7 @@ export function PlaceholderPage(props: PlaceholderPageProps) {
                         </Card>
                     </ViewTransition>
                 }>
-                <ViewTransition enter="schedule2-slide-up" default="none">
+                <ViewTransition enter="schedule-slide-up" default="none">
                     <PlaceholderContent params={props.params} permission={props.permission}
                                         title={props.title} />
                 </ViewTransition>

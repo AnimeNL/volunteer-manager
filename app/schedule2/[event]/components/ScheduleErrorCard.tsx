@@ -30,7 +30,7 @@ interface ScheduleErrorCardProps {
 
 /**
  * Lightweight, `@lib/Environment`-free error card shared by the `unauthorized`, `forbidden`, and
- * `not-found` boundaries under `app/schedule2/[event]/`.
+ * `not-found` boundaries in the schedule portal.
  */
 export function ScheduleErrorCard(props: ScheduleErrorCardProps) {
     return (

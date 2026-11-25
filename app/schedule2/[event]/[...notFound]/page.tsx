@@ -4,10 +4,10 @@
 import { notFound } from 'next/navigation';
 
 /**
- * Catch-all route that delegates any unmatched URL under `/schedule2/[event]/*` to the segment's
+ * Catch-all route that delegates any unmatched URL under the event schedule root to the segment's
  * local `not-found.tsx` boundary rather than falling through to the global root `not-found.tsx`.
  */
-export default function Schedule2CatchAllNotFoundPage() {
+export default function ScheduleCatchAllNotFoundPage() {
     notFound();
 }
 

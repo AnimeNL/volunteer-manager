@@ -180,7 +180,7 @@ const FloatingNavHost = styled(Box)({
     pointerEvents: 'none',
     position: 'fixed',
     right: 0,
-    viewTransitionName: 'schedule2-mobile-nav',
+    viewTransitionName: 'schedule-mobile-nav',
     zIndex: 1100,
 });
 

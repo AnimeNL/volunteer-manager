@@ -4,9 +4,9 @@
 import { PlaceholderPage } from './components/PlaceholderPage';
 
 /**
- * Placeholder overview landing page for `app/schedule2/[event]/`.
+ * Placeholder overview landing page for the event schedule portal.
  */
-export default function Schedule2LandingPage(props: PageProps<'/schedule2/[event]'>) {
+export default function ScheduleLandingPage(props: PageProps<'/schedule2/[event]'>) {
     return <PlaceholderPage params={props.params} />;
 }
 

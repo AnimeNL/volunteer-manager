@@ -4,9 +4,9 @@
 import { ScheduleErrorCard } from './components/ScheduleErrorCard';
 
 /**
- * Boundary rendered when a signed-in user lacks permission to access an `app/schedule2/` route.
+ * Boundary rendered when a signed-in user lacks permission to access a schedule route.
  */
-export default function Schedule2ForbiddenPage() {
+export default function ScheduleForbiddenPage() {
     return (
         <ScheduleErrorCard
             statusCode={403}

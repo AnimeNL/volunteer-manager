@@ -6,7 +6,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 /**
- * Context carrying the active AppBar title and setter for `app/schedule2/`.
+ * Context carrying the active AppBar title and setter for the schedule portal.
  */
 interface ScheduleTitleContextValue {
     title: string;
@@ -29,7 +29,7 @@ interface ScheduleTitleProviderProps {
 }
 
 /**
- * Provides mutable AppBar title state for the `app/schedule2/[event]/` layout subtree.
+ * Provides mutable AppBar title state for the schedule layout subtree.
  */
 export function ScheduleTitleProvider(props: React.PropsWithChildren<ScheduleTitleProviderProps>) {
     const [ title, setTitle ] = useState<string>(props.defaultTitle);

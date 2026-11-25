@@ -4,9 +4,9 @@
 import { PlaceholderPage } from '../components/PlaceholderPage';
 
 /**
- * Placeholder volunteer shifts page for `app/schedule2/[event]/shifts`.
+ * Placeholder volunteer shifts page for the schedule portal.
  */
-export default function Schedule2ShiftsPage(props: PageProps<'/schedule2/[event]/shifts'>) {
+export default function ScheduleShiftsPage(props: PageProps<'/schedule2/[event]/shifts'>) {
     return <PlaceholderPage params={props.params} title="Your schedule" />;
 }
 

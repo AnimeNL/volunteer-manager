@@ -81,7 +81,7 @@ export const getNavigationData = cache(
 async function hasUserEventShifts(eventId: number, userId: number): Promise<boolean> {
     'use cache';
     cacheLife('minutes');
-    cacheTag('schedule2-shifts', `schedule2-shifts:${eventId}:${userId}`);
+    cacheTag('schedule-shifts', `schedule-shifts:${eventId}:${userId}`);
 
     const count = await db.selectFrom(tSchedule)
         .innerJoin(tShifts)
@@ -102,7 +102,7 @@ async function hasUserEventShifts(eventId: number, userId: number): Promise<bool
 async function getEventDutyBookTeams(eventId: number): Promise<DutyBookTeamRecord[]> {
     'use cache';
     cacheLife('minutes');
-    cacheTag('schedule2-duty-book-teams', `schedule2-duty-book-teams:${eventId}`);
+    cacheTag('schedule-duty-book-teams', `schedule-duty-book-teams:${eventId}`);
 
     return await db.selectFrom(tEventsTeams)
         .innerJoin(tTeams)
@@ -126,7 +126,7 @@ async function getEventDutyBookTeams(eventId: number): Promise<DutyBookTeamRecor
 async function getEventKnowledgeCategories(eventId: number): Promise<KnowledgeCategoryRecord[]> {
     'use cache';
     cacheLife('minutes');
-    cacheTag('schedule2-knowledge', `schedule2-knowledge:${eventId}`);
+    cacheTag('schedule-knowledge', `schedule-knowledge:${eventId}`);
 
     return await db.selectFrom(tContentCategories)
         .innerJoin(tContent)
@@ -150,7 +150,7 @@ async function getEventKnowledgeCategories(eventId: number): Promise<KnowledgeCa
 async function getProgramAreas(festivalId: number): Promise<NavigationArea[]> {
     'use cache';
     cacheLife('minutes');
-    cacheTag('schedule2-program', `schedule2-program:${festivalId}`);
+    cacheTag('schedule-program', `schedule-program:${festivalId}`);
 
     const rows = await db.selectFrom(tActivities)
         .innerJoin(tActivitiesTimeslots)

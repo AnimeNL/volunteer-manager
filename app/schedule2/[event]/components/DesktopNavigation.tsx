@@ -24,8 +24,8 @@ interface DesktopNavigationProps {
 }
 
 /**
- * Sticky desktop sidebar navigation for the `app/schedule2/` App Shell, displaying the event
- * banner above the route-aware navigation list.
+ * Sticky desktop sidebar navigation for the schedule App Shell, displaying the event banner above
+ * the route-aware navigation list.
  */
 export function DesktopNavigation(props: DesktopNavigationProps) {
     return (

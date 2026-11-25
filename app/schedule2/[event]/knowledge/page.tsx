@@ -4,9 +4,9 @@
 import { PlaceholderPage } from '../components/PlaceholderPage';
 
 /**
- * Placeholder Knowledge base page for `app/schedule2/[event]/knowledge`.
+ * Placeholder Knowledge base page for the schedule portal.
  */
-export default function Schedule2KnowledgePage(props: PageProps<'/schedule2/[event]/knowledge'>) {
+export default function ScheduleKnowledgePage(props: PageProps<'/schedule2/[event]/knowledge'>) {
     return <PlaceholderPage params={props.params} title="Knowledge base" />;
 }
 

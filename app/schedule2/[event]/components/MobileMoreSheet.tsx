@@ -32,7 +32,7 @@ interface MobileMoreSheetProps {
     open: boolean;
 
     /**
-     * Current pathname relative to `/schedule2/[event]`.
+     * Current pathname relative to the event schedule root.
      */
     relativePathname: string;
 }

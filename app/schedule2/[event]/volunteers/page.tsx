@@ -4,9 +4,9 @@
 import { PlaceholderPage } from '../components/PlaceholderPage';
 
 /**
- * Placeholder Volunteers page for `app/schedule2/[event]/volunteers`.
+ * Placeholder Volunteers page for the schedule portal.
  */
-export default function Schedule2VolunteersPage(props: PageProps<'/schedule2/[event]/volunteers'>) {
+export default function ScheduleVolunteersPage(props: PageProps<'/schedule2/[event]/volunteers'>) {
     return <PlaceholderPage params={props.params} title="Volunteers" />;
 }
 

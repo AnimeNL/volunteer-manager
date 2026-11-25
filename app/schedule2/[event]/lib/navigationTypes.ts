@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 /**
- * Spatial order of top-level schedule2 navigation segments for directional view transitions.
+ * Spatial order of top-level schedule navigation segments for directional view transitions.
  */
 const kNavigationSectionOrder = [
     '', '/shifts', '/areas', '/duty-book', '/help-requests', '/knowledge', '/volunteers',
@@ -10,7 +10,7 @@ const kNavigationSectionOrder = [
 ];
 
 /**
- * Program area summary rendered in schedule2 navigation menus.
+ * Program area summary rendered in schedule navigation menus.
  */
 export interface NavigationArea {
     id: number;
@@ -18,7 +18,7 @@ export interface NavigationArea {
 }
 
 /**
- * Team-scoped Duty Book summary rendered in schedule2 navigation menus.
+ * Team-scoped Duty Book summary rendered in schedule navigation menus.
  */
 interface NavigationDutyBook {
     name: string;
@@ -26,7 +26,7 @@ interface NavigationDutyBook {
 }
 
 /**
- * Serializable navigation state shared between desktop and mobile schedule2 menus.
+ * Serializable navigation state shared between desktop and mobile schedule menus.
  */
 export interface NavigationData {
     areas: NavigationArea[];
@@ -39,7 +39,7 @@ export interface NavigationData {
 }
 
 /**
- * Resolves `pathname` relative to `/schedule2/[event]`.
+ * Resolves `pathname` relative to the event schedule root.
  */
 export function getRelativeNavigationPath(pathname: string, eventSlug?: string): string {
     const baseUrl = eventSlug ? `/schedule2/${eventSlug}` : '';
@@ -48,7 +48,7 @@ export function getRelativeNavigationPath(pathname: string, eventSlug?: string):
 
 /**
  * Determines directional view-transition types (`nav-forward` / `nav-back`) between top-level
- * schedule2 sections based on their spatial order.
+ * schedule sections based on their spatial order.
  */
 export function getNavigationTransitionTypes(
     relativePathname: string, targetSegment: string): string[] | undefined
@@ -69,7 +69,7 @@ export function getNavigationTransitionTypes(
 export type MobileNavigationTab = 'overview' | 'shifts' | 'areas' | 'more';
 
 /**
- * Resolves the active mobile bottom navigation tab from a relative schedule2 pathname.
+ * Resolves the active mobile bottom navigation tab from a relative schedule pathname.
  */
 export function getActiveMobileTab(relativePathname: string): MobileNavigationTab {
     if (relativePathname === '' || relativePathname === '/')

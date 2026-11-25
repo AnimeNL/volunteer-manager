@@ -4,9 +4,9 @@
 import { ScheduleErrorCard } from './components/ScheduleErrorCard';
 
 /**
- * Boundary rendered when an event or resource under `app/schedule2/[event]/` cannot be found.
+ * Boundary rendered when an event or resource in the schedule portal cannot be found.
  */
-export default function Schedule2NotFoundPage() {
+export default function ScheduleNotFoundPage() {
     return (
         <ScheduleErrorCard
             statusCode={404}
