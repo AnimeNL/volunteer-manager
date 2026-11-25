@@ -3,8 +3,6 @@
 
 import './view-transitions.css';
 
-import type { SxProps } from '@mui/system';
-import type { Theme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 
@@ -23,30 +21,6 @@ import { kDefaultThemeColor, kDesktopMaximumWidthPx, kDesktopMenuWidthPx } from 
 const kHexColorRegex = /^#[0-9a-fA-F]{6}$/;
 
 /**
- * Styling rules for the <Schedule2Layout> App Shell, matching the legacy schedule layout.
- */
-const kStyles: { [key: string]: SxProps<Theme> } = {
-    container: {
-        margin: 'auto',
-        maxWidth: {
-            md: kDesktopMaximumWidthPx,
-        },
-        paddingRight: {
-            md: 2,
-        },
-    },
-
-    content: {
-        flexGrow: 1,
-        maxWidth: '100%',
-        width: {
-            md: `calc(100% - ${2 * kDesktopMenuWidthPx}px)`,
-        },
-        padding: 2,
-    },
-};
-
-/**
  * App Shell layout for `app/schedule2/[slug]/`. Deliberately avoids awaiting `params`, `cookies()`,
  * `headers()`, or `@lib/Environment` so the entire shell prerenders statically and navigates
  * instantly.
@@ -61,11 +35,20 @@ export default async function Schedule2Layout(props: LayoutProps<'/schedule2/[sl
         <ScheduleTheme themeColor={themeColor}>
             <ScheduleTitleProvider defaultTitle="AnimeCon">
                 <ApplicationBar />
-                <Stack direction="row" sx={kStyles.container}>
+                <Stack direction="row" sx={{
+                    margin: 'auto',
+                    maxWidth: { md: kDesktopMaximumWidthPx },
+                    paddingRight: { md: 2 },
+                }}>
                     <Box sx={{ display: { xs: 'none', md: 'block' } }}>
                         <DesktopNavigation themeColor={themeColor} />
                     </Box>
-                    <Stack direction="column" spacing={2} sx={kStyles.content}>
+                    <Stack direction="column" spacing={2} sx={{
+                        flexGrow: 1,
+                        maxWidth: '100%',
+                        width: { md: `calc(100% - ${2 * kDesktopMenuWidthPx}px)` },
+                        padding: 2,
+                    }}>
                         {props.children}
                     </Stack>
                 </Stack>

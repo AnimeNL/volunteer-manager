@@ -7,8 +7,6 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { useParams, usePathname } from 'next/navigation';
 
-import type { SxProps } from '@mui/system';
-import type { Theme } from '@mui/material/styles';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import Box from '@mui/material/Box';
 import EventNoteIcon from '@mui/icons-material/EventNote';
@@ -19,36 +17,31 @@ import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import { darken } from '@mui/material/styles';
+import { darken, styled } from '@mui/material/styles';
 
 import { kDesktopMenuWidthPx } from '../Constants';
 
 /**
- * Styling for the <DesktopNavigation> sidebar, matching the legacy schedule portal's proportions.
+ * Container framing the tinted schedule logo SVG in the desktop sidebar header.
  */
-const kStyles: { [key: string]: SxProps<Theme> } = {
-    container: {
-        paddingLeft: 2,
-        paddingRight: 0,
-        paddingY: 1,
-    },
+const LogoContainer = styled(Box)(({ theme }) => ({
+    backgroundColor: (theme.vars || theme).palette.background.paper,
+    borderRadius: theme.shape.borderRadius,
+    height: `${kDesktopMenuWidthPx / 2}px`,
+    marginBottom: theme.spacing(0.75),
+    marginLeft: theme.spacing(2),
+    marginTop: theme.spacing(2),
+    overflow: 'hidden',
+    width: `${kDesktopMenuWidthPx - 32}px`,
+}));
 
-    header: {
-        backgroundColor: 'background.paper',
-        borderRadius: 1,
-        height: `${kDesktopMenuWidthPx / 2}px`,
-        marginBottom: 0.75,
-        marginLeft: 2,
-        marginTop: 2,
-        overflow: 'hidden',
-        width: `${kDesktopMenuWidthPx - 32}px`,
-    },
-
-    item: {
-        borderRadius: theme => theme.spacing(1),
-        marginBottom: 1,
-    },
-};
+/**
+ * Styled navigation item shared across all desktop sidebar entries.
+ */
+const NavigationItem = styled(ListItemButton)(({ theme }) => ({
+    borderRadius: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+})) as typeof ListItemButton;
 
 /**
  * Navigation entries shown in the desktop sidebar shell, ordered spatially for directional view
@@ -102,32 +95,32 @@ function DesktopNavigationList(props: DesktopNavigationListProps) {
                 : relativePathname.startsWith(item.segment));
 
     return (
-        <List sx={kStyles.container}>
+        <List sx={{ paddingLeft: 2, paddingRight: 0, paddingY: 1 }}>
             { kNavigationItems.map((item, index) => {
                 const isActive = index === activeIndex;
 
                 if (!slug || item.disabled) {
                     return (
-                        <ListItemButton key={item.label} disabled={item.disabled}
-                                        selected={isActive} sx={kStyles.item}>
+                        <NavigationItem key={item.label} disabled={item.disabled}
+                                        selected={isActive}>
                             <ListItemIcon>
                                 {item.icon}
                             </ListItemIcon>
                             <ListItemText primary={item.label} />
-                        </ListItemButton>
+                        </NavigationItem>
                     );
                 }
 
                 return (
-                    <ListItemButton key={item.label} component={Link}
+                    <NavigationItem key={item.label} component={Link}
                                     href={`/schedule2/${slug}${item.segment}`}
-                                    selected={isActive} sx={kStyles.item}
+                                    selected={isActive}
                                     transitionTypes={getTransitionTypes(activeIndex, index)}>
                         <ListItemIcon>
                             {item.icon}
                         </ListItemIcon>
                         <ListItemText primary={item.label} />
-                    </ListItemButton>
+                    </NavigationItem>
                 );
             }) }
         </List>
@@ -171,9 +164,9 @@ export function DesktopNavigation(props: DesktopNavigationProps) {
 
     return (
         <>
-            <Box sx={kStyles.header}>
+            <LogoContainer>
                 <object type="image/svg+xml" style={{ marginTop: '-35px' }} data={logoUrl} />
-            </Box>
+            </LogoContainer>
             <Suspense fallback={ <DesktopNavigationList /> }>
                 <RouteAwareDesktopNavigationList />
             </Suspense>

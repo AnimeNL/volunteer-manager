@@ -5,8 +5,6 @@
 
 import { useCallback, useState } from 'react';
 
-import type { SxProps } from '@mui/system';
-import type { Theme } from '@mui/material/styles';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import AppBar from '@mui/material/AppBar';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
@@ -23,11 +21,11 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import { keyframes, useColorScheme } from '@mui/material/styles';
+import { keyframes, styled, useColorScheme } from '@mui/material/styles';
 
 import { useScheduleTitle } from './ScheduleTitle';
 
-import { kDesktopMaximumWidthPx, kDesktopMenuWidthPx, kEnforceSingleLine } from '../Constants';
+import { kDesktopMaximumWidthPx, kDesktopMenuWidthPx } from '../Constants';
 
 import { signOutAction } from '@lib/auth/actions';
 
@@ -57,64 +55,67 @@ const kTitleEnterKeyframes = keyframes`
 `;
 
 /**
- * Styling rules for the <ApplicationBar> component.
+ * Desktop-aligned AppBar toolbar matching <CardContent> horizontal padding.
  */
-const kStyles: { [key: string]: SxProps<Theme> } = {
-    container: {
-        display: 'block',
-        viewTransitionName: 'schedule2-header',
-    },
+const ShellToolbar = styled(Toolbar)(({ theme }) => ({
+    margin: 'auto',
 
-    title: {
-        flexGrow: 1,
-        minWidth: 0,
-        overflow: 'hidden',
-        position: 'relative',
+    // Align the title and account icon with desktop <CardContent> horizontal padding:
+    // left = sidebar (259px) + content padding (16px) + card padding (16px) = menuWidth + 16px;
+    // right = container padding (16px) + content padding (16px) + card padding (16px) = 48px.
+    [theme.breakpoints.up('md')]: {
+        maxWidth: `${kDesktopMaximumWidthPx}px`,
+        paddingLeft: `${kDesktopMenuWidthPx + 16}px`,
+        paddingRight: theme.spacing(6),
     },
+}));
 
-    titleEnter: {
-        ...kEnforceSingleLine,
-        display: 'block',
-        animation: `${kTitleEnterKeyframes} 160ms cubic-bezier(0.2, 0, 0, 1) 100ms both`,
-        '@media (prefers-reduced-motion: reduce)': {
-            animation: 'none',
+/**
+ * Container for the crossfading AppBar title text.
+ */
+const TitleContainer = styled(Typography)({
+    flexGrow: 1,
+    minWidth: 0,
+    overflow: 'hidden',
+    position: 'relative',
+}) as typeof Typography;
+
+/**
+ * Single-line title span supporting static, entering, and exiting transition phases.
+ */
+const TitleText = styled('span', {
+    shouldForwardProp: prop => prop !== 'phase',
+})<{ phase: 'static' | 'enter' | 'exit' }>({
+    display: 'block',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+
+    variants: [
+        {
+            props: { phase: 'enter' },
+            style: {
+                animation:
+                    `${kTitleEnterKeyframes} 160ms cubic-bezier(0.2, 0, 0, 1) 100ms both`,
+                '@media (prefers-reduced-motion: reduce)': {
+                    animation: 'none',
+                },
+            },
         },
-    },
-
-    titleExit: {
-        ...kEnforceSingleLine,
-        inset: 0,
-        pointerEvents: 'none',
-        position: 'absolute',
-        animation: `${kTitleExitKeyframes} 150ms ease-out both`,
-        '@media (prefers-reduced-motion: reduce)': {
-            display: 'none',
+        {
+            props: { phase: 'exit' },
+            style: {
+                inset: 0,
+                pointerEvents: 'none',
+                position: 'absolute',
+                animation: `${kTitleExitKeyframes} 150ms ease-out both`,
+                '@media (prefers-reduced-motion: reduce)': {
+                    display: 'none',
+                },
+            },
         },
-    },
-
-    titleStatic: {
-        ...kEnforceSingleLine,
-        display: 'block',
-    },
-
-    toolbar: {
-        margin: 'auto',
-
-        // Align the title and account icon with desktop <CardContent> horizontal padding:
-        // left = sidebar (259px) + content padding (16px) + card padding (16px) = menuWidth + 16px;
-        // right = container padding (16px) + content padding (16px) + card padding (16px) = 48px.
-        paddingLeft: {
-            md: `${kDesktopMenuWidthPx + 16}px`,
-        },
-        paddingRight: {
-            md: 6,
-        },
-
-        maxWidth: {
-            md: `${kDesktopMaximumWidthPx}px`,
-        },
-    },
-};
+    ],
+});
 
 /**
  * Renders the AppBar title with a fast, subtle vertical crossfade whenever the title text changes,
@@ -139,17 +140,17 @@ function AnimatedTitle(props: { title: string }) {
     }, [ state.version ]);
 
     return (
-        <Typography variant="h6" component="div" sx={kStyles.title}>
+        <TitleContainer variant="h6" component="div">
             { state.previous !== undefined &&
-                <Typography key={`exit-${state.version}`} aria-hidden="true" component="span"
-                            onAnimationEnd={handleExitEnd} sx={kStyles.titleExit} variant="inherit">
+                <TitleText key={`exit-${state.version}`} aria-hidden="true"
+                           onAnimationEnd={handleExitEnd} phase="exit">
                     {state.previous}
-                </Typography> }
-            <Typography key={`enter-${state.version}`} component="span" variant="inherit"
-                        sx={state.version > 0 ? kStyles.titleEnter : kStyles.titleStatic}>
+                </TitleText> }
+            <TitleText key={`enter-${state.version}`}
+                       phase={state.version > 0 ? 'enter' : 'static'}>
                 {state.current}
-            </Typography>
-        </Typography>
+            </TitleText>
+        </TitleContainer>
     );
 }
 
@@ -191,14 +192,15 @@ export function ApplicationBar() {
 
     return (
         <>
-            <AppBar position="sticky" sx={kStyles.container}>
-                <Toolbar sx={kStyles.toolbar}>
+            <AppBar position="sticky"
+                    sx={{ display: 'block', viewTransitionName: 'schedule2-header' }}>
+                <ShellToolbar>
                     <AnimatedTitle title={title} />
                     <IconButton aria-label="Account menu" color="inherit" edge="end"
                                 onClick={handleMenuOpen} size="large">
                         <AccountCircle />
                     </IconButton>
-                </Toolbar>
+                </ShellToolbar>
             </AppBar>
 
             <Menu anchorEl={userMenuAnchor}

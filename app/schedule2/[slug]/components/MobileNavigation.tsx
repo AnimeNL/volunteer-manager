@@ -14,11 +14,24 @@ import GroupIcon from '@mui/icons-material/Group';
 import HomeIcon from '@mui/icons-material/Home';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Paper from '@mui/material/Paper';
+import { styled } from '@mui/material/styles';
 
 /**
  * Spatial order of mobile navigation tabs for directional view transitions.
  */
 const kTabOrder = [ '', 'shifts', 'areas', 'knowledge', 'volunteers' ];
+
+/**
+ * Fixed bottom bar container anchored across view transitions.
+ */
+const MobileNavigationContainer = styled(Paper)({
+    bottom: 0,
+    left: 0,
+    position: 'fixed',
+    right: 0,
+    viewTransitionName: 'schedule2-mobile-nav',
+    zIndex: 2,
+});
 
 /**
  * Props accepted by the <MobileNavigationBar> component.
@@ -90,17 +103,10 @@ function RouteAwareMobileNavigationBar() {
  */
 export function MobileNavigation() {
     return (
-        <Paper elevation={3} sx={{
-            bottom: 0,
-            left: 0,
-            position: 'fixed',
-            right: 0,
-            viewTransitionName: 'schedule2-mobile-nav',
-            zIndex: 2,
-        }}>
+        <MobileNavigationContainer elevation={3}>
             <Suspense fallback={ <MobileNavigationBar /> }>
                 <RouteAwareMobileNavigationBar />
             </Suspense>
-        </Paper>
+        </MobileNavigationContainer>
     );
 }
