@@ -17,6 +17,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import HomeIcon from '@mui/icons-material/Home';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import IconButton from '@mui/material/IconButton';
+import InfoIcon from '@mui/icons-material/Info';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -29,7 +31,7 @@ import { styled } from '@mui/material/styles';
 /**
  * Spatial order of top-level navigation segments for directional view transitions.
  */
-const kSectionOrder = [ '', '/shifts', '/areas', '/duty-book', '/help-requests' ];
+const kSectionOrder = [ '', '/shifts', '/areas', '/duty-book', '/help-requests', '/knowledge' ];
 
 /**
  * Material Design 3 rounded navigation item shared across all desktop sidebar entries, matching the
@@ -354,6 +356,11 @@ interface VolunteerNavigationItemsProps {
     hasActiveShift: boolean;
 
     /**
+     * Whether the event has at least one visible Knowledge Base category for this user.
+     */
+    hasKnowledgeBase: boolean;
+
+    /**
      * Whether the signed-in volunteer has at least one scheduled shift for this event.
      */
     hasShifts: boolean;
@@ -373,7 +380,9 @@ interface VolunteerNavigationItemsProps {
  * Renders volunteer-specific desktop sidebar entries streamed in behind `<Suspense>`.
  */
 export function VolunteerNavigationItems(props: VolunteerNavigationItemsProps) {
-    const { areas, dutyBooks, hasActiveShift, hasShifts, helpRequests, slug } = props;
+    const {
+        areas, dutyBooks, hasActiveShift, hasKnowledgeBase, hasShifts, helpRequests, slug,
+    } = props;
 
     const pathname = usePathname();
     const relativePathname = getRelativePathname(pathname, slug);
@@ -392,6 +401,7 @@ export function VolunteerNavigationItems(props: VolunteerNavigationItemsProps) {
     const isShiftsActive = relativePathname.startsWith('/shifts');
     const isEventsActive = relativePathname === '/areas';
     const isHelpRequestsActive = relativePathname.startsWith('/help-requests');
+    const isKnowledgeBaseActive = relativePathname.startsWith('/knowledge');
     const totalActiveEvents = areas.reduce((sum, area) => sum + area.activeCount, 0);
 
     const hasMultipleDutyBooks = dutyBooks.length > 1;
@@ -567,6 +577,20 @@ export function VolunteerNavigationItems(props: VolunteerNavigationItemsProps) {
                             tone="urgent">
                             {helpRequests.pending}
                         </CounterBadge> }
+                </NavigationItem> }
+
+            { hasKnowledgeBase &&
+                <NavigationItem
+                    component={Link}
+                    href={`/schedule2/${slug}/knowledge`}
+                    selected={isKnowledgeBaseActive}
+                    transitionTypes={getTransitionTypes(relativePathname, '/knowledge')}>
+                    <ListItemIcon>
+                        { isKnowledgeBaseActive
+                            ? <InfoIcon fontSize="small" />
+                            : <InfoOutlinedIcon fontSize="small" /> }
+                    </ListItemIcon>
+                    <ListItemText primary="Knowledge base" />
                 </NavigationItem> }
         </>
     );

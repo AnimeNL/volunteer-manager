@@ -5,9 +5,9 @@ import 'server-only';
 import { cacheLife, cacheTag } from 'next/cache';
 
 import type { AccessControl } from '@lib/auth/access/AccessControl';
-import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots,
-    tDisplaysRequests, tDutyBook, tDutyBookViewers, tEventsTeams, tSchedule, tShifts, tTeams,
-    tUsersEvents } from '@lib/database';
+import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots, tContent,
+    tContentCategories, tDisplaysRequests, tDutyBook, tDutyBookViewers, tEventsTeams, tSchedule,
+    tShifts, tTeams, tUsersEvents } from '@lib/database';
 
 import { kActivityType, kRegistrationStatus } from '@lib/database/Types';
 
@@ -171,6 +171,70 @@ export async function getPendingHelpRequestsCount(eventId: number): Promise<numb
             .and(tDisplaysRequests.requestAcknowledgedBy.isNull())
         .selectCountAll()
         .executeSelectOne();
+}
+
+/**
+ * Loads the visibility constraints of non-empty Knowledge Base categories for `eventId`.
+ */
+async function getEventKnowledgeCategories(eventId: number) {
+    'use cache';
+    cacheLife('minutes');
+    cacheTag('schedule2-knowledge', `schedule2-knowledge:${eventId}`);
+
+    return await db.selectFrom(tContentCategories)
+        .innerJoin(tContent)
+            .on(tContent.contentCategoryId.equals(tContentCategories.categoryId))
+                .and(tContent.revisionVisible.equals(/* true= */ 1))
+        .where(tContentCategories.eventId.equals(eventId))
+            .and(tContentCategories.categoryDeleted.isNull())
+        .select({
+            id: tContentCategories.categoryId,
+            roles: tContentCategories.categoryRoles,
+            teams: tContentCategories.categoryTeams,
+        })
+        .groupBy(tContentCategories.categoryId)
+        .executeSelectMany();
+}
+
+/**
+ * Determines whether the signed-in user can see at least one Knowledge Base category in `eventId`.
+ */
+export async function hasKnowledgeBaseContent(
+    eventId: number, eventSlug: string, userId: number, access: AccessControl): Promise<boolean>
+{
+    const categories = await getEventKnowledgeCategories(eventId);
+    if (!categories.length)
+        return false;
+
+    if (access.can('event.knowledge', { event: eventSlug }))
+        return true;
+
+    if (categories.some(category => !category.roles.length && !category.teams.length))
+        return true;
+
+    const participations = await db.selectFrom(tUsersEvents)
+        .innerJoin(tTeams)
+            .on(tTeams.teamId.equals(tUsersEvents.teamId))
+        .where(tUsersEvents.eventId.equals(eventId))
+            .and(tUsersEvents.userId.equals(userId))
+            .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
+        .select({
+            roleId: tUsersEvents.roleId,
+            teamSlug: tTeams.teamSlug,
+        })
+        .executeSelectMany();
+
+    const userRoleIds = new Set(participations.map(entry => `${entry.roleId}`));
+    const userTeamSlugs = new Set(participations.map(entry => entry.teamSlug));
+
+    return categories.some(category => {
+        const roleAllowed = !category.roles.length ||
+            category.roles.split(',').some(role => userRoleIds.has(role));
+        const teamAllowed = !category.teams.length ||
+            category.teams.split(',').some(team => userTeamSlugs.has(team));
+
+        return roleAllowed && teamAllowed;
+    });
 }
 
 /**

@@ -8,8 +8,8 @@ import Skeleton from '@mui/material/Skeleton';
 
 import { DesktopNavigationList, VolunteerNavigationItems } from './DesktopNavigationList';
 import { getEvent } from '@lib/cache';
-import { getPendingHelpRequestsCount, getProgramAreas, getUserDutyBooks, getUserEventShifts }
-    from '../lib/scheduleData';
+import { getPendingHelpRequestsCount, getProgramAreas, getUserDutyBooks, getUserEventShifts,
+    hasKnowledgeBaseContent } from '../lib/scheduleData';
 import { getScheduleAccess } from '../lib/getScheduleAccess';
 
 import { kDesktopMenuWidthPx } from '../Constants';
@@ -54,14 +54,17 @@ async function AuthenticatedNavigationItems(props: DesktopNavigationProps) {
         event: access.event.slug,
     });
 
-    const [ shifts, programAreas, dutyBooks, pendingHelpRequests ] = await Promise.all([
-        getUserEventShifts(access.event.id, access.user.id),
-        festivalId ? getProgramAreas(festivalId) : Promise.resolve([]),
-        getUserDutyBooks(access.event.id, access.event.slug, access.user.id, access.access),
-        canViewHelpRequests
-            ? getPendingHelpRequestsCount(access.event.id)
-            : Promise.resolve(undefined),
-    ]);
+    const [ shifts, programAreas, dutyBooks, pendingHelpRequests, hasKnowledgeBase ] =
+        await Promise.all([
+            getUserEventShifts(access.event.id, access.user.id),
+            festivalId ? getProgramAreas(festivalId) : Promise.resolve([]),
+            getUserDutyBooks(access.event.id, access.event.slug, access.user.id, access.access),
+            canViewHelpRequests
+                ? getPendingHelpRequestsCount(access.event.id)
+                : Promise.resolve(undefined),
+            hasKnowledgeBaseContent(
+                access.event.id, access.event.slug, access.user.id, access.access),
+        ]);
 
     const currentMs = access.currentTime.epochMilliseconds;
     const hasActiveShift = shifts.some(
@@ -81,6 +84,7 @@ async function AuthenticatedNavigationItems(props: DesktopNavigationProps) {
             areas={areas}
             dutyBooks={dutyBooks}
             hasActiveShift={hasActiveShift}
+            hasKnowledgeBase={hasKnowledgeBase}
             hasShifts={shifts.length > 0}
             helpRequests={pendingHelpRequests !== undefined
                 ? { pending: pendingHelpRequests }
