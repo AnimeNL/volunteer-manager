@@ -8,6 +8,8 @@ import CardContent from '@mui/material/CardContent';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
+import { Page } from './Page';
+
 /**
  * Props accepted by the <ScheduleErrorCard> component.
  */
@@ -34,25 +36,27 @@ interface ScheduleErrorCardProps {
  */
 export function ScheduleErrorCard(props: ScheduleErrorCardProps) {
     return (
-        <Card>
-            <CardContent>
-                <Stack spacing={1}>
-                    <Typography variant="body2" color="textSecondary">
-                        Error {props.statusCode}
-                    </Typography>
-                    <Typography variant="h5">
-                        {props.title}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                        {props.description}
-                    </Typography>
-                    <Typography variant="body2" sx={{ pt: 1 }}>
-                        <Link href="/" style={{ color: 'inherit' }}>
-                            Return to the Volunteer Portal
-                        </Link>
-                    </Typography>
-                </Stack>
-            </CardContent>
-        </Card>
+        <Page>
+            <Card>
+                <CardContent>
+                    <Stack spacing={1}>
+                        <Typography variant="body2" color="textSecondary">
+                            Error {props.statusCode}
+                        </Typography>
+                        <Typography variant="h5">
+                            {props.title}
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                            {props.description}
+                        </Typography>
+                        <Typography variant="body2" sx={{ pt: 1 }}>
+                            <Link href="/" style={{ color: 'inherit' }}>
+                                Return to the Volunteer Portal
+                            </Link>
+                        </Typography>
+                    </Stack>
+                </CardContent>
+            </Card>
+        </Page>
     );
 }

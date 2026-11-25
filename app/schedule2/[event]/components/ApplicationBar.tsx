@@ -218,6 +218,23 @@ const PillDock = styled(Box, {
 
         variants: [
             {
+                props: { searchActive: false },
+                style: {
+                    '&:hover': {
+                        backgroundColor:
+                            `color-mix(in srgb, ${palette.m3.dock} 95%, ${palette.text.primary})`,
+                        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.08)',
+
+                        ...theme.applyStyles('dark', {
+                            backgroundColor:
+                                `color-mix(in srgb, ${palette.m3.dock} 92%, ` +
+                                `${palette.text.primary})`,
+                            boxShadow: `0 0 0 1px ${palette.divider}`,
+                        }),
+                    },
+                },
+            },
+            {
                 props: { searchActive: true },
                 style: {
                     backgroundColor: palette.m3.dockActive,

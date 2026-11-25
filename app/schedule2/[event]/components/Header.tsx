@@ -6,7 +6,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import { kCardBorderRadiusPx, kSheetBorderRadiusPx } from '../Constants';
+import { kCardBorderRadiusPx } from '../Constants';
 
 /**
  * Props accepted by the <Header> component.
@@ -38,29 +38,28 @@ interface HeaderProps {
 }
 
 /**
- * Shared Material Design 3 page header for the schedule portal. Renders edge-to-edge across the
- * top of the content sheet on mobile and as a tonal banner card on desktop, with fixed-metric
- * slots so any prop can stream behind `<Suspense>` without layout shift.
+ * Shared Material Design 3 page header for the schedule portal. Sits directly on the outer shell
+ * above the content sheet on mobile and renders as a tonal banner card inside the sheet on
+ * desktop, with fixed-metric slots so any prop can stream behind `<Suspense>` without layout shift.
  */
 export function Header(props: HeaderProps) {
     return (
         <Stack component="section" direction="row" spacing={1.75} sx={{
             alignItems: 'center',
-            background:
-                'linear-gradient(135deg, var(--mui-palette-m3-secondaryContainer) 0%, ' +
-                'var(--mui-palette-m3-card) 135%)',
-            borderBottom: { xs: '1px solid var(--mui-palette-divider)', md: 'none' },
-            borderRadius: {
-                xs: `${kSheetBorderRadiusPx}px ${kSheetBorderRadiusPx}px 0 0`,
-                md: `${kCardBorderRadiusPx}px`,
+            background: {
+                md:
+                    'linear-gradient(135deg, var(--mui-palette-m3-secondaryContainer) 0%, ' +
+                    'var(--mui-palette-m3-card) 135%)',
             },
-            mt: { xs: -1.5, md: 0 },
-            mx: { xs: -1.5, md: 0 },
+            borderRadius: { md: `${kCardBorderRadiusPx}px` },
             px: 2,
-            py: { xs: 2, md: 1.75 },
+            py: { xs: 0.5, md: 1.75 },
         }}>
             <Avatar aria-hidden="true" variant="rounded" sx={{
-                bgcolor: 'color-mix(in srgb, var(--mui-palette-m3-sheet) 38%, transparent)',
+                bgcolor: {
+                    xs: 'm3.secondaryContainer',
+                    md: 'color-mix(in srgb, var(--mui-palette-m3-sheet) 38%, transparent)',
+                },
                 borderRadius: `${kCardBorderRadiusPx}px`,
                 color: 'text.primary',
                 height: 44,

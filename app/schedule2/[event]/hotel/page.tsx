@@ -8,7 +8,7 @@ import Paper from '@mui/material/Paper';
 import Skeleton from '@mui/material/Skeleton';
 
 import { Header } from '../components/Header';
-import { PageTransition } from '../components/PageTransition';
+import { Page } from '../components/Page';
 import { SetTitle } from '../components/ScheduleTitle';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
 
@@ -31,11 +31,13 @@ async function HotelContent(props: { params: Promise<{ event: string }> }) {
  */
 export default function ScheduleHotelPage(props: PageProps<'/schedule2/[event]/hotel'>) {
     return (
-        <PageTransition>
+        <Page
+            header={
+                <Header icon={ <HotelOutlinedIcon /> }
+                        title="Hotel room"
+                        description="Your assigned hotel room and weekend stay." />
+            }>
             <SetTitle title="Hotel room" />
-            <Header icon={ <HotelOutlinedIcon /> }
-                    title="Hotel room"
-                    description="Your assigned hotel room and weekend stay." />
             <Suspense
                 fallback={
                     <ViewTransition exit="schedule-slide-down" default="none">
@@ -48,7 +50,7 @@ export default function ScheduleHotelPage(props: PageProps<'/schedule2/[event]/h
                     <HotelContent params={props.params} />
                 </ViewTransition>
             </Suspense>
-        </PageTransition>
+        </Page>
     );
 }
 

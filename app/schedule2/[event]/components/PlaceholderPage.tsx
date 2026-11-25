@@ -10,7 +10,7 @@ import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 
 import type { BooleanPermission } from '@lib/auth/access/Access';
-import { PageTransition } from './PageTransition';
+import { Page } from './Page';
 import { SetTitle } from './ScheduleTitle';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
 
@@ -68,7 +68,7 @@ async function PlaceholderContent(props: PlaceholderPageProps) {
  */
 export function PlaceholderPage(props: PlaceholderPageProps) {
     return (
-        <PageTransition>
+        <Page>
             { props.title && <SetTitle title={props.title} /> }
             <Suspense
                 fallback={
@@ -86,6 +86,6 @@ export function PlaceholderPage(props: PlaceholderPageProps) {
                                         title={props.title} />
                 </ViewTransition>
             </Suspense>
-        </PageTransition>
+        </Page>
     );
 }

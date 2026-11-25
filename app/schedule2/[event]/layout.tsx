@@ -100,18 +100,11 @@ export default async function ScheduleLayout(props: LayoutProps<'/schedule2/[eve
                                 </Suspense>
                             } />
                         <Stack component="main" spacing={1.5} useFlexGap sx={{
-                            bgcolor: 'm3.sheet',
-                            borderRadius: {
-                                xs: `${kSheetBorderRadiusPx}px ${kSheetBorderRadiusPx}px 0 0`,
-                                md: `${kSheetBorderRadiusPx}px`,
-                            },
+                            bgcolor: { xs: 'transparent', md: 'm3.sheet' },
+                            borderRadius: { md: `${kSheetBorderRadiusPx}px` },
                             flex: '1 1 auto',
                             minWidth: 0,
-                            p: 1.5,
-                            pb: {
-                                xs: 'calc(80px + env(safe-area-inset-bottom, 0px))',
-                                md: 1.5,
-                            },
+                            p: { xs: 0, md: 1.5 },
                         }}>
                             {props.children}
                         </Stack>
