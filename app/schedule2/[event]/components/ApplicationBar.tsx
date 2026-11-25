@@ -12,6 +12,7 @@ import Fade from '@mui/material/Fade';
 import IconButton from '@mui/material/IconButton';
 import InputBase from '@mui/material/InputBase';
 import SearchIcon from '@mui/icons-material/Search';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
@@ -110,33 +111,13 @@ export function ApplicationBar(props: ApplicationBarProps) {
                 role={searchActive ? 'search' : 'button'}
                 searchActive={searchActive}
                 tabIndex={searchActive ? undefined : 0}>
-                <Fade in={!searchActive}>
-                    <DockLayer aria-hidden={searchActive} inert={searchActive}
-                               sx={{ pl: 2, pr: 1.5 }}>
-                        <Fade key={title} in>
-                            <Typography variant="subtitle1" component="div" noWrap
-                                        sx={{ flexGrow: 1, minWidth: 0 }}>
-                                {title}
-                            </Typography>
-                        </Fade>
-                        <SearchTrigger>
-                            <Typography variant="caption"
-                                        sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                                Search
-                            </Typography>
-                            <SearchIcon fontSize="small" />
-                        </SearchTrigger>
-                    </DockLayer>
-                </Fade>
-
-                <Fade in={searchActive}>
-                    <DockLayer aria-hidden={!searchActive} inert={!searchActive}
-                               sx={{ px: 0.75 }}>
-                        <DockIconButton aria-label="Close search" onClick={handleCloseSearch}
-                                        size="small">
+                { searchActive ? (
+                    <>
+                        <IconButton aria-label="Close search" onClick={handleCloseSearch}
+                                    size="small" sx={{ color: 'text.secondary' }}>
                             <ArrowBackIcon fontSize="small" />
-                        </DockIconButton>
-                        <SearchInput
+                        </IconButton>
+                        <InputBase
                             fullWidth
                             inputProps={{ 'aria-label': 'Search schedule' }}
                             inputRef={inputRef}
@@ -146,13 +127,32 @@ export function ApplicationBar(props: ApplicationBarProps) {
                                     handleCloseSearch();
                             }}
                             placeholder="Search shifts, events, volunteers…"
+                            sx={{ '& .MuiInputBase-input': { p: 0 } }}
                             value={query} />
-                        <DockIconButton aria-label={query ? 'Clear search' : 'Close search'}
-                                        onClick={handleClearOrClose} size="small">
+                        <IconButton aria-label={query ? 'Clear search' : 'Close search'}
+                                    onClick={handleClearOrClose} size="small"
+                                    sx={{ color: 'text.secondary' }}>
                             <CloseIcon fontSize="small" />
-                        </DockIconButton>
-                    </DockLayer>
-                </Fade>
+                        </IconButton>
+                    </>
+                ) : (
+                    <>
+                        <Fade key={title} in>
+                            <Typography variant="subtitle1" component="div" noWrap
+                                        sx={{ flexGrow: 1, minWidth: 0 }}>
+                                {title}
+                            </Typography>
+                        </Fade>
+                        <Stack direction="row" spacing={0.75}
+                               sx={{ alignItems: 'center', color: 'text.secondary', flexShrink: 0 }}>
+                            <Typography variant="caption"
+                                        sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                                Search
+                            </Typography>
+                            <SearchIcon fontSize="small" />
+                        </Stack>
+                    </>
+                ) }
             </PillDock>
 
             { props.accountMenu ?? <AccountMenuButton /> }
@@ -201,10 +201,12 @@ const PillDock = styled(Box, {
         cursor: 'pointer',
         display: 'flex',
         flex: '1 1 auto',
+        gap: theme.spacing(1),
         height: kHeaderBarHeightPx,
         minWidth: 0,
         overflow: 'hidden',
-        position: 'relative',
+        paddingLeft: theme.spacing(2),
+        paddingRight: theme.spacing(1.5),
         transition: theme.transitions.create([ 'background-color', 'box-shadow' ], {
             duration: theme.transitions.duration.short,
         }),
@@ -220,47 +222,10 @@ const PillDock = styled(Box, {
                 style: {
                     backgroundColor: palette.m3.dockActive,
                     cursor: 'text',
+                    paddingLeft: theme.spacing(0.75),
+                    paddingRight: theme.spacing(0.75),
                 },
             },
         ],
     };
-});
-
-/**
- * Overlapping layer inside `<PillDock>` faded in and out via MUI `<Fade>` without layout shift.
- */
-const DockLayer = styled(Box)(({ theme }) => ({
-    alignItems: 'center',
-    display: 'flex',
-    gap: theme.spacing(1),
-    inset: 0,
-    position: 'absolute',
-}));
-
-/**
- * Secondary-coloured search affordance on the right edge of the resting dock.
- */
-const SearchTrigger = styled('div')(({ theme }) => ({
-    alignItems: 'center',
-    color: (theme.vars || theme).palette.text.secondary,
-    display: 'inline-flex',
-    flexShrink: 0,
-    gap: theme.spacing(0.75),
-}));
-
-/**
- * Secondary-coloured icon button used inside the active search dock.
- */
-const DockIconButton = styled(IconButton)(({ theme }) => ({
-    color: (theme.vars || theme).palette.text.secondary,
-}));
-
-/**
- * Search input with MUI's asymmetric default vertical padding removed so its text baseline matches
- * the resting dock title.
- */
-const SearchInput = styled(InputBase)({
-    '& .MuiInputBase-input': {
-        padding: 0,
-    },
 });

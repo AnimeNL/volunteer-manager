@@ -16,12 +16,11 @@ import ListItemText from '@mui/material/ListItemText';
 import LogoutIcon from '@mui/icons-material/Logout';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import PersonIcon from '@mui/icons-material/Person';
 import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
-import { styled, useColorScheme } from '@mui/material/styles';
+import { useColorScheme } from '@mui/material/styles';
 
 import { kHeaderBarHeightPx } from '../Constants';
 
@@ -68,14 +67,18 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
 
     return (
         <>
-            <TonalAccountButton aria-label="Account menu"
-                                onClick={event => setAnchorEl(event.currentTarget)}>
-                <AccountAvatar alt={userName} src={avatarUrl}>
-                    { initials
-                        ? <Typography variant="subtitle2" component="span">{initials}</Typography>
-                        : <PersonIcon fontSize="small" /> }
-                </AccountAvatar>
-            </TonalAccountButton>
+            <IconButton aria-label="Account menu"
+                        onClick={event => setAnchorEl(event.currentTarget)}
+                        sx={{ flexShrink: 0, p: 0 }}>
+                <Avatar alt={userName} src={avatarUrl} sx={{
+                    bgcolor: 'secondary.main',
+                    color: 'secondary.contrastText',
+                    height: kHeaderBarHeightPx,
+                    width: kHeaderBarHeightPx,
+                }}>
+                    { initials ? <Typography variant="subtitle2">{initials}</Typography> : undefined }
+                </Avatar>
+            </IconButton>
 
             <Menu anchorEl={anchorEl}
                   anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
@@ -122,35 +125,3 @@ function getInitials(name: string): string {
         ? uppercase.slice(0, 2).join('')
         : trimmed[0].toUpperCase();
 }
-
-/**
- * Circular M3 tonal account button matching the exact height of the outer title/search pill dock.
- */
-const TonalAccountButton = styled(IconButton)(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
-
-    return {
-        backgroundColor: palette.secondary.main,
-        color: palette.secondary.contrastText,
-        flexShrink: 0,
-        height: kHeaderBarHeightPx,
-        overflow: 'hidden',
-        padding: 0,
-        width: kHeaderBarHeightPx,
-        '&:hover': {
-            backgroundColor:
-                `color-mix(in srgb, ${palette.secondary.main} 88%, ` +
-                `${palette.secondary.contrastText})`,
-        },
-    };
-});
-
-/**
- * Circular avatar filling `<TonalAccountButton>`, falling back to tonal initials or a person icon.
- */
-const AccountAvatar = styled(Avatar)({
-    backgroundColor: 'transparent',
-    color: 'inherit',
-    height: kHeaderBarHeightPx,
-    width: kHeaderBarHeightPx,
-});
