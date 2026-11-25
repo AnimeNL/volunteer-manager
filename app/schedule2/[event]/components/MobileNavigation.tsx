@@ -29,8 +29,8 @@ async function AuthenticatedMobileNavigation(props: MobileNavigationProps) {
 
 /**
  * Fixed M3 Expressive floating pill bottom navigation for the schedule App Shell, anchored across
- * across view transitions. Renders a static fallback immediately so the App Shell prerenders
- * without awaiting dynamic route params.
+ * view transitions. Renders a static fallback immediately so the App Shell prerenders without
+ * awaiting dynamic route params.
  */
 export function MobileNavigation(props: MobileNavigationProps) {
     return (

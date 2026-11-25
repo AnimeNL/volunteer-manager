@@ -3,9 +3,11 @@
 
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
-import { useParams, usePathname, useRouter } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 
+import type { ButtonBaseTypeMap, ExtendButtonBase } from '@mui/material/ButtonBase';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AppsIcon from '@mui/icons-material/Apps';
 import Box from '@mui/material/Box';
@@ -39,7 +41,6 @@ export function MobileNavigationBar(props: MobileNavigationBarProps) {
 
     const params = useParams<{ event?: string }>();
     const pathname = usePathname();
-    const router = useRouter();
 
     const [ moreOpen, setMoreOpen ] = useState<boolean>(false);
 
@@ -47,29 +48,13 @@ export function MobileNavigationBar(props: MobileNavigationBarProps) {
     const relativePathname = getRelativeNavigationPath(pathname, slug);
     const activeTab = getActiveMobileTab(relativePathname);
 
-    function handleSelect(tab: MobileNavigationTab) {
-        if (tab === 'more') {
-            setMoreOpen(true);
-            return;
-        }
-
-        if (!slug)
-            return;
-
-        const targetSegment = tab === 'overview' ? '' : `/${tab}`;
-        const destination = getSchedulePath(slug, targetSegment);
-        if (destination === pathname)
-            return;
-
-        const transitionTypes = getNavigationTransitionTypes(relativePathname, targetSegment);
-        router.push(destination, { transitionTypes });
-    }
-
     return (
         <>
             <MobileFloatingPill
                 activeTab={moreOpen ? 'more' : activeTab}
-                onSelect={handleSelect}
+                eventSlug={slug}
+                onOpenMore={() => setMoreOpen(true)}
+                relativePathname={relativePathname}
                 showShifts={data?.hasShifts ?? false} />
 
             <MobileMoreSheet
@@ -86,7 +71,9 @@ export function MobileNavigationBar(props: MobileNavigationBarProps) {
  */
 interface MobileFloatingPillProps {
     activeTab: MobileNavigationTab;
-    onSelect?: (tab: MobileNavigationTab) => void;
+    eventSlug?: string;
+    onOpenMore?: () => void;
+    relativePathname?: string;
     showShifts?: boolean;
 }
 
@@ -95,18 +82,20 @@ interface MobileFloatingPillProps {
  * `<Suspense>` fallback and the route-aware live bar to prevent layout shift.
  */
 export function MobileFloatingPill(props: MobileFloatingPillProps) {
-    const { activeTab, onSelect, showShifts = false } = props;
+    const { activeTab, eventSlug, onOpenMore, relativePathname, showShifts = false } = props;
 
     const tabs: {
         ariaLabel?: string;
         icon: React.ReactNode;
         id: MobileNavigationTab;
         label: string;
+        segment?: string;
         visible: boolean;
     }[] = [
         {
             id: 'overview',
             label: 'Overview',
+            segment: '',
             icon: activeTab === 'overview'
                 ? <HomeIcon fontSize="small" />
                 : <HomeOutlinedIcon fontSize="small" />,
@@ -116,12 +105,14 @@ export function MobileFloatingPill(props: MobileFloatingPillProps) {
             id: 'shifts',
             label: 'Schedule',
             ariaLabel: 'Your schedule',
+            segment: '/shifts',
             icon: <AccessTimeIcon fontSize="small" />,
             visible: showShifts,
         },
         {
             id: 'areas',
             label: 'Events',
+            segment: '/areas',
             icon: activeTab === 'areas'
                 ? <EventNoteIcon fontSize="small" />
                 : <EventNoteOutlinedIcon fontSize="small" />,
@@ -140,18 +131,43 @@ export function MobileFloatingPill(props: MobileFloatingPillProps) {
             <FloatingPill component="nav" aria-label="Primary navigation" elevation={0}>
                 { tabs.filter(tab => tab.visible).map(tab => {
                     const active = activeTab === tab.id;
+                    const content = (
+                        <>
+                            {tab.icon}
+                            { active &&
+                                <Typography variant="caption">
+                                    {tab.label}
+                                </Typography> }
+                        </>
+                    );
+
+                    if (tab.segment !== undefined && eventSlug) {
+                        const transitionTypes = relativePathname !== undefined
+                            ? getNavigationTransitionTypes(relativePathname, tab.segment)
+                            : undefined;
+
+                        return (
+                            <NavPillButton
+                                key={tab.id}
+                                active={active}
+                                aria-current={active ? 'page' : undefined}
+                                aria-label={tab.ariaLabel ?? tab.label}
+                                component={Link}
+                                href={getSchedulePath(eventSlug, tab.segment)}
+                                transitionTypes={transitionTypes}>
+                                {content}
+                            </NavPillButton>
+                        );
+                    }
+
                     return (
                         <NavPillButton
                             key={tab.id}
                             active={active}
                             aria-current={active ? 'page' : undefined}
                             aria-label={tab.ariaLabel ?? tab.label}
-                            onClick={onSelect ? () => onSelect(tab.id) : undefined}>
-                            {tab.icon}
-                            { active &&
-                                <Typography variant="caption">
-                                    {tab.label}
-                                </Typography> }
+                            onClick={tab.id === 'more' ? onOpenMore : undefined}>
+                            {content}
                         </NavPillButton>
                     );
                 }) }
@@ -173,7 +189,7 @@ const FloatingNavHost = styled(Box)(({ theme }) => ({
     position: 'fixed',
     right: 0,
     viewTransitionName: 'schedule-mobile-nav',
-    zIndex: 1100,
+    zIndex: theme.zIndex.appBar,
 }));
 
 /**
@@ -222,10 +238,6 @@ const NavPillButton = styled(ButtonBase, {
             duration: theme.transitions.duration.shorter,
         }),
 
-        '&.Mui-disabled': {
-            opacity: 0.4,
-        },
-
         variants: [
             {
                 props: { active: true },
@@ -238,4 +250,4 @@ const NavPillButton = styled(ButtonBase, {
             },
         ],
     };
-});
+}) as ExtendButtonBase<ButtonBaseTypeMap<{ active: boolean }>>;
