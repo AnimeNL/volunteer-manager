@@ -29,3 +29,7 @@ editing) with a top-level `'use server';` directive. Each Server Action should:
 
 It should be rare for a Server Action to not write a log message. Ask the user for confirmation when
 this is omitted.
+
+## Minimal Exports
+Only export types, interfaces, functions, classes, and constants that are imported by another
+module. Do not add `export` to types or interfaces that are only used within their own file.

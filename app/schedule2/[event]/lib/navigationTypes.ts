@@ -20,7 +20,7 @@ export interface NavigationArea {
 /**
  * Team-scoped Duty Book summary rendered in schedule2 navigation menus.
  */
-export interface NavigationDutyBook {
+interface NavigationDutyBook {
     name: string;
     team: string;
 }
