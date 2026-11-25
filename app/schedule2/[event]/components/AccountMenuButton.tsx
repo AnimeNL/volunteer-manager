@@ -83,7 +83,7 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                   onClose={() => setAnchorEl(null)}
                   open={!!anchorEl}
                   slotProps={{ list: { dense: true } }}>
-                <Box sx={{ px: 1.5, py: 0.5 }}>
+                <Box sx={{ px: 2, pt: 0.5 }}>
                     <ToggleButtonGroup exclusive fullWidth onChange={handleModeChange} size="small"
                                        value={mode ?? 'system'}>
                         <ToggleButton aria-label="Light mode" value="light">
@@ -97,7 +97,7 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                         </ToggleButton>
                     </ToggleButtonGroup>
                 </Box>
-                <Divider sx={{ my: 0.5 }} />
+                <Divider sx={{ my: 1 }} />
                 <MenuItem dense onClick={handleSignOut}>
                     <ListItemIcon>
                         <LogoutIcon fontSize="small" />
