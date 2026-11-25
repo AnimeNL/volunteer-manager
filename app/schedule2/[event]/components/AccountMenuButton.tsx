@@ -149,15 +149,6 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                         <Divider sx={{ my: 1 }} />
                     </>
                 ) }
-                { !!eventSlug &&
-                    <MenuItem component={Link} dense href={`/schedule2/${eventSlug}/feedback`}
-                              onClick={() => setAnchorEl(null)}
-                              transitionTypes={[ 'nav-forward' ]}>
-                        <ListItemIcon>
-                            <FeedbackOutlinedIcon fontSize="small" />
-                        </ListItemIcon>
-                        <ListItemText primary="Feedback" />
-                    </MenuItem> }
                 { !!eventSlug && !!hasDevelopment &&
                     <MenuItem component={Link} dense href={`/schedule2/${eventSlug}/settings`}
                               onClick={() => setAnchorEl(null)}
@@ -166,6 +157,15 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                             <CodeIcon fontSize="small" />
                         </ListItemIcon>
                         <ListItemText primary="Development" />
+                    </MenuItem> }
+                { !!eventSlug &&
+                    <MenuItem component={Link} dense href={`/schedule2/${eventSlug}/feedback`}
+                              onClick={() => setAnchorEl(null)}
+                              transitionTypes={[ 'nav-forward' ]}>
+                        <ListItemIcon>
+                            <FeedbackOutlinedIcon fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText primary="Feedback" />
                     </MenuItem> }
                 <MenuItem dense onClick={handleSignOut}>
                     <ListItemIcon>

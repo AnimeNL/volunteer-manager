@@ -6,16 +6,15 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import { PlaceholderPage } from '../components/PlaceholderPage';
 
 /**
- * Placeholder Settings page for the schedule portal.
+ * Placeholder Developer settings page for the schedule portal.
  */
 export default function ScheduleSettingsPage(props: PageProps<'/schedule2/[event]/settings'>) {
     return (
         <PlaceholderPage
-            description="Event-wide schedule portal configuration."
             icon={ <SettingsOutlinedIcon /> }
             params={props.params}
             permission="event.settings"
-            title="Settings" />
+            title="Developer settings" />
     );
 }
 
