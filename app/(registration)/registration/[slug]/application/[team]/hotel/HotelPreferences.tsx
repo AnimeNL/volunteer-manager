@@ -7,6 +7,7 @@ import { useCallback, useContext, useState } from 'react';
 
 import { useFormContext } from '@components/proxy/react-hook-form-mui';
 
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -15,12 +16,14 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Grid from '@mui/material/Grid';
 import HotelIcon from '@mui/icons-material/Hotel';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import Typography from '@mui/material/Typography';
 
 import { CollapsableGrid } from '@components/CollapsableGrid';
 import { FormProviderContext } from '@components/FormProvider';
 import { HotelForm, type HotelFormProps }
     from '@app/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/HotelForm';
+import { dayjs } from '@lib/DateTime';
 
 /**
  * The <HotelPreferences> component provides the interactivity for a form through which volunteers
@@ -79,7 +82,9 @@ export function HotelPreferences(props: HotelFormProps) {
                         </Alert>
                     </Grid>}
 
-                <HotelForm {...props} />
+                <LocalizationProvider dateAdapter={AdapterDayjs} dateLibInstance={dayjs}>
+                    <HotelForm {...props} />
+                </LocalizationProvider>
 
                 <CollapsableGrid size={{ xs: 12 }} in={!!formError}>
                     <Alert severity="error">
