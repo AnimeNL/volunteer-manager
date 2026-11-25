@@ -1,0 +1,109 @@
+/* Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
+ * Use of this source code is governed by a MIT license that can be found in the LICENSE file.
+ */
+
+:root {
+    --schedule2-vt-exit: 150ms;
+    --schedule2-vt-enter: 210ms;
+    --schedule2-vt-move: 320ms;
+}
+
+/* Keep the live page interactive while a view transition runs. */
+::view-transition {
+    pointer-events: none;
+}
+
+/* Anchor persistent shell chrome so only page content transitions. */
+::view-transition-group(schedule2-header),
+::view-transition-group(schedule2-mobile-nav) {
+    animation: none;
+    z-index: 100;
+}
+
+::view-transition-old(schedule2-header),
+::view-transition-old(schedule2-mobile-nav) {
+    display: none;
+}
+
+::view-transition-new(schedule2-header),
+::view-transition-new(schedule2-mobile-nav) {
+    animation: none;
+}
+
+/* Suspense skeleton-to-content reveal. */
+::view-transition-old(.schedule2-slide-down) {
+    animation:
+        var(--schedule2-vt-exit) ease-out both schedule2-fade reverse,
+        var(--schedule2-vt-exit) ease-out both schedule2-slide-y reverse;
+}
+
+::view-transition-new(.schedule2-slide-up) {
+    animation:
+        var(--schedule2-vt-enter) ease-in var(--schedule2-vt-exit) both schedule2-fade,
+        var(--schedule2-vt-move) ease-in both schedule2-slide-y;
+}
+
+/* Directional route transitions. */
+::view-transition-old(.schedule2-nav-forward) {
+    --schedule2-slide-x: -48px;
+    animation:
+        var(--schedule2-vt-exit) ease-in both schedule2-fade reverse,
+        var(--schedule2-vt-move) ease-in-out both schedule2-slide-x reverse;
+}
+
+::view-transition-new(.schedule2-nav-forward) {
+    --schedule2-slide-x: 48px;
+    animation:
+        var(--schedule2-vt-enter) ease-out var(--schedule2-vt-exit) both schedule2-fade,
+        var(--schedule2-vt-move) ease-in-out both schedule2-slide-x;
+}
+
+::view-transition-old(.schedule2-nav-back) {
+    --schedule2-slide-x: 48px;
+    animation:
+        var(--schedule2-vt-exit) ease-in both schedule2-fade reverse,
+        var(--schedule2-vt-move) ease-in-out both schedule2-slide-x reverse;
+}
+
+::view-transition-new(.schedule2-nav-back) {
+    --schedule2-slide-x: -48px;
+    animation:
+        var(--schedule2-vt-enter) ease-out var(--schedule2-vt-exit) both schedule2-fade,
+        var(--schedule2-vt-move) ease-in-out both schedule2-slide-x;
+}
+
+@keyframes schedule2-fade {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes schedule2-slide-y {
+    from {
+        transform: translateY(8px);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+@keyframes schedule2-slide-x {
+    from {
+        translate: var(--schedule2-slide-x);
+    }
+    to {
+        translate: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(*),
+    ::view-transition-new(*),
+    ::view-transition-group(*) {
+        animation-duration: 0s !important;
+        animation-delay: 0s !important;
+    }
+}
