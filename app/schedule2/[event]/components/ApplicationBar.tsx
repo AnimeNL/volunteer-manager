@@ -136,9 +136,23 @@ export function ApplicationBar(props: ApplicationBarProps) {
             handleCloseSearch();
     }, [ handleCloseSearch ]);
 
+    const handleDockBlur = useCallback((event: React.FocusEvent<HTMLElement>) => {
+        if (!searchActive)
+            return;
+
+        if (event.relatedTarget instanceof Node &&
+            event.currentTarget.contains(event.relatedTarget))
+        {
+            return;
+        }
+
+        handleCloseSearch();
+    }, [ handleCloseSearch, searchActive ]);
+
     return (
         <HeaderRow>
             <PillDock
+                onBlur={handleDockBlur}
                 onClick={searchActive ? undefined : handleOpenSearch}
                 role={searchActive ? 'search' : 'button'}
                 searchActive={searchActive}
