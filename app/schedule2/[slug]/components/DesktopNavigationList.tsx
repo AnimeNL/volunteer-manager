@@ -4,13 +4,19 @@
 'use client';
 
 import Link from 'next/link';
-import { Suspense } from 'react';
+import { Suspense, useCallback, useState } from 'react';
 import { useParams, usePathname } from 'next/navigation';
 
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import Collapse from '@mui/material/Collapse';
+import EventNoteIcon from '@mui/icons-material/EventNote';
+import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import HomeIcon from '@mui/icons-material/Home';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
@@ -19,7 +25,7 @@ import { styled } from '@mui/material/styles';
 /**
  * Spatial order of top-level navigation segments for directional view transitions.
  */
-const kSectionOrder = [ '', '/shifts' ];
+const kSectionOrder = [ '', '/shifts', '/areas' ];
 
 /**
  * Material Design 3 rounded navigation item shared across all desktop sidebar entries, matching the
@@ -74,6 +80,75 @@ const NavigationItem = styled(ListItemButton)(({ theme }) => {
 }) as typeof ListItemButton;
 
 /**
+ * Indented sub-menu list with a faint in-theme vertical guide line aligned under the parent icon.
+ */
+const SubMenuList = styled(List)(({ theme }) => {
+    const palette = (theme.vars || theme).palette;
+
+    return {
+        borderLeft: `2px solid color-mix(in srgb, ${palette.primary.main} 22%, transparent)`,
+        marginBottom: theme.spacing(0.5),
+        marginLeft: 25,
+        paddingBottom: 0,
+        paddingLeft: 13,
+        paddingTop: 0,
+
+        ...theme.applyStyles('dark', {
+            borderLeftColor: `color-mix(in srgb, ${palette.primary.main} 30%, transparent)`,
+        }),
+    };
+});
+
+/**
+ * Nested area navigation item inside an expanded sidebar section.
+ */
+const SubNavigationItem = styled(ListItemButton)(({ theme }) => {
+    const palette = (theme.vars || theme).palette;
+
+    return {
+        borderRadius: theme.shape.borderRadius,
+        color: palette.text.secondary,
+        marginBottom: theme.spacing(0.25),
+        minHeight: 36,
+        paddingBottom: theme.spacing(0.5),
+        paddingLeft: theme.spacing(1.5),
+        paddingRight: theme.spacing(1.5),
+        paddingTop: theme.spacing(0.5),
+        transition: theme.transitions.create([ 'background-color', 'color' ], {
+            duration: theme.transitions.duration.shortest,
+        }),
+
+        '& .MuiListItemText-primary': {
+            fontSize: '0.8125rem',
+            fontWeight: 400,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+        },
+        '&.Mui-selected': {
+            backgroundColor: `color-mix(in srgb, ${palette.primary.main} 14%, transparent)`,
+            color: palette.primary.main,
+            '&:hover': {
+                backgroundColor: `color-mix(in srgb, ${palette.primary.main} 20%, transparent)`,
+            },
+            '& .MuiListItemText-primary': {
+                fontWeight: 600,
+            },
+        },
+
+        ...theme.applyStyles('dark', {
+            '&.Mui-selected': {
+                backgroundColor: `color-mix(in srgb, ${palette.primary.main} 22%, transparent)`,
+                color: palette.primary.light,
+                '&:hover': {
+                    backgroundColor: `color-mix(in srgb, ${palette.primary.main} 28%, transparent)`,
+                },
+            },
+        }),
+    };
+}) as typeof ListItemButton;
+
+/**
  * Green activity indicator dot displayed when the signed-in volunteer has a currently active shift.
  */
 const ActivityDot = styled('span')(({ theme }) => {
@@ -88,6 +163,56 @@ const ActivityDot = styled('span')(({ theme }) => {
         width: 8,
     };
 });
+
+/**
+ * Subtle pill counter badge displayed for active event counts.
+ */
+const CounterBadge = styled('span')(({ theme }) => {
+    const palette = (theme.vars || theme).palette;
+
+    return {
+        alignItems: 'center',
+        backgroundColor: `color-mix(in srgb, ${palette.text.primary} 10%, transparent)`,
+        borderRadius: 9999,
+        color: palette.text.secondary,
+        display: 'inline-flex',
+        flexShrink: 0,
+        fontSize: '0.6875rem',
+        fontVariantNumeric: 'tabular-nums',
+        fontWeight: 600,
+        height: 20,
+        justifyContent: 'center',
+        lineHeight: 1,
+        minWidth: 20,
+        paddingLeft: theme.spacing(0.75),
+        paddingRight: theme.spacing(0.75),
+    };
+});
+
+/**
+ * Rotating chevron button for expanding or collapsing nested sidebar sections.
+ */
+const ExpandButton = styled(IconButton, {
+    shouldForwardProp: prop => prop !== 'expanded',
+})<{ expanded: boolean }>(({ theme }) => ({
+    color: 'inherit',
+    marginLeft: theme.spacing(0.5),
+    marginRight: theme.spacing(-0.5),
+    opacity: 0.7,
+    padding: theme.spacing(0.25),
+    transition: theme.transitions.create('transform', {
+        duration: theme.transitions.duration.shortest,
+    }),
+
+    variants: [
+        {
+            props: { expanded: true },
+            style: {
+                transform: 'rotate(180deg)',
+            },
+        },
+    ],
+}));
 
 /**
  * Resolves the relative pathname under `/schedule2/[slug]`.
@@ -175,9 +300,23 @@ function RouteAwareOverviewItem() {
 }
 
 /**
+ * Program area summary passed to the desktop sidebar for rendering nested Events entries.
+ */
+interface NavigationAreaItem {
+    activeCount: number;
+    id: number;
+    name: string;
+}
+
+/**
  * Props accepted by the <VolunteerNavigationItems> component.
  */
 interface VolunteerNavigationItemsProps {
+    /**
+     * Program areas for the event, rendered as expandable sub-rows under Events.
+     */
+    areas: NavigationAreaItem[];
+
     /**
      * Whether the signed-in volunteer currently has an active shift.
      */
@@ -198,11 +337,20 @@ interface VolunteerNavigationItemsProps {
  * Renders volunteer-specific desktop sidebar entries streamed in behind `<Suspense>`.
  */
 export function VolunteerNavigationItems(props: VolunteerNavigationItemsProps) {
-    const { hasActiveShift, hasShifts, slug } = props;
+    const { areas, hasActiveShift, hasShifts, slug } = props;
+
     const pathname = usePathname();
     const relativePathname = getRelativePathname(pathname, slug);
 
+    const [ eventsExpanded, setEventsExpanded ] = useState<boolean>(true);
+
+    const handleToggleEvents = useCallback(() => {
+        setEventsExpanded(expanded => !expanded);
+    }, []);
+
     const isShiftsActive = relativePathname.startsWith('/shifts');
+    const isEventsActive = relativePathname === '/areas';
+    const totalActiveEvents = areas.reduce((sum, area) => sum + area.activeCount, 0);
 
     return (
         <>
@@ -217,6 +365,64 @@ export function VolunteerNavigationItems(props: VolunteerNavigationItemsProps) {
                     { hasActiveShift &&
                         <ActivityDot aria-label="Active shift" title="Active shift" /> }
                 </NavigationItem> }
+
+            <ListItem disablePadding sx={{ mb: 0.5 }}
+                      secondaryAction={ areas.length > 0 ? (
+                          <ExpandButton
+                              aria-expanded={eventsExpanded}
+                              aria-label={eventsExpanded ? 'Collapse areas' : 'Expand areas'}
+                              edge="end"
+                              expanded={eventsExpanded}
+                              onClick={handleToggleEvents}
+                              size="small">
+                              <ExpandMoreIcon fontSize="small" />
+                          </ExpandButton>
+                      ) : undefined }>
+                <NavigationItem component={Link} href={`/schedule2/${slug}/areas`}
+                                selected={isEventsActive}
+                                sx={areas.length > 0 ? { mb: 0, pr: 5 } : { mb: 0 }}
+                                transitionTypes={getTransitionTypes(relativePathname, '/areas')}>
+                    <ListItemIcon>
+                        { isEventsActive
+                            ? <EventNoteIcon fontSize="small" />
+                            : <EventNoteOutlinedIcon fontSize="small" /> }
+                    </ListItemIcon>
+                    <ListItemText primary="Events" />
+                    { totalActiveEvents > 0 &&
+                        <CounterBadge aria-label={`${totalActiveEvents} active events`}>
+                            {totalActiveEvents}
+                        </CounterBadge> }
+                </NavigationItem>
+            </ListItem>
+
+            { areas.length > 0 &&
+                <Collapse in={eventsExpanded} unmountOnExit>
+                    <SubMenuList disablePadding>
+                        { areas.map(area => {
+                            const areaPath = `/areas/${area.id}`;
+                            const isAreaActive = relativePathname === areaPath ||
+                                relativePathname.startsWith(`${areaPath}/`);
+
+                            return (
+                                <SubNavigationItem
+                                    key={area.id}
+                                    component={Link}
+                                    href={`/schedule2/${slug}${areaPath}`}
+                                    selected={isAreaActive}
+                                    transitionTypes={
+                                        getTransitionTypes(relativePathname, '/areas')
+                                    }>
+                                    <ListItemText primary={area.name} />
+                                    { area.activeCount > 0 &&
+                                        <CounterBadge
+                                            aria-label={`${area.activeCount} active events`}>
+                                            {area.activeCount}
+                                        </CounterBadge> }
+                                </SubNavigationItem>
+                            );
+                        }) }
+                    </SubMenuList>
+                </Collapse> }
         </>
     );
 }

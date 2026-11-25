@@ -8,8 +8,8 @@ import Skeleton from '@mui/material/Skeleton';
 
 import { DesktopNavigationList, VolunteerNavigationItems } from './DesktopNavigationList';
 import { getEvent } from '@lib/cache';
+import { getProgramAreas, getUserEventShifts } from '../lib/scheduleData';
 import { getScheduleAccess } from '../lib/getScheduleAccess';
-import { getUserEventShifts } from '../lib/scheduleData';
 
 import { kDesktopMenuWidthPx } from '../Constants';
 
@@ -48,13 +48,28 @@ async function AuthenticatedNavigationItems(props: DesktopNavigationProps) {
     if (!access)
         return null;
 
-    const shifts = await getUserEventShifts(access.event.id, access.user.id);
+    const festivalId = access.event.integrations?.anPlanFestivalId;
+    const [ shifts, programAreas ] = await Promise.all([
+        getUserEventShifts(access.event.id, access.user.id),
+        festivalId ? getProgramAreas(festivalId) : Promise.resolve([]),
+    ]);
+
     const currentMs = access.currentTime.epochMilliseconds;
     const hasActiveShift = shifts.some(
         shift => shift.startEpochMs <= currentMs && shift.endEpochMs > currentMs);
 
+    const areas = programAreas.map(area => ({
+        activeCount: area.timeslots.reduce(
+            (count, slot) => count + (
+                slot.startEpochMs <= currentMs && slot.endEpochMs > currentMs ? 1 : 0),
+            0),
+        id: area.id,
+        name: area.name,
+    }));
+
     return (
-        <VolunteerNavigationItems hasActiveShift={hasActiveShift}
+        <VolunteerNavigationItems areas={areas}
+                                  hasActiveShift={hasActiveShift}
                                   hasShifts={shifts.length > 0}
                                   slug={access.event.slug} />
     );
