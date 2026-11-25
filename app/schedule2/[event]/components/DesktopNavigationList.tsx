@@ -28,6 +28,8 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import NotListedLocationIcon from '@mui/icons-material/NotListedLocation';
 import NotListedLocationOutlinedIcon from '@mui/icons-material/NotListedLocationOutlined';
+import SettingsIcon from '@mui/icons-material/Settings';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import { type Theme, styled } from '@mui/material/styles';
 
 import type { NavigationArea, NavigationData, NavigationDutyBook } from '../lib/navigationTypes';
@@ -385,7 +387,8 @@ function DutyBookSection(props: {
  */
 export function VolunteerNavigationItems(props: { data: NavigationData }) {
     const {
-        areas, dutyBooks, eventSlug, hasActiveShift, hasKnowledgeBase, hasShifts, helpRequests,
+        areas, dutyBooks, eventSlug, hasActiveShift, hasKnowledgeBase, hasSettings, hasShifts,
+        helpRequests,
     } = props.data;
 
     const pathname = usePathname();
@@ -395,6 +398,7 @@ export function VolunteerNavigationItems(props: { data: NavigationData }) {
     const isHelpRequestsActive = relativePathname.startsWith('/help-requests');
     const isKnowledgeBaseActive = relativePathname.startsWith('/knowledge');
     const isVolunteersActive = relativePathname.startsWith('/volunteers');
+    const isSettingsActive = relativePathname.startsWith('/settings');
 
     return (
         <>
@@ -466,6 +470,20 @@ export function VolunteerNavigationItems(props: { data: NavigationData }) {
                 </ListItemIcon>
                 <ListItemText primary="Volunteers" />
             </NavigationItem>
+
+            { hasSettings &&
+                <NavigationItem
+                    component={Link}
+                    href={`/schedule2/${eventSlug}/settings`}
+                    selected={isSettingsActive}
+                    transitionTypes={getNavigationTransitionTypes(relativePathname, '/settings')}>
+                    <ListItemIcon>
+                        { isSettingsActive
+                            ? <SettingsIcon fontSize="small" />
+                            : <SettingsOutlinedIcon fontSize="small" /> }
+                    </ListItemIcon>
+                    <ListItemText primary="Settings" />
+                </NavigationItem> }
         </>
     );
 }

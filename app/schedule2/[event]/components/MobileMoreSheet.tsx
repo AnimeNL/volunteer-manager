@@ -19,6 +19,8 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import NotListedLocationIcon from '@mui/icons-material/NotListedLocation';
 import NotListedLocationOutlinedIcon from '@mui/icons-material/NotListedLocationOutlined';
+import SettingsIcon from '@mui/icons-material/Settings';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import { styled } from '@mui/material/styles';
 
 import type { NavigationData } from '../lib/navigationTypes';
@@ -123,6 +125,7 @@ export function MobileMoreSheet(props: MobileMoreSheetProps) {
     const isHelpRequestsActive = relativePathname.startsWith('/help-requests');
     const isKnowledgeBaseActive = relativePathname.startsWith('/knowledge');
     const isVolunteersActive = relativePathname.startsWith('/volunteers');
+    const isSettingsActive = relativePathname.startsWith('/settings');
 
     return (
         <Drawer anchor="bottom" onClose={onClose} open={open}>
@@ -220,6 +223,21 @@ export function MobileMoreSheet(props: MobileMoreSheetProps) {
                         </ListItemIcon>
                         <ListItemText primary="Volunteers" />
                     </SheetNavItem>
+
+                    { data?.hasSettings &&
+                        <SheetNavItem
+                            component={Link}
+                            href={`/schedule2/${slug}/settings`}
+                            onClick={onClose}
+                            selected={isSettingsActive}
+                            transitionTypes={getNavigationTransitionTypes(relativePathname, '/settings')}>
+                            <ListItemIcon>
+                                { isSettingsActive
+                                    ? <SettingsIcon fontSize="small" />
+                                    : <SettingsOutlinedIcon fontSize="small" /> }
+                            </ListItemIcon>
+                            <ListItemText primary="Settings" />
+                        </SheetNavItem> }
                 </List>
             </Box>
         </Drawer>

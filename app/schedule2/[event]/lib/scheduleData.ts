@@ -352,6 +352,7 @@ export const getNavigationData = cache(
             permissions.can('event.duty-book', 'read', { event: event.slug, team: team.slug }));
 
         const canViewHelpRequests = permissions.can('event.help-requests', { event: event.slug });
+        const hasSettings = permissions.can('event.settings', { event: event.slug });
         const hasUnrestrictedKnowledge = permissions.can('event.knowledge', { event: event.slug });
 
         const [ liveCounts, hasKnowledgeBase ] = await Promise.all([
@@ -386,6 +387,7 @@ export const getNavigationData = cache(
             eventSlug: event.slug,
             hasActiveShift,
             hasKnowledgeBase,
+            hasSettings,
             hasShifts: shifts.length > 0,
             helpRequests: liveCounts.pendingHelpRequests !== undefined
                 ? { pending: liveCounts.pendingHelpRequests }

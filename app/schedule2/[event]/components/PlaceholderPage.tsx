@@ -2,12 +2,14 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { Suspense, ViewTransition } from 'react';
+import { forbidden } from 'next/navigation';
 
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 
+import type { BooleanPermission } from '@lib/auth/access/Access';
 import { PageTransition } from './PageTransition';
 import { SetTitle } from './ScheduleTitle';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
@@ -22,6 +24,11 @@ interface PlaceholderPageProps {
     params: Promise<{ event: string }>;
 
     /**
+     * Optional event-scoped permission required to access this placeholder page.
+     */
+    permission?: BooleanPermission;
+
+    /**
      * Title displayed in the AppBar and placeholder card heading. When omitted, defaults to the
      * resolved event's `shortName`.
      */
@@ -33,7 +40,10 @@ interface PlaceholderPageProps {
  */
 async function PlaceholderContent(props: PlaceholderPageProps) {
     const { event: eventSlug } = await props.params;
-    const { event } = await requireScheduleAccess(eventSlug);
+    const { access, event } = await requireScheduleAccess(eventSlug);
+    if (props.permission && !access.can(props.permission, { event: event.slug }))
+        forbidden();
+
     const title = props.title ?? event.shortName;
 
     return (
@@ -72,7 +82,8 @@ export function PlaceholderPage(props: PlaceholderPageProps) {
                     </ViewTransition>
                 }>
                 <ViewTransition enter="schedule2-slide-up" default="none">
-                    <PlaceholderContent params={props.params} title={props.title} />
+                    <PlaceholderContent params={props.params} permission={props.permission}
+                                        title={props.title} />
                 </ViewTransition>
             </Suspense>
         </PageTransition>

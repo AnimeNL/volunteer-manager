@@ -6,6 +6,7 @@
  */
 const kNavigationSectionOrder = [
     '', '/shifts', '/areas', '/duty-book', '/help-requests', '/knowledge', '/volunteers',
+    '/settings',
 ];
 
 /**
@@ -35,6 +36,7 @@ export interface NavigationData {
     eventSlug: string;
     hasActiveShift: boolean;
     hasKnowledgeBase: boolean;
+    hasSettings: boolean;
     hasShifts: boolean;
     helpRequests?: { pending: number };
 }
