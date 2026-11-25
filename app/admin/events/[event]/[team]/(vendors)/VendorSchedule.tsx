@@ -194,7 +194,8 @@ export function VendorSchedule(props: VendorScheduleProps) {
     const handleSubmit = useCallback(async () => {
         return props.action({
             resources: resources.map(
-                group => group.children!.map(resource => resource.id as number)).flat(),
+                group => group.children!.map(
+                    (resource: ScheduleResource) => resource.id as number)).flat(),
             schedule: events.map(event => ({
                 id: typeof event.id === 'number' ? event.id : 0,
                 vendorId: event.resource as number,

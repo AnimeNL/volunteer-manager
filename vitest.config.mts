@@ -2,9 +2,14 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { defineConfig } from 'vitest/config';
+import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import os from 'node:os';
+import { join } from 'node:path';
 import react from '@vitejs/plugin-react';
+
+const hasTimelinePackage = existsSync(
+    join(process.cwd(), 'node_modules/@AnimeNL/volunteer-manager-timeline/package.json'));
 
 async function attemptToExtractMuiLicenseFromEnvFiles() {
     for (const filename of [ '.env.production', '.env.development', '.env' ]) {
@@ -23,6 +28,12 @@ async function attemptToExtractMuiLicenseFromEnvFiles() {
 export default defineConfig({
     plugins: [ react() ],
     resolve: {
+        alias: hasTimelinePackage ? undefined : {
+            '@AnimeNL/volunteer-manager-timeline/dist/volunteer-manager-timeline.css':
+                join(process.cwd(), 'app/components/proxy/volunteer-manager-timeline.css'),
+            '@AnimeNL/volunteer-manager-timeline':
+                join(process.cwd(), 'app/components/proxy/volunteer-manager-timeline.tsx'),
+        },
         tsconfigPaths: true,
     },
     test: {

@@ -40,10 +40,12 @@ outside of user requests, enabling the Volunteer Manager to optimise for immedia
 ## Building and deploying
 
 ### Checking out the repository
-This project requires Node.js `>=26.0.0` and depends on a private
-`@AnimeNL/volunteer-manager-timeline` package fetched directly over Git from GitHub. Talk to one of
-the maintainers of this repository if you need access, and ensure your local Git configuration (SSH
-key or personal access token) can clone private `AnimeNL` repositories before running `npm install`.
+This project requires Node.js `>=26.0.0`. The `@AnimeNL/volunteer-manager-timeline` package is an
+optional private dependency fetched over Git from GitHub: if you do not have access, `npm install`,
+`npm ci` and `npm run build` will still succeed and the calendar/timeline views will degrade
+gracefully. Talk to one of the maintainers of this repository if you need access to the timeline
+package, and ensure your local Git configuration (SSH key or personal access token) can clone
+private `AnimeNL` repositories before running `npm install`.
 
 ### Building a developer environment
 Developing the AnimeCon Volunteer Manager follows Next.js' best practices. The following commands

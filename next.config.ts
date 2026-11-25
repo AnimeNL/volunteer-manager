@@ -2,6 +2,8 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { NextConfig } from 'next';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import NextBundleAnalyzer from '@next/bundle-analyzer';
 
 import nextPackage from 'next/package.json' with { type: 'json' };
@@ -11,6 +13,8 @@ import reactPackage from 'react/package.json' with { type: 'json' };
 import volunteerManagerPackage from './package.json' with { type: 'json' };
 
 const isProductionBuild = Boolean(process.env.SOURCE_COMMIT || process.env.NEXT_BUILD_STANDALONE);
+const hasTimelinePackage = existsSync(
+    join(process.cwd(), 'node_modules/@AnimeNL/volunteer-manager-timeline/package.json'));
 
 const nextConfig: NextConfig = {
     allowedDevOrigins: [ '192.168.19.96', 'localhost' ],
@@ -89,6 +93,14 @@ const nextConfig: NextConfig = {
         'ts-sql-query',
         'twilio',
     ],
+    turbopack: hasTimelinePackage ? undefined : {
+        resolveAlias: {
+            '@AnimeNL/volunteer-manager-timeline':
+                './app/components/proxy/volunteer-manager-timeline.tsx',
+            '@AnimeNL/volunteer-manager-timeline/dist/volunteer-manager-timeline.css':
+                './app/components/proxy/volunteer-manager-timeline.css',
+        },
+    },
     typedRoutes: false,
     typescript: {
         tsconfigPath: './tsconfig.build.json',
