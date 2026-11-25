@@ -104,7 +104,7 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                   transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                   onClose={() => setAnchorEl(null)}
                   open={!!anchorEl}
-                  slotProps={{ list: { dense: true } }}>
+                  slotProps={{ list: { dense: true }, paper: { sx: { minWidth: 175 } } }}>
                 <Box sx={{ px: 2, pt: 0.5 }}>
                     <ToggleButtonGroup exclusive fullWidth onChange={handleModeChange} size="small"
                                        value={mode ?? 'system'}>
