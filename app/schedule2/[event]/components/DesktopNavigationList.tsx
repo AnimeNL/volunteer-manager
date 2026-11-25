@@ -81,9 +81,14 @@ const NavigationItem = styled(ListItemButton)(({ theme }) => {
             color: palette.m3.onSurfaceVariant,
             minWidth: 32,
         },
+        '& .MuiListItemText-root': {
+            margin: 0,
+            paddingBottom: '2px',
+        },
         '& .MuiListItemText-primary': {
-            fontSize: '0.8125rem',
+            fontSize: '0.875rem',
             fontWeight: 500,
+            lineHeight: 1.25,
         },
 
         ...selectedHighlightStyles(theme),
@@ -125,9 +130,14 @@ const SubNavigationItem = styled(ListItemButton)(({ theme }) => {
             duration: theme.transitions.duration.shortest,
         }),
 
+        '& .MuiListItemText-root': {
+            margin: 0,
+            paddingBottom: '2px',
+        },
         '& .MuiListItemText-primary': {
             fontSize: '0.8125rem',
             fontWeight: 400,
+            lineHeight: 1.25,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
