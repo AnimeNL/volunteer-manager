@@ -172,7 +172,7 @@ export function ExpandableNavigationSection(props: ExpandableNavigationSectionPr
 
             { hasSubItems &&
                 <Collapse in={expanded} unmountOnExit>
-                    <SubMenuList disablePadding sheet={props.sheet}>
+                    <SubMenuList disablePadding>
                         { props.items.map(item => (
                             <SubNavigationItem key={item.key} component={Link} href={item.href}
                                                onClick={props.onNavigate} selected={item.selected}
@@ -337,8 +337,6 @@ const NavigationItem = styled(ListItemButton, {
         marginBottom: theme.spacing(0.25),
         minHeight: 38,
         paddingBottom: theme.spacing(0.5),
-        paddingLeft: theme.spacing(1.75),
-        paddingRight: theme.spacing(1.5),
         paddingTop: theme.spacing(0.5),
         transition: theme.transitions.create([ 'background-color', 'color' ], {
             duration: theme.transitions.duration.shortest,
@@ -346,11 +344,7 @@ const NavigationItem = styled(ListItemButton, {
 
         '& .MuiListItemIcon-root': {
             color: palette.text.secondary,
-            minWidth: 32,
-        },
-        '& .MuiListItemText-root': {
-            margin: 0,
-            paddingBottom: '2px',
+            minWidth: 36,
         },
 
         ...selectedHighlightStyles(theme),
@@ -361,11 +355,6 @@ const NavigationItem = styled(ListItemButton, {
                 style: {
                     marginBottom: theme.spacing(0.5),
                     minHeight: 44,
-                    paddingLeft: theme.spacing(2),
-                    paddingRight: theme.spacing(2),
-                    '& .MuiListItemIcon-root': {
-                        minWidth: 36,
-                    },
                 },
             },
         ],
@@ -375,29 +364,14 @@ const NavigationItem = styled(ListItemButton, {
 /**
  * Indented sub-menu list with an in-theme vertical guide line aligned under the parent icon.
  */
-const SubMenuList = styled(List, {
-    shouldForwardProp: prop => prop !== 'sheet',
-})<{ sheet?: boolean }>(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
-
-    return {
-        borderLeft: `2px solid ${palette.m3.treeLine}`,
-        marginBottom: theme.spacing(0.5),
-        marginLeft: 23,
-        paddingBottom: 0,
-        paddingLeft: 12,
-        paddingTop: 0,
-
-        variants: [
-            {
-                props: { sheet: true },
-                style: {
-                    marginLeft: 25,
-                },
-            },
-        ],
-    };
-});
+const SubMenuList = styled(List)(({ theme }) => ({
+    borderLeft: `2px solid ${(theme.vars || theme).palette.m3.treeLine}`,
+    marginBottom: theme.spacing(0.5),
+    marginLeft: 25,
+    paddingBottom: 0,
+    paddingLeft: 9,
+    paddingTop: 0,
+}));
 
 /**
  * Nested navigation item inside an expanded section.
@@ -413,17 +387,10 @@ const SubNavigationItem = styled(ListItemButton, {
         marginBottom: theme.spacing(0.25),
         minHeight: 32,
         paddingBottom: theme.spacing(0.25),
-        paddingLeft: theme.spacing(1.5),
-        paddingRight: theme.spacing(1.5),
         paddingTop: theme.spacing(0.25),
         transition: theme.transitions.create([ 'background-color', 'color' ], {
             duration: theme.transitions.duration.shortest,
         }),
-
-        '& .MuiListItemText-root': {
-            margin: 0,
-            paddingBottom: '2px',
-        },
 
         ...selectedHighlightStyles(theme),
 
