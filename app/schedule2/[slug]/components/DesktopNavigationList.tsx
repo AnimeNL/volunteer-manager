@@ -64,10 +64,10 @@ const NavigationItem = styled(ListItemButton)(({ theme }) => {
             fontWeight: 500,
         },
         '&.Mui-selected': {
-            backgroundColor: `color-mix(in srgb, ${palette.primary.main} 14%, transparent)`,
+            backgroundColor: `color-mix(in srgb, ${palette.primary.main} 18%, transparent)`,
             color: palette.primary.main,
             '&:hover': {
-                backgroundColor: `color-mix(in srgb, ${palette.primary.main} 20%, transparent)`,
+                backgroundColor: `color-mix(in srgb, ${palette.primary.main} 24%, transparent)`,
             },
             '& .MuiListItemIcon-root': {
                 color: 'inherit',
@@ -79,10 +79,10 @@ const NavigationItem = styled(ListItemButton)(({ theme }) => {
 
         ...theme.applyStyles('dark', {
             '&.Mui-selected': {
-                backgroundColor: `color-mix(in srgb, ${palette.primary.main} 22%, transparent)`,
+                backgroundColor: `color-mix(in srgb, ${palette.primary.main} 28%, transparent)`,
                 color: palette.primary.light,
                 '&:hover': {
-                    backgroundColor: `color-mix(in srgb, ${palette.primary.main} 28%, transparent)`,
+                    backgroundColor: `color-mix(in srgb, ${palette.primary.main} 34%, transparent)`,
                 },
             },
         }),
@@ -136,10 +136,10 @@ const SubNavigationItem = styled(ListItemButton)(({ theme }) => {
             whiteSpace: 'nowrap',
         },
         '&.Mui-selected': {
-            backgroundColor: `color-mix(in srgb, ${palette.primary.main} 14%, transparent)`,
+            backgroundColor: `color-mix(in srgb, ${palette.primary.main} 18%, transparent)`,
             color: palette.primary.main,
             '&:hover': {
-                backgroundColor: `color-mix(in srgb, ${palette.primary.main} 20%, transparent)`,
+                backgroundColor: `color-mix(in srgb, ${palette.primary.main} 24%, transparent)`,
             },
             '& .MuiListItemText-primary': {
                 fontWeight: 600,
@@ -148,10 +148,10 @@ const SubNavigationItem = styled(ListItemButton)(({ theme }) => {
 
         ...theme.applyStyles('dark', {
             '&.Mui-selected': {
-                backgroundColor: `color-mix(in srgb, ${palette.primary.main} 22%, transparent)`,
+                backgroundColor: `color-mix(in srgb, ${palette.primary.main} 28%, transparent)`,
                 color: palette.primary.light,
                 '&:hover': {
-                    backgroundColor: `color-mix(in srgb, ${palette.primary.main} 28%, transparent)`,
+                    backgroundColor: `color-mix(in srgb, ${palette.primary.main} 34%, transparent)`,
                 },
             },
         }),
