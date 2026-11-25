@@ -8,11 +8,12 @@ import { useRef, useState } from 'react';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Box from '@mui/material/Box';
 import CloseIcon from '@mui/icons-material/Close';
+import Fade from '@mui/material/Fade';
 import IconButton from '@mui/material/IconButton';
 import InputBase from '@mui/material/InputBase';
 import SearchIcon from '@mui/icons-material/Search';
 import Typography from '@mui/material/Typography';
-import { keyframes, styled } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
 
 import { AccountMenuButton } from './AccountMenuButton';
 import { useScheduleTitle } from './ScheduleTitle';
@@ -91,52 +92,58 @@ export function ApplicationBar(props: ApplicationBarProps) {
                 role={searchActive ? 'search' : 'button'}
                 searchActive={searchActive}
                 tabIndex={searchActive ? undefined : 0}>
-                <DockLayer active={!searchActive} aria-hidden={searchActive}
-                           inert={searchActive} slideFrom="left"
-                           sx={{ pl: 2, pr: 1.5 }}>
-                    <TitleText key={title} component="div" noWrap>
-                        {title}
-                    </TitleText>
-                    <Box sx={{
-                        alignItems: 'center',
-                        color: 'text.secondary',
-                        display: 'inline-flex',
-                        flexShrink: 0,
-                        gap: 0.75,
-                    }}>
-                        <Typography variant="caption"
-                                    sx={{ display: { xs: 'none', sm: 'inline' }, fontWeight: 500 }}>
-                            Search
-                        </Typography>
-                        <SearchIcon fontSize="small" />
-                    </Box>
-                </DockLayer>
+                <Fade in={!searchActive}>
+                    <DockLayer aria-hidden={searchActive} inert={searchActive}
+                               sx={{ pl: 2, pr: 1.5 }}>
+                        <Fade key={title} in>
+                            <TitleText component="div" noWrap>
+                                {title}
+                            </TitleText>
+                        </Fade>
+                        <Box sx={{
+                            alignItems: 'center',
+                            color: 'text.secondary',
+                            display: 'inline-flex',
+                            flexShrink: 0,
+                            gap: 0.75,
+                        }}>
+                            <Typography variant="caption" sx={{
+                                display: { xs: 'none', sm: 'inline' },
+                                fontWeight: 500,
+                            }}>
+                                Search
+                            </Typography>
+                            <SearchIcon fontSize="small" />
+                        </Box>
+                    </DockLayer>
+                </Fade>
 
-                <DockLayer active={searchActive} aria-hidden={!searchActive}
-                           inert={!searchActive} slideFrom="right"
-                           sx={{ px: 0.75 }}>
-                    <IconButton aria-label="Close search" onClick={handleCloseSearch}
-                                size="small" sx={{ color: 'text.secondary' }}>
-                        <ArrowBackIcon fontSize="small" />
-                    </IconButton>
-                    <InputBase
-                        fullWidth
-                        inputProps={{ 'aria-label': 'Search schedule' }}
-                        inputRef={inputRef}
-                        onChange={event => setQuery(event.target.value)}
-                        onKeyDown={event => {
-                            if (event.key === 'Escape')
-                                handleCloseSearch();
-                        }}
-                        placeholder="Search shifts, events, volunteers…"
-                        sx={{ fontSize: '0.875rem' }}
-                        value={query} />
-                    <IconButton aria-label={query ? 'Clear search' : 'Close search'}
-                                onClick={handleClearOrClose} size="small"
-                                sx={{ color: 'text.secondary' }}>
-                        <CloseIcon fontSize="small" />
-                    </IconButton>
-                </DockLayer>
+                <Fade in={searchActive}>
+                    <DockLayer aria-hidden={!searchActive} inert={!searchActive}
+                               sx={{ px: 0.75 }}>
+                        <IconButton aria-label="Close search" onClick={handleCloseSearch}
+                                    size="small" sx={{ color: 'text.secondary' }}>
+                            <ArrowBackIcon fontSize="small" />
+                        </IconButton>
+                        <InputBase
+                            fullWidth
+                            inputProps={{ 'aria-label': 'Search schedule' }}
+                            inputRef={inputRef}
+                            onChange={event => setQuery(event.target.value)}
+                            onKeyDown={event => {
+                                if (event.key === 'Escape')
+                                    handleCloseSearch();
+                            }}
+                            placeholder="Search shifts, events, volunteers…"
+                            sx={{ fontSize: '0.875rem' }}
+                            value={query} />
+                        <IconButton aria-label={query ? 'Clear search' : 'Close search'}
+                                    onClick={handleClearOrClose} size="small"
+                                    sx={{ color: 'text.secondary' }}>
+                            <CloseIcon fontSize="small" />
+                        </IconButton>
+                    </DockLayer>
+                </Fade>
             </PillDock>
 
             { props.accountMenu ?? <AccountMenuButton /> }
@@ -145,33 +152,14 @@ export function ApplicationBar(props: ApplicationBarProps) {
 }
 
 /**
- * Subtle vertical enter animation for header title changes.
- */
-const kTitleEnterKeyframes = keyframes`
-    from {
-        opacity: 0;
-        transform: translateY(4px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-`;
-
-/**
- * Single-line header title that fades in subtly whenever the route title changes.
+ * Single-line header title rendered inside the resting pill dock.
  */
 const TitleText = styled(Typography)({
-    animation: `${kTitleEnterKeyframes} 160ms cubic-bezier(0.2, 0, 0, 1) both`,
     flexGrow: 1,
     fontSize: '0.9375rem',
     fontWeight: 600,
     letterSpacing: '-0.01em',
     minWidth: 0,
-
-    '@media (prefers-reduced-motion: reduce)': {
-        animation: 'none',
-    },
 }) as typeof Typography;
 
 /**
@@ -220,8 +208,7 @@ const PillDock = styled(Box, {
         overflow: 'hidden',
         position: 'relative',
         transition: theme.transitions.create([ 'background-color', 'box-shadow' ], {
-            duration: 200,
-            easing: 'cubic-bezier(0.2, 0, 0, 1)',
+            duration: theme.transitions.duration.short,
         }),
 
         ...theme.applyStyles('dark', {
@@ -242,45 +229,12 @@ const PillDock = styled(Box, {
 });
 
 /**
- * Overlapping layer inside `<PillDock>` enabling a smooth horizontal crossfade between the
- * resting title bar and active search input without layout shift.
+ * Overlapping layer inside `<PillDock>` faded in and out via MUI `<Fade>` without layout shift.
  */
-const DockLayer = styled(Box, {
-    shouldForwardProp: prop => prop !== 'active' && prop !== 'slideFrom',
-})<{ active: boolean; slideFrom: 'left' | 'right' }>(({ theme }) => ({
+const DockLayer = styled(Box)(({ theme }) => ({
     alignItems: 'center',
     display: 'flex',
     gap: theme.spacing(1),
     inset: 0,
-    opacity: 0,
-    pointerEvents: 'none',
     position: 'absolute',
-    transition: theme.transitions.create([ 'opacity', 'transform' ], {
-        duration: 180,
-        easing: 'cubic-bezier(0.2, 0, 0, 1)',
-    }),
-
-    variants: [
-        {
-            props: { active: false, slideFrom: 'left' },
-            style: { transform: 'translateX(-8px)' },
-        },
-        {
-            props: { active: false, slideFrom: 'right' },
-            style: { transform: 'translateX(8px)' },
-        },
-        {
-            props: { active: true },
-            style: {
-                opacity: 1,
-                pointerEvents: 'auto',
-                transform: 'translateX(0)',
-            },
-        },
-    ],
-
-    '@media (prefers-reduced-motion: reduce)': {
-        transform: 'none',
-        transition: 'none',
-    },
 }));
