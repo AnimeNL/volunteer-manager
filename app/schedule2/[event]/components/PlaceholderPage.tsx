@@ -10,14 +10,25 @@ import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 
 import type { BooleanPermission } from '@lib/auth/access/Access';
+import { Header } from './Header';
 import { Page } from './Page';
 import { SetTitle } from './ScheduleTitle';
-import { requireScheduleAccess } from '../lib/getScheduleAccess';
+import { getScheduleAccess, requireScheduleAccess } from '../lib/getScheduleAccess';
 
 /**
  * Props accepted by the <PlaceholderPage> component.
  */
 interface PlaceholderPageProps {
+    /**
+     * Optional single-line description shown beneath the header title.
+     */
+    description?: string;
+
+    /**
+     * Leading icon displayed in the page `<Header>` badge.
+     */
+    icon: React.ReactNode;
+
     /**
      * Route params promise containing the `event` slug, awaited inside `<Suspense>`.
      */
@@ -29,16 +40,28 @@ interface PlaceholderPageProps {
     permission?: BooleanPermission;
 
     /**
-     * Title displayed in the AppBar and placeholder card heading. When omitted, defaults to the
-     * resolved event's `shortName`.
+     * Title displayed in the AppBar, page header, and placeholder card heading. When omitted,
+     * defaults to the resolved event's `shortName`.
      */
     title?: string;
 }
 
 /**
+ * Resolves the event's short name behind `<Suspense>` for pages without a static title.
+ */
+async function EventHeaderTitle(props: { params: Promise<{ event: string }> }) {
+    const { event: eventSlug } = await props.params;
+    const access = await getScheduleAccess(eventSlug);
+
+    return access?.event.shortName ?? 'Overview';
+}
+
+/**
  * Authenticates the request behind `<Suspense>` and renders a simple "Not yet implemented" card.
  */
-async function PlaceholderContent(props: PlaceholderPageProps) {
+async function PlaceholderContent(
+    props: Pick<PlaceholderPageProps, 'params' | 'permission' | 'title'>)
+{
     const { event: eventSlug } = await props.params;
     const { access, event } = await requireScheduleAccess(eventSlug);
     if (props.permission && !access.can(props.permission, { event: event.slug }))
@@ -67,8 +90,17 @@ async function PlaceholderContent(props: PlaceholderPageProps) {
  * Generic "Not yet implemented" page shared by unbuilt schedule routes.
  */
 export function PlaceholderPage(props: PlaceholderPageProps) {
+    const headerTitle = props.title ?? (
+        <Suspense fallback={ <Skeleton variant="text" width={140} /> }>
+            <EventHeaderTitle params={props.params} />
+        </Suspense>
+    );
+
     return (
-        <Page>
+        <Page
+            header={
+                <Header description={props.description} icon={props.icon} title={headerTitle} />
+            }>
             { props.title && <SetTitle title={props.title} /> }
             <Suspense
                 fallback={

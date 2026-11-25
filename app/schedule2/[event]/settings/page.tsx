@@ -1,13 +1,22 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+
 import { PlaceholderPage } from '../components/PlaceholderPage';
 
 /**
  * Placeholder Settings page for the schedule portal.
  */
 export default function ScheduleSettingsPage(props: PageProps<'/schedule2/[event]/settings'>) {
-    return <PlaceholderPage params={props.params} permission="event.settings" title="Settings" />;
+    return (
+        <PlaceholderPage
+            description="Event-wide schedule portal configuration."
+            icon={ <SettingsOutlinedIcon /> }
+            params={props.params}
+            permission="event.settings"
+            title="Settings" />
+    );
 }
 
 export const instant = true;
