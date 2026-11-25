@@ -37,7 +37,7 @@ export function ScheduleErrorCard(props: ScheduleErrorCardProps) {
         <Card>
             <CardContent>
                 <Stack spacing={1}>
-                    <Typography color="textSecondary" sx={{ fontSize: 14 }}>
+                    <Typography variant="body2" color="textSecondary">
                         Error {props.statusCode}
                     </Typography>
                     <Typography variant="h5">

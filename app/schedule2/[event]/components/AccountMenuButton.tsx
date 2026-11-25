@@ -19,6 +19,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import Typography from '@mui/material/Typography';
 import { styled, useColorScheme } from '@mui/material/styles';
 
 import { kHeaderBarHeightPx } from '../Constants';
@@ -69,7 +70,9 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
             <TonalAccountButton aria-label="Account menu"
                                 onClick={event => setAnchorEl(event.currentTarget)}>
                 <AccountAvatar alt={userName} src={avatarUrl}>
-                    { initials || <PersonIcon fontSize="small" /> }
+                    { initials
+                        ? <Typography variant="subtitle2" component="span">{initials}</Typography>
+                        : <PersonIcon fontSize="small" /> }
                 </AccountAvatar>
             </TonalAccountButton>
 
@@ -148,8 +151,6 @@ const TonalAccountButton = styled(IconButton)(({ theme }) => {
 const AccountAvatar = styled(Avatar)({
     backgroundColor: 'transparent',
     color: 'inherit',
-    fontSize: '0.875rem',
-    fontWeight: 600,
     height: kHeaderBarHeightPx,
     width: kHeaderBarHeightPx,
 });

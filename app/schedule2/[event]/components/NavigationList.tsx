@@ -86,7 +86,7 @@ export function NavigationLink(props: NavigationLinkProps) {
             <ListItemIcon>
                 { props.selected && props.activeIcon ? props.activeIcon : props.icon }
             </ListItemIcon>
-            <ListItemText primary={props.label} />
+            <ListItemText primary={props.label} slotProps={{ primary: { variant: 'body2' } }} />
         </>
     );
 
@@ -165,7 +165,8 @@ export function ExpandableNavigationSection(props: ExpandableNavigationSectionPr
                     <ListItemIcon>
                         { props.selected ? props.activeIcon : props.icon }
                     </ListItemIcon>
-                    <ListItemText primary={props.label} />
+                    <ListItemText primary={props.label}
+                                  slotProps={{ primary: { variant: 'body2' } }} />
                 </NavigationItem>
             </ListItem>
 
@@ -177,7 +178,9 @@ export function ExpandableNavigationSection(props: ExpandableNavigationSectionPr
                                                onClick={props.onNavigate} selected={item.selected}
                                                sheet={props.sheet}
                                                transitionTypes={props.transitionTypes}>
-                                <ListItemText primary={item.label} />
+                                <ListItemText
+                                    primary={item.label}
+                                    slotProps={{ primary: { noWrap: true, variant: 'body2' } }} />
                             </SubNavigationItem>
                         )) }
                     </SubMenuList>
@@ -349,11 +352,6 @@ const NavigationItem = styled(ListItemButton, {
             margin: 0,
             paddingBottom: '2px',
         },
-        '& .MuiListItemText-primary': {
-            fontSize: '0.875rem',
-            fontWeight: 500,
-            lineHeight: 1.25,
-        },
 
         ...selectedHighlightStyles(theme),
 
@@ -425,14 +423,6 @@ const SubNavigationItem = styled(ListItemButton, {
         '& .MuiListItemText-root': {
             margin: 0,
             paddingBottom: '2px',
-        },
-        '& .MuiListItemText-primary': {
-            fontSize: '0.8125rem',
-            fontWeight: 400,
-            lineHeight: 1.25,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
         },
 
         ...selectedHighlightStyles(theme),

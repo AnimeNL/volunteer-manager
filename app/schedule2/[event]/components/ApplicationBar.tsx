@@ -96,15 +96,14 @@ export function ApplicationBar(props: ApplicationBarProps) {
                     <DockLayer aria-hidden={searchActive} inert={searchActive}
                                sx={{ pl: 2, pr: 1.5 }}>
                         <Fade key={title} in>
-                            <TitleText component="div" noWrap>
+                            <Typography variant="subtitle1" component="div" noWrap
+                                        sx={{ flexGrow: 1, minWidth: 0 }}>
                                 {title}
-                            </TitleText>
+                            </Typography>
                         </Fade>
                         <SearchTrigger>
-                            <Typography variant="caption" sx={{
-                                display: { xs: 'none', sm: 'inline' },
-                                fontWeight: 500,
-                            }}>
+                            <Typography variant="caption"
+                                        sx={{ display: { xs: 'none', sm: 'inline' } }}>
                                 Search
                             </Typography>
                             <SearchIcon fontSize="small" />
@@ -129,7 +128,7 @@ export function ApplicationBar(props: ApplicationBarProps) {
                                     handleCloseSearch();
                             }}
                             placeholder="Search shifts, events, volunteers…"
-                            sx={{ fontSize: '0.875rem' }}
+                            size="small"
                             value={query} />
                         <DockIconButton aria-label={query ? 'Clear search' : 'Close search'}
                                         onClick={handleClearOrClose} size="small">
@@ -143,17 +142,6 @@ export function ApplicationBar(props: ApplicationBarProps) {
         </HeaderRow>
     );
 }
-
-/**
- * Single-line header title rendered inside the resting pill dock.
- */
-const TitleText = styled(Typography)({
-    flexGrow: 1,
-    fontSize: '0.9375rem',
-    fontWeight: 600,
-    letterSpacing: '-0.01em',
-    minWidth: 0,
-}) as typeof Typography;
 
 /**
  * Sticky outer header row anchored across view transitions. On mobile, carries `12px` horizontal

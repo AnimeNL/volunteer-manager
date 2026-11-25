@@ -161,7 +161,7 @@ function MobilePillTab(props: MobilePillTabProps) {
             onClick={props.onClick}>
             {props.icon}
             { props.active &&
-                <Typography variant="caption" sx={{ fontWeight: 600, lineHeight: 1 }}>
+                <Typography variant="caption">
                     {props.label}
                 </Typography> }
         </NavPillButton>
