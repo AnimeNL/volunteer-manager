@@ -23,13 +23,38 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import { useColorScheme } from '@mui/material/styles';
+import { keyframes, useColorScheme } from '@mui/material/styles';
 
 import { useScheduleTitle } from './ScheduleTitle';
 
 import { kDesktopMaximumWidthPx, kDesktopMenuWidthPx, kEnforceSingleLine } from '../Constants';
 
 import { signOutAction } from '@lib/auth/actions';
+
+/**
+ * Subtle vertical crossfade keyframes for AppBar title transitions.
+ */
+const kTitleExitKeyframes = keyframes`
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+`;
+
+const kTitleEnterKeyframes = keyframes`
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+`;
 
 /**
  * Styling rules for the <ApplicationBar> component.
@@ -41,8 +66,35 @@ const kStyles: { [key: string]: SxProps<Theme> } = {
     },
 
     title: {
-        ...kEnforceSingleLine,
         flexGrow: 1,
+        minWidth: 0,
+        overflow: 'hidden',
+        position: 'relative',
+    },
+
+    titleEnter: {
+        ...kEnforceSingleLine,
+        display: 'block',
+        animation: `${kTitleEnterKeyframes} 160ms cubic-bezier(0.2, 0, 0, 1) 100ms both`,
+        '@media (prefers-reduced-motion: reduce)': {
+            animation: 'none',
+        },
+    },
+
+    titleExit: {
+        ...kEnforceSingleLine,
+        inset: 0,
+        pointerEvents: 'none',
+        position: 'absolute',
+        animation: `${kTitleExitKeyframes} 150ms ease-out both`,
+        '@media (prefers-reduced-motion: reduce)': {
+            display: 'none',
+        },
+    },
+
+    titleStatic: {
+        ...kEnforceSingleLine,
+        display: 'block',
     },
 
     toolbar: {
@@ -63,6 +115,43 @@ const kStyles: { [key: string]: SxProps<Theme> } = {
         },
     },
 };
+
+/**
+ * Renders the AppBar title with a fast, subtle vertical crossfade whenever the title text changes,
+ * while rendering statically on initial mount.
+ */
+function AnimatedTitle(props: { title: string }) {
+    const [ state, setState ] = useState<{ current: string; previous?: string; version: number }>({
+        current: props.title,
+        version: 0,
+    });
+
+    if (props.title !== state.current) {
+        setState({
+            current: props.title,
+            previous: state.current,
+            version: state.version + 1,
+        });
+    }
+
+    const handleExitEnd = useCallback(() => {
+        setState(prev => prev.version === state.version ? { ...prev, previous: undefined } : prev);
+    }, [ state.version ]);
+
+    return (
+        <Typography variant="h6" component="div" sx={kStyles.title}>
+            { state.previous !== undefined &&
+                <Typography key={`exit-${state.version}`} aria-hidden="true" component="span"
+                            onAnimationEnd={handleExitEnd} sx={kStyles.titleExit} variant="inherit">
+                    {state.previous}
+                </Typography> }
+            <Typography key={`enter-${state.version}`} component="span" variant="inherit"
+                        sx={state.version > 0 ? kStyles.titleEnter : kStyles.titleStatic}>
+                {state.current}
+            </Typography>
+        </Typography>
+    );
+}
 
 /**
  * Sticky top bar of the schedule2 App Shell, anchored across view transitions. Provides the active
@@ -104,9 +193,7 @@ export function ApplicationBar() {
         <>
             <AppBar position="sticky" sx={kStyles.container}>
                 <Toolbar sx={kStyles.toolbar}>
-                    <Typography variant="h6" component="div" sx={kStyles.title}>
-                        {title}
-                    </Typography>
+                    <AnimatedTitle title={title} />
                     <IconButton aria-label="Account menu" color="inherit" edge="end"
                                 onClick={handleMenuOpen} size="large">
                         <AccountCircle />
