@@ -8,6 +8,7 @@ import { useState } from 'react';
 
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
+import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import Divider from '@mui/material/Divider';
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
@@ -49,6 +50,11 @@ interface AccountMenuButtonProps {
     hasHotelRoom?: boolean;
 
     /**
+     * Whether the signed-in volunteer has an assigned festival ticket for this event.
+     */
+    hasTicket?: boolean;
+
+    /**
      * Display name of the signed-in user for alt text and initials fallback.
      */
     userName?: string;
@@ -59,7 +65,7 @@ interface AccountMenuButtonProps {
  * account links, and sign-out for the schedule App Shell.
  */
 export function AccountMenuButton(props: AccountMenuButtonProps) {
-    const { avatarUrl, eventSlug, hasHotelRoom, userName } = props;
+    const { avatarUrl, eventSlug, hasHotelRoom, hasTicket, userName } = props;
     const { mode, setMode } = useColorScheme();
     const [ anchorEl, setAnchorEl ] = useState<HTMLElement | null>(null);
 
@@ -114,15 +120,24 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                     </ToggleButtonGroup>
                 </Box>
                 <Divider sx={{ my: 1 }} />
-                { !!eventSlug && !!hasHotelRoom && (
+                { !!eventSlug && (hasHotelRoom || hasTicket) && (
                     <>
-                        <MenuItem component={Link} dense href={`/schedule2/${eventSlug}/hotel`}
-                                  onClick={() => setAnchorEl(null)}>
-                            <ListItemIcon>
-                                <HotelOutlinedIcon fontSize="small" />
-                            </ListItemIcon>
-                            <ListItemText primary="Hotel room" />
-                        </MenuItem>
+                        { !!hasHotelRoom &&
+                            <MenuItem component={Link} dense href={`/schedule2/${eventSlug}/hotel`}
+                                      onClick={() => setAnchorEl(null)}>
+                                <ListItemIcon>
+                                    <HotelOutlinedIcon fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText primary="Hotel room" />
+                            </MenuItem> }
+                        { !!hasTicket &&
+                            <MenuItem component={Link} dense href={`/schedule2/${eventSlug}/ticket`}
+                                      onClick={() => setAnchorEl(null)}>
+                                <ListItemIcon>
+                                    <ConfirmationNumberOutlinedIcon fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText primary="Your ticket" />
+                            </MenuItem> }
                         <Divider sx={{ my: 1 }} />
                     </>
                 ) }

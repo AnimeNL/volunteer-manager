@@ -17,6 +17,7 @@ import { ScheduleTitleProvider } from './components/ScheduleTitle';
 import { getAuthenticationContext } from '@lib/auth';
 import { getScheduleAccess } from './lib/getScheduleAccess';
 import { getVolunteerHotelBookings } from './lib/data/hotelData';
+import { getVolunteerTicketBarcode } from './lib/data/ticketData';
 import { readCachedSetting } from '@lib/Settings';
 
 import { kDefaultCheckInRateSeconds, kDefaultThemeColor, kDesktopMenuWidthPx,
@@ -37,14 +38,18 @@ async function AuthenticatedAccountMenu(props: { params: Promise<{ event: string
     const access = await getScheduleAccess(eventSlug);
     const user = access?.user ?? (await getAuthenticationContext()).user;
 
-    const hotelBookings = access
-        ? await getVolunteerHotelBookings(access.event, access.user.id)
-        : [];
+    const [ hotelBookings, ticketBarcode ] = access
+        ? await Promise.all([
+            getVolunteerHotelBookings(access.event, access.user.id),
+            getVolunteerTicketBarcode(access.event, access.user.id),
+        ])
+        : [ [], undefined ];
 
     return (
         <AccountMenuButton avatarUrl={user?.avatarUrl}
                            eventSlug={access?.event.slug}
                            hasHotelRoom={hotelBookings.length > 0}
+                           hasTicket={!!ticketBarcode}
                            userName={user?.name} />
     );
 }
