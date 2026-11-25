@@ -38,48 +38,41 @@ async function TicketContent(props: { params: Promise<{ event: string }> }) {
 
     if (!ticket) {
         return (
-            <Card>
-                <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                        No ticket available
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                        No ticket has been issued to your account for {event.shortName} yet.
-                    </Typography>
-                </CardContent>
-            </Card>
+            <>
+                <Typography variant="h6" gutterBottom>
+                    No ticket available
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                    No ticket has been issued to your account for {event.shortName} yet.
+                </Typography>
+            </>
         );
     }
 
     return (
-        <Card>
-            <CardContent>
-                <Stack spacing={2.5} sx={{ alignItems: 'center' }}>
-                    <Typography variant="body2" sx={{ alignSelf: 'stretch' }}>
-                        We can't wait to see you! Feel free to skip the queues when you arrive and
-                        head straight to the Registration Desk. Just ask a Steward if you need any
-                        help.
-                    </Typography>
-                    <QrCode content={ticket.barcode} framed sx={{ maxWidth: 400, width: '80%' }} />
-                    <Stack spacing={0.25} sx={{ alignItems: 'center' }}>
-                        <Typography variant="body2" sx={{
-                            color: 'text.secondary',
-                            fontFamily: 'monospace',
-                            letterSpacing: 1,
-                        }}>
-                            {ticket.barcode}
-                        </Typography>
-                        <Typography variant="body2" sx={{
-                            color: 'text.secondary',
-                            fontFamily: 'monospace',
-                            letterSpacing: 1,
-                        }}>
-                            Order: {ticket.orderNumber}
-                        </Typography>
-                    </Stack>
-                </Stack>
-            </CardContent>
-        </Card>
+        <Stack spacing={2.5} sx={{ alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ alignSelf: 'stretch' }}>
+                We can't wait to see you! Feel free to skip the queues when you arrive and head
+                straight to the Registration Desk. Just ask a Steward if you need any help.
+            </Typography>
+            <QrCode content={ticket.barcode} framed sx={{ maxWidth: 400, width: '80%' }} />
+            <Stack spacing={0.25} sx={{ alignItems: 'center' }}>
+                <Typography variant="body2" sx={{
+                    color: 'text.secondary',
+                    fontFamily: 'monospace',
+                    letterSpacing: 1,
+                }}>
+                    {ticket.barcode}
+                </Typography>
+                <Typography variant="body2" sx={{
+                    color: 'text.secondary',
+                    fontFamily: 'monospace',
+                    letterSpacing: 1,
+                }}>
+                    Order: {ticket.orderNumber}
+                </Typography>
+            </Stack>
+        </Stack>
     );
 }
 
@@ -88,28 +81,24 @@ async function TicketContent(props: { params: Promise<{ event: string }> }) {
  */
 function TicketSkeleton() {
     return (
-        <Card>
-            <CardContent>
-                <Stack spacing={2.5} sx={{ alignItems: 'center' }}>
-                    <Stack spacing={0.5} sx={{ alignSelf: 'stretch' }}>
-                        <Skeleton variant="text" width="100%" />
-                        <Skeleton variant="text" width="75%" />
-                    </Stack>
-                    <Box sx={{ maxWidth: 400, width: '80%' }}>
-                        <Skeleton variant="rounded" sx={{
-                            aspectRatio: '1',
-                            borderRadius: 2,
-                            height: 'auto',
-                            width: '100%',
-                        }} />
-                    </Box>
-                    <Stack spacing={0.25} sx={{ alignItems: 'center' }}>
-                        <Skeleton variant="text" width={200} />
-                        <Skeleton variant="text" width={130} />
-                    </Stack>
-                </Stack>
-            </CardContent>
-        </Card>
+        <Stack spacing={2.5} sx={{ alignItems: 'center' }}>
+            <Stack spacing={0.5} sx={{ alignSelf: 'stretch' }}>
+                <Skeleton variant="text" width="100%" />
+                <Skeleton variant="text" width="75%" />
+            </Stack>
+            <Box sx={{ maxWidth: 400, width: '80%' }}>
+                <Skeleton variant="rounded" sx={{
+                    aspectRatio: '1',
+                    borderRadius: 2,
+                    height: 'auto',
+                    width: '100%',
+                }} />
+            </Box>
+            <Stack spacing={0.25} sx={{ alignItems: 'center' }}>
+                <Skeleton variant="text" width={200} />
+                <Skeleton variant="text" width={130} />
+            </Stack>
+        </Stack>
     );
 }
 
@@ -130,9 +119,13 @@ export default function ScheduleTicketPage(props: PageProps<'/schedule2/[event]/
                     icon={ <ConfirmationNumberOutlinedIcon /> }
                     title="Your ticket" />
             }>
-            <SuspenseReveal fallback={ <TicketSkeleton /> }>
-                <TicketContent params={props.params} />
-            </SuspenseReveal>
+            <Card>
+                <CardContent>
+                    <SuspenseReveal fallback={ <TicketSkeleton /> }>
+                        <TicketContent params={props.params} />
+                    </SuspenseReveal>
+                </CardContent>
+            </Card>
         </Page>
     );
 }
