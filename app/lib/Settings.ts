@@ -19,13 +19,8 @@ export type Settings = {
     'integration-logs-retention-days': number;
     'session-cleanup-interval-days': number;
     'system-role-account-user-id': number;
+    'theme-color': string;
     'web-vitals-reporting': boolean;
-
-    // ---------------------------------------------------------------------------------------------
-    // Admin settings
-    // ---------------------------------------------------------------------------------------------
-
-    'admin-theme-color': string;
 
     // ---------------------------------------------------------------------------------------------
     // Display settings

@@ -67,13 +67,14 @@ export default async function SettingsPage() {
                         'account for e.g. automated outgoing communication.',
                 },
                 {
-                    setting: 'admin-theme-color',
+                    setting: 'theme-color',
                     type: 'string',
                     defaultValue: '#2196f3',
 
                     label: 'Theme colour',
                     description:
-                        'Theme colour for the administration area. May be overridden by the user.',
+                        'Default theme colour across the Volunteer Manager. May be overridden by ' +
+                        'users in the administration area.',
                 },
                 {
                     setting: 'web-vitals-reporting',
