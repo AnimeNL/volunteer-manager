@@ -41,7 +41,7 @@ export default async function Schedule2Layout(props: LayoutProps<'/schedule2/[sl
                     paddingRight: { md: 2 },
                 }}>
                     <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-                        <DesktopNavigation themeColor={themeColor} />
+                        <DesktopNavigation params={props.params} />
                     </Box>
                     <Stack direction="column" spacing={2} sx={{
                         flexGrow: 1,
