@@ -3,6 +3,7 @@
 
 import { Suspense } from 'react';
 
+import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
@@ -94,15 +95,17 @@ function TicketSkeleton() {
                         <Skeleton variant="text" width="100%" />
                         <Skeleton variant="text" width="75%" />
                     </Stack>
-                    <Skeleton variant="rounded" sx={{
-                        aspectRatio: '1',
-                        height: 'auto',
-                        maxWidth: 400,
-                        width: '80%',
-                    }} />
+                    <Box sx={{ maxWidth: 400, width: '80%' }}>
+                        <Skeleton variant="rounded" sx={{
+                            aspectRatio: '1',
+                            borderRadius: 2,
+                            height: 'auto',
+                            width: '100%',
+                        }} />
+                    </Box>
                     <Stack spacing={0.25} sx={{ alignItems: 'center' }}>
-                        <Skeleton variant="text" width={140} />
-                        <Skeleton variant="text" width={100} />
+                        <Skeleton variant="text" width={200} />
+                        <Skeleton variant="text" width={130} />
                     </Stack>
                 </Stack>
             </CardContent>
