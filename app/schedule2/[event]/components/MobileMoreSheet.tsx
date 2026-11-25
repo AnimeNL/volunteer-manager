@@ -11,8 +11,6 @@ import { styled } from '@mui/material/styles';
 import type { NavigationData } from '../lib/navigationTypes';
 import { SecondaryNavigationItems } from './NavigationList';
 
-import { kShellSpacingPx } from '../Constants';
-
 /**
  * Props accepted by the <MobileMoreSheet> component.
  */
@@ -50,8 +48,8 @@ export function MobileMoreSheet(props: MobileMoreSheetProps) {
     return (
         <Drawer anchor="bottom" onClose={onClose} open={open}>
             <Box sx={{
-                padding: `${kShellSpacingPx}px`,
-                paddingBottom: `calc(${kShellSpacingPx}px + env(safe-area-inset-bottom, 0px))`,
+                p: 1.5,
+                pb: 'calc(12px + env(safe-area-inset-bottom, 0px))',
             }}>
                 <SheetHandle />
 

@@ -12,8 +12,6 @@ import { DesktopNavigationList, VolunteerNavigationItems } from './DesktopNaviga
 import { getEvent } from '@lib/cache';
 import { getNavigationData } from '../lib/scheduleData';
 
-import { kShellSpacingPx } from '../Constants';
-
 /**
  * Props accepted by the <DesktopNavigation> component.
  */
@@ -30,7 +28,7 @@ interface DesktopNavigationProps {
  */
 export function DesktopNavigation(props: DesktopNavigationProps) {
     return (
-        <Stack spacing={`${kShellSpacingPx}px`} sx={{ position: 'sticky', top: kShellSpacingPx }}>
+        <Stack spacing={1.5} sx={{ position: 'sticky', top: 12 }}>
             <Card sx={{ height: 112 }}>
                 <Suspense
                     fallback={ <Skeleton variant="rectangular" width="100%" height="100%" /> }>

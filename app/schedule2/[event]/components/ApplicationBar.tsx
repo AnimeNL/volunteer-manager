@@ -18,7 +18,7 @@ import { styled } from '@mui/material/styles';
 import { AccountMenuButton } from './AccountMenuButton';
 import { useScheduleTitle } from './ScheduleTitle';
 
-import { kHeaderBarHeightPx, kShellSpacingPx } from '../Constants';
+import { kHeaderBarHeightPx } from '../Constants';
 
 /**
  * Props accepted by the <ApplicationBar> component.
@@ -168,10 +168,10 @@ const HeaderRow = styled('header')(({ theme }) => ({
     alignItems: 'center',
     display: 'flex',
     flexShrink: 0,
-    gap: kShellSpacingPx,
-    paddingLeft: kShellSpacingPx,
-    paddingRight: kShellSpacingPx,
-    paddingTop: kShellSpacingPx,
+    gap: theme.spacing(1.5),
+    paddingLeft: theme.spacing(1.5),
+    paddingRight: theme.spacing(1.5),
+    paddingTop: theme.spacing(1.5),
     position: 'sticky',
     top: 0,
     viewTransitionName: 'schedule-header',

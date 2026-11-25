@@ -9,12 +9,11 @@ import { useMemo } from 'react';
 import type { Components, PaletteOptions, Theme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
-import Stack from '@mui/material/Stack';
 import { ThemeProvider, createTheme, styled } from '@mui/material/styles';
 
 import { type M3TonalPalette, computeM3ColorScheme } from './lib/m3ColorScheme';
 
-import { kCardBorderRadiusPx, kSheetBorderRadiusPx, kShellSpacingPx } from './Constants';
+import { kCardBorderRadiusPx, kSheetBorderRadiusPx } from './Constants';
 
 declare module '@mui/material/styles' {
     interface Palette {
@@ -99,13 +98,6 @@ function createScheduleTheme(themeColor: string) {
             defaultProps: {
                 elevation: 0,
             },
-            styleOverrides: {
-                root: ({ theme }) => ({
-                    backgroundColor: (theme.vars || theme).palette.background.paper,
-                    backgroundImage: 'none',
-                    borderRadius: kCardBorderRadiusPx,
-                }),
-            },
         },
         MuiCardContent: {
             styleOverrides: {
@@ -144,13 +136,6 @@ function createScheduleTheme(themeColor: string) {
                 },
             },
         },
-        MuiSkeleton: {
-            styleOverrides: {
-                rounded: {
-                    borderRadius: kCardBorderRadiusPx,
-                },
-            },
-        },
     };
 
     return createTheme({
@@ -179,31 +164,6 @@ function createScheduleTheme(themeColor: string) {
         },
     });
 }
-
-/**
- * Rounded content sheet container for the schedule App Shell. On mobile, runs edge-to-edge with
- * top-only corners and bottom clearance for the floating navigation pill; on desktop, sits as an
- * all-around rounded sheet.
- */
-export const ScheduleContentSheet = styled(Stack)(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
-
-    return {
-        backgroundColor: palette.m3.sheet,
-        borderTopLeftRadius: kSheetBorderRadiusPx,
-        borderTopRightRadius: kSheetBorderRadiusPx,
-        flex: '1 1 auto',
-        gap: kShellSpacingPx,
-        minWidth: 0,
-        padding: kShellSpacingPx,
-        paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
-
-        [theme.breakpoints.up('md')]: {
-            borderRadius: kSheetBorderRadiusPx,
-            paddingBottom: kShellSpacingPx,
-        },
-    };
-});
 
 /**
  * Full-viewport M3 tonal shell container with a subtle centred top ambient gradient that lightens

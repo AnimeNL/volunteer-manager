@@ -11,13 +11,12 @@ import { AccountMenuButton } from './components/AccountMenuButton';
 import { ApplicationBar } from './components/ApplicationBar';
 import { DesktopNavigation } from './components/DesktopNavigation';
 import { MobileNavigation } from './components/MobileNavigation';
-import { ScheduleContentSheet, ScheduleTheme } from './ScheduleTheme';
+import { ScheduleTheme } from './ScheduleTheme';
 import { ScheduleTitleProvider } from './components/ScheduleTitle';
 import { getAuthenticationContext } from '@lib/auth';
 import { readCachedSetting } from '@lib/Settings';
 
-import { kDefaultThemeColor, kDesktopMaximumWidthPx, kDesktopMenuWidthPx,
-    kShellSpacingPx } from './Constants';
+import { kDefaultThemeColor, kDesktopMenuWidthPx, kSheetBorderRadiusPx } from './Constants';
 
 /**
  * Regular expression validating a 6-digit RGB hex colour string.
@@ -52,10 +51,10 @@ export default async function ScheduleLayout(props: LayoutProps<'/schedule2/[eve
             <ScheduleTitleProvider defaultTitle="AnimeCon">
                 <Stack direction="row" sx={{
                     flex: '1 1 auto',
-                    gap: { md: `${kShellSpacingPx}px` },
+                    gap: { md: 1.5 },
                     marginX: 'auto',
-                    maxWidth: { md: kDesktopMaximumWidthPx },
-                    padding: { xs: 0, md: `${kShellSpacingPx}px` },
+                    maxWidth: { md: 1280 },
+                    padding: { xs: 0, md: 1.5 },
                     width: '100%',
                 }}>
                     <Box sx={{
@@ -66,20 +65,29 @@ export default async function ScheduleLayout(props: LayoutProps<'/schedule2/[eve
                         <DesktopNavigation params={props.params} />
                     </Box>
 
-                    <Stack direction="column" sx={{
-                        flex: '1 1 auto',
-                        gap: `${kShellSpacingPx}px`,
-                        minWidth: 0,
-                    }}>
+                    <Stack direction="column" spacing={1.5} sx={{ flex: '1 1 auto', minWidth: 0 }}>
                         <ApplicationBar
                             accountMenu={
                                 <Suspense fallback={ <AccountMenuButton /> }>
                                     <AuthenticatedAccountMenu />
                                 </Suspense>
                             } />
-                        <ScheduleContentSheet>
+                        <Stack component="main" spacing={1.5} sx={{
+                            bgcolor: 'm3.sheet',
+                            borderRadius: {
+                                xs: `${kSheetBorderRadiusPx}px ${kSheetBorderRadiusPx}px 0 0`,
+                                md: `${kSheetBorderRadiusPx}px`,
+                            },
+                            flex: '1 1 auto',
+                            minWidth: 0,
+                            p: 1.5,
+                            pb: {
+                                xs: 'calc(80px + env(safe-area-inset-bottom, 0px))',
+                                md: 1.5,
+                            },
+                        }}>
                             {props.children}
-                        </ScheduleContentSheet>
+                        </Stack>
                     </Stack>
                 </Stack>
 

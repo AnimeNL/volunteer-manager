@@ -23,8 +23,6 @@ import { MobileMoreSheet } from './MobileMoreSheet';
 import { getActiveMobileTab, getNavigationTransitionTypes,
     getRelativeNavigationPath } from '../lib/navigationTypes';
 
-import { kShellSpacingPx } from '../Constants';
-
 /**
  * Props accepted by the route-aware <MobileNavigationBar> client component.
  */
@@ -172,8 +170,8 @@ function MobilePillTab(props: MobilePillTabProps) {
  * Fixed bottom wrapper centering the M3 Expressive floating navigation pill across view
  * transitions.
  */
-const FloatingNavHost = styled(Box)({
-    bottom: `calc(${kShellSpacingPx}px + env(safe-area-inset-bottom, 0px))`,
+const FloatingNavHost = styled(Box)(({ theme }) => ({
+    bottom: `calc(${theme.spacing(1.5)} + env(safe-area-inset-bottom, 0px))`,
     display: 'flex',
     justifyContent: 'center',
     left: 0,
@@ -182,7 +180,7 @@ const FloatingNavHost = styled(Box)({
     right: 0,
     viewTransitionName: 'schedule-mobile-nav',
     zIndex: 1100,
-});
+}));
 
 /**
  * Elevated M3 Expressive floating navigation pill container.
