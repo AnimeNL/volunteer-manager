@@ -13,7 +13,7 @@ import type { BooleanPermission } from '@lib/auth/access/Access';
 import { Header } from './Header';
 import { Page } from './Page';
 import { SetTitle } from './ScheduleTitle';
-import { getScheduleAccess, requireScheduleAccess } from '../lib/getScheduleAccess';
+import { requireScheduleAccess } from '../lib/getScheduleAccess';
 
 /**
  * Props accepted by the <PlaceholderPage> component.
@@ -25,9 +25,10 @@ interface PlaceholderPageProps {
     description?: string;
 
     /**
-     * Leading icon displayed in the page `<Header>` badge.
+     * Optional leading icon displayed in the page `<Header>` badge. When both `icon` and `title`
+     * are provided, a `<Header>` is rendered above the page content.
      */
-    icon: React.ReactNode;
+    icon?: React.ReactNode;
 
     /**
      * Route params promise containing the `event` slug, awaited inside `<Suspense>`.
@@ -44,16 +45,6 @@ interface PlaceholderPageProps {
      * defaults to the resolved event's `shortName`.
      */
     title?: string;
-}
-
-/**
- * Resolves the event's short name behind `<Suspense>` for pages without a static title.
- */
-async function EventHeaderTitle(props: { params: Promise<{ event: string }> }) {
-    const { event: eventSlug } = await props.params;
-    const access = await getScheduleAccess(eventSlug);
-
-    return access?.event.shortName ?? 'Overview';
 }
 
 /**
@@ -90,17 +81,12 @@ async function PlaceholderContent(
  * Generic "Not yet implemented" page shared by unbuilt schedule routes.
  */
 export function PlaceholderPage(props: PlaceholderPageProps) {
-    const headerTitle = props.title ?? (
-        <Suspense fallback={ <Skeleton variant="text" width={140} /> }>
-            <EventHeaderTitle params={props.params} />
-        </Suspense>
-    );
+    const header = props.icon && props.title ? (
+        <Header description={props.description} icon={props.icon} title={props.title} />
+    ) : undefined;
 
     return (
-        <Page
-            header={
-                <Header description={props.description} icon={props.icon} title={headerTitle} />
-            }>
+        <Page header={header}>
             { props.title && <SetTitle title={props.title} /> }
             <Suspense
                 fallback={
