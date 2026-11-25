@@ -31,20 +31,22 @@ import NotListedLocationOutlinedIcon from '@mui/icons-material/NotListedLocation
 import { type Theme, styled } from '@mui/material/styles';
 
 import type { NavigationArea, NavigationData, NavigationDutyBook } from '../lib/navigationTypes';
+import { ActivityDot, CounterBadge } from './NavigationBadges';
 import { getNavigationTransitionTypes, getRelativeNavigationPath } from '../lib/navigationTypes';
 
 /**
- * Shared tonal primary selected highlight styles for top-level and nested sidebar items.
+ * Shared M3 tonal secondary-container selected highlight styles for top-level and nested sidebar
+ * items.
  */
 function selectedHighlightStyles(theme: Theme) {
     const palette = (theme.vars || theme).palette;
 
     return {
         '&.Mui-selected': {
-            backgroundColor: `color-mix(in srgb, ${palette.primary.main} 18%, transparent)`,
-            color: palette.primary.main,
+            backgroundColor: palette.m3.secondaryContainer,
+            color: palette.m3.onSecondaryContainer,
             '&:hover': {
-                backgroundColor: `color-mix(in srgb, ${palette.primary.main} 24%, transparent)`,
+                backgroundColor: `color-mix(in srgb, ${palette.m3.secondaryContainer} 88%, ${palette.m3.onSecondaryContainer})`,
             },
             '& .MuiListItemIcon-root': {
                 color: 'inherit',
@@ -53,43 +55,34 @@ function selectedHighlightStyles(theme: Theme) {
                 fontWeight: 600,
             },
         },
-
-        ...theme.applyStyles('dark', {
-            '&.Mui-selected': {
-                backgroundColor: `color-mix(in srgb, ${palette.primary.main} 28%, transparent)`,
-                color: palette.primary.light,
-                '&:hover': {
-                    backgroundColor: `color-mix(in srgb, ${palette.primary.main} 34%, transparent)`,
-                },
-            },
-        }),
     };
 }
 
 /**
- * Material Design 3 rounded navigation item shared across all desktop sidebar entries, matching the
- * theme's card border radius with a tonal primary active container.
+ * Material Design 3 full-pill navigation item shared across all desktop sidebar entries.
  */
 const NavigationItem = styled(ListItemButton)(({ theme }) => {
     const palette = (theme.vars || theme).palette;
 
     return {
-        borderRadius: theme.shape.borderRadius,
-        color: palette.text.primary,
-        marginBottom: theme.spacing(0.5),
-        minHeight: 44,
-        paddingLeft: theme.spacing(2),
+        borderRadius: 9999,
+        color: palette.m3.onSurface,
+        marginBottom: theme.spacing(0.25),
+        minHeight: 38,
+        paddingBottom: theme.spacing(0.5),
+        paddingLeft: theme.spacing(1.75),
         paddingRight: theme.spacing(1.5),
+        paddingTop: theme.spacing(0.5),
         transition: theme.transitions.create([ 'background-color', 'color' ], {
             duration: theme.transitions.duration.shortest,
         }),
 
         '& .MuiListItemIcon-root': {
-            color: palette.text.secondary,
-            minWidth: 36,
+            color: palette.m3.onSurfaceVariant,
+            minWidth: 32,
         },
         '& .MuiListItemText-primary': {
-            fontSize: theme.typography.body2.fontSize,
+            fontSize: '0.8125rem',
             fontWeight: 500,
         },
 
@@ -98,22 +91,18 @@ const NavigationItem = styled(ListItemButton)(({ theme }) => {
 }) as typeof ListItemButton;
 
 /**
- * Indented sub-menu list with a faint in-theme vertical guide line aligned under the parent icon.
+ * Indented sub-menu list with an in-theme vertical guide line aligned under the parent icon.
  */
 const SubMenuList = styled(List)(({ theme }) => {
     const palette = (theme.vars || theme).palette;
 
     return {
-        borderLeft: `2px solid color-mix(in srgb, ${palette.primary.main} 22%, transparent)`,
+        borderLeft: `2px solid ${palette.m3.treeLine}`,
         marginBottom: theme.spacing(0.5),
-        marginLeft: 25,
+        marginLeft: 23,
         paddingBottom: 0,
-        paddingLeft: 13,
+        paddingLeft: 12,
         paddingTop: 0,
-
-        ...theme.applyStyles('dark', {
-            borderLeftColor: `color-mix(in srgb, ${palette.primary.main} 30%, transparent)`,
-        }),
     };
 });
 
@@ -124,14 +113,14 @@ const SubNavigationItem = styled(ListItemButton)(({ theme }) => {
     const palette = (theme.vars || theme).palette;
 
     return {
-        borderRadius: theme.shape.borderRadius,
-        color: palette.text.secondary,
+        borderRadius: 9999,
+        color: palette.m3.onSurfaceVariant,
         marginBottom: theme.spacing(0.25),
-        minHeight: 36,
-        paddingBottom: theme.spacing(0.5),
+        minHeight: 32,
+        paddingBottom: theme.spacing(0.25),
         paddingLeft: theme.spacing(1.5),
         paddingRight: theme.spacing(1.5),
-        paddingTop: theme.spacing(0.5),
+        paddingTop: theme.spacing(0.25),
         transition: theme.transitions.create([ 'background-color', 'color' ], {
             duration: theme.transitions.duration.shortest,
         }),
@@ -147,60 +136,6 @@ const SubNavigationItem = styled(ListItemButton)(({ theme }) => {
         ...selectedHighlightStyles(theme),
     };
 }) as typeof ListItemButton;
-
-/**
- * Green activity indicator dot displayed when the signed-in volunteer has a currently active shift.
- */
-const ActivityDot = styled('span')(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
-
-    return {
-        backgroundColor: palette.success.main,
-        borderRadius: '50%',
-        boxShadow: `0 0 0 3px color-mix(in srgb, ${palette.success.main} 25%, transparent)`,
-        flexShrink: 0,
-        height: 8,
-        width: 8,
-    };
-});
-
-/**
- * Pill counter badge supporting subtle (active events) and urgent (unread duty book / help
- * requests) tones.
- */
-const CounterBadge = styled('span', {
-    shouldForwardProp: prop => prop !== 'tone',
-})<{ tone?: 'subtle' | 'urgent' }>(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
-
-    return {
-        alignItems: 'center',
-        backgroundColor: `color-mix(in srgb, ${palette.text.primary} 10%, transparent)`,
-        borderRadius: 9999,
-        color: palette.text.secondary,
-        display: 'inline-flex',
-        flexShrink: 0,
-        fontSize: '0.6875rem',
-        fontVariantNumeric: 'tabular-nums',
-        fontWeight: 600,
-        height: 20,
-        justifyContent: 'center',
-        lineHeight: 1,
-        minWidth: 20,
-        paddingLeft: theme.spacing(0.75),
-        paddingRight: theme.spacing(0.75),
-
-        variants: [
-            {
-                props: { tone: 'urgent' },
-                style: {
-                    backgroundColor: palette.error.main,
-                    color: palette.error.contrastText,
-                },
-            },
-        ],
-    };
-});
 
 /**
  * Rotating chevron button for expanding or collapsing nested sidebar sections.
@@ -531,7 +466,7 @@ export function VolunteerNavigationItems(props: { data: NavigationData }) {
  */
 export function DesktopNavigationList(props: React.PropsWithChildren) {
     return (
-        <List sx={{ paddingLeft: 1.5, paddingRight: 0, paddingY: 1 }}>
+        <List disablePadding>
             <Suspense fallback={ <OverviewItem /> }>
                 <RouteAwareOverviewItem />
             </Suspense>
