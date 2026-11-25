@@ -26,7 +26,7 @@ import NotListedLocationIcon from '@mui/icons-material/NotListedLocation';
 import NotListedLocationOutlinedIcon from '@mui/icons-material/NotListedLocationOutlined';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
-import { type Theme, styled } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
 
 import type { NavigationData } from '../lib/navigationTypes';
 import { getNavigationTransitionTypes } from '../lib/navigationTypes';
@@ -81,28 +81,14 @@ interface NavigationLinkProps {
  * Single full-pill navigation link shared across the desktop sidebar and mobile More sheet.
  */
 export function NavigationLink(props: NavigationLinkProps) {
-    const content = (
-        <>
+    return (
+        <NavigationItem component={props.href ? Link : 'div'} href={props.href}
+                        onClick={props.onClick} selected={props.selected} sheet={props.sheet}
+                        transitionTypes={props.transitionTypes}>
             <ListItemIcon>
                 { props.selected && props.activeIcon ? props.activeIcon : props.icon }
             </ListItemIcon>
             <ListItemText primary={props.label} slotProps={{ primary: { variant: 'body2' } }} />
-        </>
-    );
-
-    if (!props.href) {
-        return (
-            <NavigationItem selected={props.selected} sheet={props.sheet}>
-                {content}
-            </NavigationItem>
-        );
-    }
-
-    return (
-        <NavigationItem component={Link} href={props.href} onClick={props.onClick}
-                        selected={props.selected} sheet={props.sheet}
-                        transitionTypes={props.transitionTypes}>
-            {content}
         </NavigationItem>
     );
 }
@@ -174,14 +160,14 @@ export function ExpandableNavigationSection(props: ExpandableNavigationSectionPr
                 <Collapse in={expanded} unmountOnExit>
                     <SubMenuList disablePadding>
                         { props.items.map(item => (
-                            <SubNavigationItem key={item.key} component={Link} href={item.href}
-                                               onClick={props.onNavigate} selected={item.selected}
-                                               sheet={props.sheet}
-                                               transitionTypes={props.transitionTypes}>
+                            <NavigationItem key={item.key} component={Link} href={item.href} nested
+                                            onClick={props.onNavigate} selected={item.selected}
+                                            sheet={props.sheet}
+                                            transitionTypes={props.transitionTypes}>
                                 <ListItemText
                                     primary={item.label}
                                     slotProps={{ primary: { noWrap: true, variant: 'body2' } }} />
-                            </SubNavigationItem>
+                            </NavigationItem>
                         )) }
                     </SubMenuList>
                 </Collapse> }
@@ -227,6 +213,37 @@ export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
         })
         : [];
 
+    const secondaryLinks = [
+        {
+            activeIcon: <NotListedLocationIcon fontSize="small" />,
+            icon: <NotListedLocationOutlinedIcon fontSize="small" />,
+            label: 'Help requests',
+            segment: '/help-requests',
+            visible: hasHelpRequests,
+        },
+        {
+            activeIcon: <InfoIcon fontSize="small" />,
+            icon: <InfoOutlinedIcon fontSize="small" />,
+            label: 'Knowledge base',
+            segment: '/knowledge',
+            visible: hasKnowledgeBase,
+        },
+        {
+            activeIcon: <GroupIcon fontSize="small" />,
+            icon: <GroupOutlinedIcon fontSize="small" />,
+            label: 'Volunteers',
+            segment: '/volunteers',
+            visible: true,
+        },
+        {
+            activeIcon: <SettingsIcon fontSize="small" />,
+            icon: <SettingsOutlinedIcon fontSize="small" />,
+            label: 'Settings',
+            segment: '/settings',
+            visible: hasSettings,
+        },
+    ];
+
     return (
         <>
             { dutyBooks.length > 0 &&
@@ -244,91 +261,31 @@ export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
                         getNavigationTransitionTypes(relativePathname, '/duty-book')
                     } /> }
 
-            { hasHelpRequests &&
+            { secondaryLinks.filter(link => link.visible).map(link => (
                 <NavigationLink
-                    activeIcon={ <NotListedLocationIcon fontSize="small" /> }
-                    href={`/schedule2/${eventSlug}/help-requests`}
-                    icon={ <NotListedLocationOutlinedIcon fontSize="small" /> }
-                    label="Help requests"
+                    key={link.segment}
+                    activeIcon={link.activeIcon}
+                    href={`/schedule2/${eventSlug}${link.segment}`}
+                    icon={link.icon}
+                    label={link.label}
                     onClick={onNavigate}
-                    selected={relativePathname.startsWith('/help-requests')}
+                    selected={relativePathname.startsWith(link.segment)}
                     sheet={sheet}
                     transitionTypes={
-                        getNavigationTransitionTypes(relativePathname, '/help-requests')
-                    } /> }
-
-            { hasKnowledgeBase &&
-                <NavigationLink
-                    activeIcon={ <InfoIcon fontSize="small" /> }
-                    href={`/schedule2/${eventSlug}/knowledge`}
-                    icon={ <InfoOutlinedIcon fontSize="small" /> }
-                    label="Knowledge base"
-                    onClick={onNavigate}
-                    selected={relativePathname.startsWith('/knowledge')}
-                    sheet={sheet}
-                    transitionTypes={
-                        getNavigationTransitionTypes(relativePathname, '/knowledge')
-                    } /> }
-
-            <NavigationLink
-                activeIcon={ <GroupIcon fontSize="small" /> }
-                href={`/schedule2/${eventSlug}/volunteers`}
-                icon={ <GroupOutlinedIcon fontSize="small" /> }
-                label="Volunteers"
-                onClick={onNavigate}
-                selected={relativePathname.startsWith('/volunteers')}
-                sheet={sheet}
-                transitionTypes={
-                    getNavigationTransitionTypes(relativePathname, '/volunteers')
-                } />
-
-            { hasSettings &&
-                <NavigationLink
-                    activeIcon={ <SettingsIcon fontSize="small" /> }
-                    href={`/schedule2/${eventSlug}/settings`}
-                    icon={ <SettingsOutlinedIcon fontSize="small" /> }
-                    label="Settings"
-                    onClick={onNavigate}
-                    selected={relativePathname.startsWith('/settings')}
-                    sheet={sheet}
-                    transitionTypes={
-                        getNavigationTransitionTypes(relativePathname, '/settings')
-                    } /> }
+                        getNavigationTransitionTypes(relativePathname, link.segment)
+                    } />
+            )) }
         </>
     );
 }
 
 /**
- * Shared M3 tonal secondary-container selected highlight styles for navigation items.
- */
-function selectedHighlightStyles(theme: Theme) {
-    const palette = (theme.vars || theme).palette;
-
-    return {
-        '&.Mui-selected': {
-            backgroundColor: palette.secondary.main,
-            color: palette.secondary.contrastText,
-            '&:hover': {
-                backgroundColor:
-                    `color-mix(in srgb, ${palette.secondary.main} 88%, ` +
-                    `${palette.secondary.contrastText})`,
-            },
-            '& .MuiListItemIcon-root': {
-                color: 'inherit',
-            },
-            '& .MuiListItemText-primary': {
-                fontWeight: 600,
-            },
-        },
-    };
-}
-
-/**
- * Material Design 3 full-pill navigation item shared across desktop sidebar and mobile sheet.
+ * Material Design 3 full-pill navigation item shared across desktop sidebar, nested sub-menus, and
+ * mobile More sheet.
  */
 const NavigationItem = styled(ListItemButton, {
-    shouldForwardProp: prop => prop !== 'sheet',
-})<{ sheet?: boolean }>(({ theme }) => {
+    shouldForwardProp: prop => prop !== 'nested' && prop !== 'sheet',
+})<{ nested?: boolean; sheet?: boolean }>(({ theme }) => {
     const palette = (theme.vars || theme).palette;
 
     return {
@@ -347,9 +304,32 @@ const NavigationItem = styled(ListItemButton, {
             minWidth: 36,
         },
 
-        ...selectedHighlightStyles(theme),
+        '&.Mui-selected': {
+            backgroundColor: palette.secondary.main,
+            color: palette.secondary.contrastText,
+            '&:hover': {
+                backgroundColor:
+                    `color-mix(in srgb, ${palette.secondary.main} 88%, ` +
+                    `${palette.secondary.contrastText})`,
+            },
+            '& .MuiListItemIcon-root': {
+                color: 'inherit',
+            },
+            '& .MuiListItemText-primary': {
+                fontWeight: 600,
+            },
+        },
 
         variants: [
+            {
+                props: { nested: true },
+                style: {
+                    color: palette.text.secondary,
+                    minHeight: 32,
+                    paddingBottom: theme.spacing(0.25),
+                    paddingTop: theme.spacing(0.25),
+                },
+            },
             {
                 props: { sheet: true },
                 style: {
@@ -357,9 +337,16 @@ const NavigationItem = styled(ListItemButton, {
                     minHeight: 44,
                 },
             },
+            {
+                props: { nested: true, sheet: true },
+                style: {
+                    marginBottom: theme.spacing(0.25),
+                    minHeight: 38,
+                },
+            },
         ],
     };
-}) as ExtendButtonBase<ListItemButtonTypeMap<{ sheet?: boolean }>>;
+}) as ExtendButtonBase<ListItemButtonTypeMap<{ nested?: boolean; sheet?: boolean }>>;
 
 /**
  * Indented sub-menu list with an in-theme vertical guide line aligned under the parent icon.
@@ -372,38 +359,6 @@ const SubMenuList = styled(List)(({ theme }) => ({
     paddingLeft: 9,
     paddingTop: 0,
 }));
-
-/**
- * Nested navigation item inside an expanded section.
- */
-const SubNavigationItem = styled(ListItemButton, {
-    shouldForwardProp: prop => prop !== 'sheet',
-})<{ sheet?: boolean }>(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
-
-    return {
-        borderRadius: 9999,
-        color: palette.text.secondary,
-        marginBottom: theme.spacing(0.25),
-        minHeight: 32,
-        paddingBottom: theme.spacing(0.25),
-        paddingTop: theme.spacing(0.25),
-        transition: theme.transitions.create([ 'background-color', 'color' ], {
-            duration: theme.transitions.duration.shortest,
-        }),
-
-        ...selectedHighlightStyles(theme),
-
-        variants: [
-            {
-                props: { sheet: true },
-                style: {
-                    minHeight: 38,
-                },
-            },
-        ],
-    };
-}) as ExtendButtonBase<ListItemButtonTypeMap<{ sheet?: boolean }>>;
 
 /**
  * Rotating chevron button for expanding or collapsing nested navigation sections.
