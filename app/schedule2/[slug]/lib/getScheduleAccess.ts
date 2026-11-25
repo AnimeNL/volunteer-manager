@@ -3,14 +3,14 @@
 
 import 'server-only';
 import { cache } from 'react';
-import { forbidden, notFound } from 'next/navigation';
+import { forbidden, notFound, unauthorized } from 'next/navigation';
 
 import type { CachedEvent } from '@lib/cache';
 import type { UserAuthenticationContext } from '@lib/auth';
+import { getAuthenticationContext } from '@lib/auth';
 import { getEvent } from '@lib/cache';
 import { isAfter } from '@lib/Temporal';
 import { readSetting } from '@lib/Settings';
-import { requireAuthenticationContext } from '@lib/auth';
 import db, { tEnvironmentsEvents, tEventsTeams, tTeams, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -22,6 +22,13 @@ interface ScheduleAccessContext extends UserAuthenticationContext {
     currentTime: Temporal.ZonedDateTime;
     event: CachedEvent;
 }
+
+/**
+ * Discriminated result returned by the request-cached schedule access resolver.
+ */
+type ScheduleAccessResult =
+    | { context: ScheduleAccessContext; status: 'ok' }
+    | { status: 'forbidden' | 'not-found' | 'unauthorized' };
 
 /**
  * Verifies that `userId` has at least one accepted team participation in `eventId` whose portal
@@ -63,30 +70,30 @@ async function hasOpenPortalAvailabilityWindow(
 }
 
 /**
- * Authenticates the current visitor, resolves the event by `slug`, verifies schedule portal access
- * (including availability windows), and computes the effective portal time in the event's timezone.
- *
- * Must only be invoked inside a `<Suspense>` boundary so the App Shell stays prerenderable.
+ * Request-cached resolver shared by `getScheduleAccess()` and `requireScheduleAccess()` so layout
+ * chrome and page content never duplicate auth or database lookups in the same render.
  */
-export const requireScheduleAccess = cache(
-    async (slug: string): Promise<ScheduleAccessContext> => {
-        const authenticationContext = await requireAuthenticationContext();
-        const { access, user } = authenticationContext;
+const resolveScheduleAccess = cache(
+    async (slug: string): Promise<ScheduleAccessResult> => {
+        const authenticationContext = await getAuthenticationContext();
+        if (!authenticationContext.user)
+            return { status: 'unauthorized' };
 
         const event = await getEvent(slug);
         if (!event)
-            notFound();
+            return { status: 'not-found' };
 
+        const { access, user } = authenticationContext;
         const wallClockNow = Temporal.Now.zonedDateTimeISO();
 
         if (!access.can('event.schedule.access', { event: event.slug })) {
             if (!authenticationContext.events.has(event.slug))
-                forbidden();
+                return { status: 'forbidden' };
 
             const hasOpenWindow =
                 await hasOpenPortalAvailabilityWindow(event.id, user.id, wallClockNow);
             if (!hasOpenWindow)
-                forbidden();
+                return { status: 'forbidden' };
         }
 
         const timeOffsetSeconds = await readSetting('schedule-time-offset-seconds') ?? 0;
@@ -95,8 +102,40 @@ export const requireScheduleAccess = cache(
             : wallClockNow.toInstant();
 
         return {
-            ...authenticationContext,
-            currentTime: effectiveInstant.toZonedDateTimeISO(event.timeZone),
-            event,
+            status: 'ok',
+            context: {
+                ...authenticationContext,
+                currentTime: effectiveInstant.toZonedDateTimeISO(event.timeZone),
+                event,
+            },
         };
     });
+
+/**
+ * Non-throwing variant of `requireScheduleAccess()` for layout chrome (such as the desktop
+ * sidebar) that should gracefully omit volunteer-only UI when the visitor cannot access the event.
+ */
+export async function getScheduleAccess(slug: string): Promise<ScheduleAccessContext | undefined> {
+    const result = await resolveScheduleAccess(slug);
+    return result.status === 'ok' ? result.context : undefined;
+}
+
+/**
+ * Authenticates the current visitor, resolves the event by `slug`, verifies schedule portal access
+ * (including availability windows), and computes the effective portal time in the event's timezone.
+ *
+ * Must only be invoked inside a `<Suspense>` boundary so the App Shell stays prerenderable.
+ */
+export async function requireScheduleAccess(slug: string): Promise<ScheduleAccessContext> {
+    const result = await resolveScheduleAccess(slug);
+    switch (result.status) {
+        case 'ok':
+            return result.context;
+        case 'unauthorized':
+            unauthorized();
+        case 'not-found':
+            notFound();
+        case 'forbidden':
+            forbidden();
+    }
+}

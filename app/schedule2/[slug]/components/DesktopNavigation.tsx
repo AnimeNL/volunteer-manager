@@ -6,8 +6,10 @@ import { Suspense } from 'react';
 import Box from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
 
-import { DesktopNavigationList } from './DesktopNavigationList';
+import { DesktopNavigationList, VolunteerNavigationItems } from './DesktopNavigationList';
 import { getEvent } from '@lib/cache';
+import { getScheduleAccess } from '../lib/getScheduleAccess';
+import { getUserEventShifts } from '../lib/scheduleData';
 
 import { kDesktopMenuWidthPx } from '../Constants';
 
@@ -37,6 +39,28 @@ async function EventBannerImage(props: DesktopNavigationProps) {
 }
 
 /**
+ * Streams volunteer-specific sidebar items behind `<Suspense>`. Returns null when the visitor is
+ * not signed in or lacks access to this event's schedule portal.
+ */
+async function AuthenticatedNavigationItems(props: DesktopNavigationProps) {
+    const { slug } = await props.params;
+    const access = await getScheduleAccess(slug);
+    if (!access)
+        return null;
+
+    const shifts = await getUserEventShifts(access.event.id, access.user.id);
+    const currentMs = access.currentTime.epochMilliseconds;
+    const hasActiveShift = shifts.some(
+        shift => shift.startEpochMs <= currentMs && shift.endEpochMs > currentMs);
+
+    return (
+        <VolunteerNavigationItems hasActiveShift={hasActiveShift}
+                                  hasShifts={shifts.length > 0}
+                                  slug={access.event.slug} />
+    );
+}
+
+/**
  * Desktop sidebar navigation for the `app/schedule2/` App Shell.
  */
 export function DesktopNavigation(props: DesktopNavigationProps) {
@@ -56,7 +80,11 @@ export function DesktopNavigation(props: DesktopNavigationProps) {
                     <EventBannerImage params={props.params} />
                 </Suspense>
             </Box>
-            <DesktopNavigationList />
+            <DesktopNavigationList>
+                <Suspense fallback={null}>
+                    <AuthenticatedNavigationItems params={props.params} />
+                </Suspense>
+            </DesktopNavigationList>
         </>
     );
 }

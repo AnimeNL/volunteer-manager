@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { useParams, usePathname } from 'next/navigation';
 
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import HomeIcon from '@mui/icons-material/Home';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import List from '@mui/material/List';
@@ -14,6 +15,11 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import { styled } from '@mui/material/styles';
+
+/**
+ * Spatial order of top-level navigation segments for directional view transitions.
+ */
+const kSectionOrder = [ '', '/shifts' ];
 
 /**
  * Material Design 3 rounded navigation item shared across all desktop sidebar entries, matching the
@@ -68,9 +74,47 @@ const NavigationItem = styled(ListItemButton)(({ theme }) => {
 }) as typeof ListItemButton;
 
 /**
- * Props accepted by the <NavigationListView> component.
+ * Green activity indicator dot displayed when the signed-in volunteer has a currently active shift.
  */
-interface NavigationListViewProps {
+const ActivityDot = styled('span')(({ theme }) => {
+    const palette = (theme.vars || theme).palette;
+
+    return {
+        backgroundColor: palette.success.main,
+        borderRadius: '50%',
+        boxShadow: `0 0 0 3px color-mix(in srgb, ${palette.success.main} 25%, transparent)`,
+        flexShrink: 0,
+        height: 8,
+        width: 8,
+    };
+});
+
+/**
+ * Resolves the relative pathname under `/schedule2/[slug]`.
+ */
+function getRelativePathname(pathname: string, slug?: string): string {
+    const baseUrl = slug ? `/schedule2/${slug}` : '';
+    return baseUrl && pathname.startsWith(baseUrl) ? pathname.slice(baseUrl.length) : '';
+}
+
+/**
+ * Determines directional view-transition types between top-level sidebar sections.
+ */
+function getTransitionTypes(relativePathname: string, targetSegment: string): string[] | undefined {
+    const currentIndex = kSectionOrder.findIndex(segment =>
+        segment === '' ? relativePathname === '' : relativePathname.startsWith(segment));
+    const targetIndex = kSectionOrder.indexOf(targetSegment);
+
+    if (currentIndex < 0 || targetIndex < 0 || currentIndex === targetIndex)
+        return undefined;
+
+    return targetIndex > currentIndex ? [ 'nav-forward' ] : [ 'nav-back' ];
+}
+
+/**
+ * Props accepted by the <OverviewItem> component.
+ */
+interface OverviewItemProps {
     /**
      * Current pathname relative to `/schedule2/[slug]`, when resolved on the client.
      */
@@ -83,64 +127,111 @@ interface NavigationListViewProps {
 }
 
 /**
- * Renders the sidebar navigation items. Only the Overview entry is visible by default; additional
- * volunteer-specific entries will stream in conditionally in subsequent iterations.
+ * Renders the always-visible Overview entry. Used both as the static `<Suspense>` fallback and for
+ * the live route-aware item to prevent layout shift.
  */
-function NavigationListView(props: NavigationListViewProps) {
+function OverviewItem(props: OverviewItemProps) {
     const { relativePathname, slug } = props;
 
-    const isOverviewActive = relativePathname === '';
-    const overviewIcon = isOverviewActive
+    const isActive = relativePathname === '';
+    const icon = isActive
         ? <HomeIcon fontSize="small" />
         : <HomeOutlinedIcon fontSize="small" />;
 
+    if (!slug) {
+        return (
+            <NavigationItem selected={isActive}>
+                <ListItemIcon>
+                    {icon}
+                </ListItemIcon>
+                <ListItemText primary="Overview" />
+            </NavigationItem>
+        );
+    }
+
     return (
-        <List sx={{ paddingLeft: 2, paddingRight: 0, paddingY: 1 }}>
-            { !slug ? (
-                <NavigationItem selected={isOverviewActive}>
-                    <ListItemIcon>
-                        {overviewIcon}
-                    </ListItemIcon>
-                    <ListItemText primary="Overview" />
-                </NavigationItem>
-            ) : (
-                <NavigationItem component={Link} href={`/schedule2/${slug}`}
-                                selected={isOverviewActive}
-                                transitionTypes={relativePathname ? [ 'nav-back' ] : undefined}>
-                    <ListItemIcon>
-                        {overviewIcon}
-                    </ListItemIcon>
-                    <ListItemText primary="Overview" />
-                </NavigationItem>
-            ) }
-        </List>
+        <NavigationItem component={Link} href={`/schedule2/${slug}`}
+                        selected={isActive}
+                        transitionTypes={relativePathname ? [ 'nav-back' ] : undefined}>
+            <ListItemIcon>
+                {icon}
+            </ListItemIcon>
+            <ListItemText primary="Overview" />
+        </NavigationItem>
     );
 }
 
 /**
- * Leaf client component that reads dynamic route params and pathname inside `<Suspense>`.
+ * Leaf client component reading dynamic route params and pathname for the Overview item.
  */
-function RouteAwareDesktopNavigationList() {
+function RouteAwareOverviewItem() {
     const params = useParams<{ slug?: string }>();
     const pathname = usePathname();
 
     const slug = typeof params.slug === 'string' ? params.slug : undefined;
-    const baseUrl = slug ? `/schedule2/${slug}` : '';
-    const relativePathname = baseUrl && pathname.startsWith(baseUrl)
-        ? pathname.slice(baseUrl.length)
-        : '';
+    const relativePathname = getRelativePathname(pathname, slug);
 
-    return <NavigationListView relativePathname={relativePathname} slug={slug} />;
+    return <OverviewItem relativePathname={relativePathname} slug={slug} />;
 }
 
 /**
- * Route-aware navigation list for the desktop sidebar, wrapped in `<Suspense>` so the App Shell
- * prerenders statically without layout shift.
+ * Props accepted by the <VolunteerNavigationItems> component.
  */
-export function DesktopNavigationList() {
+interface VolunteerNavigationItemsProps {
+    /**
+     * Whether the signed-in volunteer currently has an active shift.
+     */
+    hasActiveShift: boolean;
+
+    /**
+     * Whether the signed-in volunteer has at least one scheduled shift for this event.
+     */
+    hasShifts: boolean;
+
+    /**
+     * Event slug for building navigation destinations.
+     */
+    slug: string;
+}
+
+/**
+ * Renders volunteer-specific desktop sidebar entries streamed in behind `<Suspense>`.
+ */
+export function VolunteerNavigationItems(props: VolunteerNavigationItemsProps) {
+    const { hasActiveShift, hasShifts, slug } = props;
+    const pathname = usePathname();
+    const relativePathname = getRelativePathname(pathname, slug);
+
+    const isShiftsActive = relativePathname.startsWith('/shifts');
+
     return (
-        <Suspense fallback={ <NavigationListView /> }>
-            <RouteAwareDesktopNavigationList />
-        </Suspense>
+        <>
+            { hasShifts &&
+                <NavigationItem component={Link} href={`/schedule2/${slug}/shifts`}
+                                selected={isShiftsActive}
+                                transitionTypes={getTransitionTypes(relativePathname, '/shifts')}>
+                    <ListItemIcon>
+                        <AccessTimeIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText primary="Your schedule" />
+                    { hasActiveShift &&
+                        <ActivityDot aria-label="Active shift" title="Active shift" /> }
+                </NavigationItem> }
+        </>
+    );
+}
+
+/**
+ * Route-aware desktop sidebar list. Renders Overview immediately in the static App Shell, and
+ * accepts streamed volunteer-specific items via `children`.
+ */
+export function DesktopNavigationList(props: React.PropsWithChildren) {
+    return (
+        <List sx={{ paddingLeft: 2, paddingRight: 0, paddingY: 1 }}>
+            <Suspense fallback={ <OverviewItem /> }>
+                <RouteAwareOverviewItem />
+            </Suspense>
+            {props.children}
+        </List>
     );
 }
