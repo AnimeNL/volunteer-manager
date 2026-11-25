@@ -5,6 +5,11 @@ import { RegistrationTheme } from '@app/(registration)/RegistrationTheme';
 import { determineEnvironment } from '@lib/Environment';
 
 /**
+ * Opt the exports subtree out of Cache Components instant-navigation validation.
+ */
+export const instant = false;
+
+/**
  * Layout for the data exports sub-application, providing the standard MUI theme and CSS baseline.
  */
 export default async function ExportsLayout(props: LayoutProps<'/exports/[slug]'>) {

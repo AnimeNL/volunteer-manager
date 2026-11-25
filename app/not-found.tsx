@@ -6,6 +6,11 @@ import type { Metadata } from 'next';
 import { ErrorPage } from './ErrorPage';
 
 /**
+ * Opt the root error page out of Cache Components instant-navigation validation.
+ */
+export const instant = false;
+
+/**
  * Root component shown when the requested page could not be found..
  */
 export default async function NotFoundPage() {

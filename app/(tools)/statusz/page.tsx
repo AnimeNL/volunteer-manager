@@ -7,6 +7,11 @@ import Typography from '@mui/material/Typography';
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 
 /**
+ * Opt the statusz route out of Cache Components instant-navigation validation.
+ */
+export const instant = false;
+
+/**
  * Displays high-level component information including version details, start time and uptime. This
  * is supposed to be a structured data endpoint (e.g. JSON), but it'd be a faff with layout.tsx to
  * make that happen so we just roll with this.

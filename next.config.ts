@@ -14,6 +14,7 @@ const isProductionBuild = Boolean(process.env.SOURCE_COMMIT || process.env.NEXT_
 
 const nextConfig: NextConfig = {
     allowedDevOrigins: [ '192.168.19.96', 'localhost' ],
+    cacheComponents: true,
     devIndicators: {
         position: 'bottom-right',
     },
@@ -36,6 +37,10 @@ const nextConfig: NextConfig = {
     experimental: {
         // https://nextjs.org/blog/next-15-1#forbidden-and-unauthorized-experimental
         authInterrupts: true,
+
+        instantInsights: {
+            validationLevel: 'manual-warning',
+        },
 
         optimizePackageImports: isProductionBuild ? [
             '@mdxeditor/editor',
@@ -62,6 +67,7 @@ const nextConfig: NextConfig = {
         },
     },
     output: isProductionBuild ? 'standalone' : undefined,
+    partialPrefetching: false,
     reactStrictMode: true,
     redirects: async() => ([
         {

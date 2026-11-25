@@ -10,6 +10,11 @@ import { DisplayController } from './DisplayController';
 import { DisplayHeader } from './DisplayHeader';
 
 /**
+ * Opt the display subtree out of Cache Components instant-navigation validation.
+ */
+export const instant = false;
+
+/**
  * The <DisplayLayout> component is the root layout of the Volunteer Manager Display, which shows
  * the System UI substitute and the container within which the content is displayed. Most of the
  * interaction with the device—including the ability to request help—will be provided here.

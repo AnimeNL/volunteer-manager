@@ -2,18 +2,14 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { Metadata, Viewport } from 'next';
+import { Suspense } from 'react';
+import { connection } from 'next/server';
 
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript';
 
 import { WebVitalsReporter } from './components/WebVitalsReporter';
 import { readSetting } from '@lib/Settings';
-
-/**
- * The root layout depends on the request's Host header to resolve the active environment, so all
- * routes inheriting from it must be rendered dynamically on demand.
- */
-export const dynamic = 'force-dynamic';
 
 /**
  * Default metadata for the application. Any server-side page can override these values, and they
@@ -44,12 +40,21 @@ export const viewport: Viewport = {
 };
 
 /**
+ * Conditionally renders the <WebVitalsReporter /> component based on the runtime setting. Kept
+ * behind <Suspense> so the root layout does not perform uncached I/O that blocks static shells.
+ */
+async function WebVitalsGate() {
+    await connection();
+
+    const webVitalsReporting = await readSetting('web-vitals-reporting');
+    return webVitalsReporting ? <WebVitalsReporter /> : null;
+}
+
+/**
  * The root layout of the Volunteer Manager application. Content will be rendered in here based on
  * the path that has been requested by the client, allowing for middleware routing.
  */
-export default async function RootLayout(props: LayoutProps<'/'>) {
-    const webVitalsReporting = await readSetting('web-vitals-reporting');
-
+export default function RootLayout(props: LayoutProps<'/'>) {
     return (
         <html lang="en" suppressHydrationWarning>
             <head />
@@ -58,7 +63,9 @@ export default async function RootLayout(props: LayoutProps<'/'>) {
                 <AppRouterCacheProvider>
                     {props.children}
                 </AppRouterCacheProvider>
-                { !!webVitalsReporting && <WebVitalsReporter /> }
+                <Suspense fallback={null}>
+                    <WebVitalsGate />
+                </Suspense>
                 { process.env.APP_ANALYTICS === '1' &&
                     <script src="https://analytics.beverloo.com/api/script.js"
                             data-site-id="47ebe80cb1b2" defer /> }

@@ -69,6 +69,4 @@ export default async function AnimeConIntegrationPage() {
     );
 }
 
-export const dynamic = 'force-dynamic';
-
 export const generateMetadata = createGenerateMetadataFn('AnimeCon API', 'Integrations', 'System');

@@ -18,6 +18,11 @@ import { kDashboardPermissions } from './organisation/dashboard/DashboardPermiss
 import { kAnyTeam } from '@lib/auth/access';
 
 /**
+ * Opt the administration subtree out of Cache Components instant-navigation validation.
+ */
+export const instant = false;
+
+/**
  * Layout of the administration section of the Volunteer Manager. The layout is the same for every
  * (signed in) user, although the available options will depend on the user's access level.
  */

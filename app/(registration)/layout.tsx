@@ -17,6 +17,11 @@ const kFontRoboto = Roboto({
 });
 
 /**
+ * Opt the legacy registration subtree out of Cache Components instant-navigation validation.
+ */
+export const instant = false;
+
+/**
  * Layout for all routes sharing the Registration theme, including the landing page, volunteer
  * registration portal, volunteer guide, privacy policy, and statistics.
  */
