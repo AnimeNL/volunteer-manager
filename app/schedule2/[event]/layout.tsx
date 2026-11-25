@@ -67,7 +67,7 @@ export default async function Schedule2Layout(props: LayoutProps<'/schedule2/[ev
                 </Stack>
 
                 <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-                    <MobileNavigation />
+                    <MobileNavigation params={props.params} />
                 </Box>
             </ScheduleTitleProvider>
         </ScheduleTheme>
