@@ -169,15 +169,24 @@ function createScheduleTheme(themeColor: string) {
 }
 
 /**
- * Full-viewport M3 tonal shell container replacing the legacy tiled background pattern.
+ * Full-viewport M3 tonal shell container with a subtle centred top ambient gradient that lightens
+ * in dark mode and darkens in light mode via SSR-safe CSS variables.
  */
-const ScheduleBackground = styled(Box)(({ theme }) => ({
-    backgroundColor: (theme.vars || theme).palette.m3.shell,
-    color: (theme.vars || theme).palette.m3.onSurface,
-    display: 'flex',
-    flexDirection: 'column',
-    minHeight: '100dvh',
-}));
+const ScheduleBackground = styled(Box)(({ theme }) => {
+    const m3 = (theme.vars || theme).palette.m3;
+
+    return {
+        backgroundColor: m3.shell,
+        backgroundImage:
+            `radial-gradient(60% 480px at 50% 0%, ${m3.ambientGlow} 0%, ` +
+            `${m3.ambientGlowSoft} 50%, transparent 100%)`,
+        backgroundRepeat: 'no-repeat',
+        color: m3.onSurface,
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100dvh',
+    };
+});
 
 /**
  * Props accepted by the <ScheduleTheme> component.

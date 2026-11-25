@@ -26,7 +26,6 @@ import { kHeaderBarHeightPx, kShellSpacingPx } from '../Constants';
  */
 const HeaderRow = styled('header')(({ theme }) => ({
     alignItems: 'center',
-    backgroundColor: (theme.vars || theme).palette.m3.shell,
     display: 'flex',
     flexShrink: 0,
     gap: kShellSpacingPx,
@@ -72,7 +71,7 @@ const PillDock = styled(Box, {
         }),
 
         ...theme.applyStyles('dark', {
-            boxShadow: 'none',
+            boxShadow: `0 0 0 1px color-mix(in srgb, ${palette.m3.outlineVariant} 65%, transparent)`,
         }),
 
         variants: [

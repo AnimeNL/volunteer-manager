@@ -91,6 +91,16 @@ export interface M3TonalPalette {
      * Subtle divider/outline colour harmonised with the seed hue.
      */
     outlineVariant: string;
+
+    /**
+     * Primary stop for the top-of-viewport ambient gradient (lightens in dark, darkens in light).
+     */
+    ambientGlow: string;
+
+    /**
+     * Mid-fade stop for the top-of-viewport ambient gradient.
+     */
+    ambientGlowSoft: string;
 }
 
 /**
@@ -106,6 +116,14 @@ export interface M3ColorScheme {
  */
 function hclToHex(hue: number, chroma: number, luminance: number): string {
     return hcl(hue, chroma, luminance).rgb().clamp().formatHex();
+}
+
+/**
+ * Converts an HCL triplet and opacity into a clamped CSS `rgba(...)` colour string.
+ */
+function hclToRgba(hue: number, chroma: number, luminance: number, alpha: number): string {
+    const rgb = hcl(hue, chroma, luminance).rgb().clamp();
+    return `rgba(${Math.round(rgb.r)}, ${Math.round(rgb.g)}, ${Math.round(rgb.b)}, ${alpha})`;
 }
 
 /**
@@ -130,8 +148,8 @@ export function computeM3ColorScheme(seedColor: string): M3ColorScheme {
     const dark: M3TonalPalette = {
         shell: hclToHex(hue, neutralChroma, 12.5),
         sheet: hclToHex(hue, neutralChroma, 7),
-        dock: hclToHex(hue, neutralChroma, 17),
-        dockActive: hclToHex(hue, neutralChroma, 22.5),
+        dock: hclToHex(hue, neutralChroma * 1.15, 24),
+        dockActive: hclToHex(hue, neutralChroma * 1.15, 28),
         card: hclToHex(hue, neutralChroma, 17),
         cardElevated: hclToHex(hue, neutralChroma, 22.5),
         floatingNav: hclToHex(hue, neutralChroma, 16.5),
@@ -139,12 +157,14 @@ export function computeM3ColorScheme(seedColor: string): M3ColorScheme {
         onPrimaryContainer: hclToHex(hue, primaryChroma * 0.55, 92),
         primary: hclToHex(hue, primaryChroma * 0.78, 80),
         onPrimary: hclToHex(hue, primaryChroma * 0.65, 19),
-        secondaryContainer: hclToHex(hue, secondaryChroma, 29),
+        secondaryContainer: hclToHex(hue, secondaryChroma * 1.05, 32),
         onSecondaryContainer: hclToHex(hue, secondaryChroma * 0.85, 90),
         onSurface: hclToHex(hue, neutralChroma * 0.7, 91),
         onSurfaceVariant: hclToHex(hue, neutralVariantChroma, 71),
         treeLine: hclToHex(hue, secondaryChroma * 0.85, 38),
         outlineVariant: hclToHex(hue, neutralVariantChroma, 28),
+        ambientGlow: hclToRgba(hue, secondaryChroma * 0.85, 48, 0.2),
+        ambientGlowSoft: hclToRgba(hue, secondaryChroma * 0.65, 34, 0.08),
     };
 
     const light: M3TonalPalette = {
@@ -159,12 +179,14 @@ export function computeM3ColorScheme(seedColor: string): M3ColorScheme {
         onPrimaryContainer: hclToHex(hue, primaryChroma * 0.65, 20),
         primary: hclToHex(hue, primaryChroma * 0.85, 42),
         onPrimary: '#ffffff',
-        secondaryContainer: hclToHex(hue, secondaryChroma * 0.9, 91),
+        secondaryContainer: hclToHex(hue, secondaryChroma * 1.1, 84),
         onSecondaryContainer: hclToHex(hue, secondaryChroma * 0.9, 21),
         onSurface: hclToHex(hue, neutralChroma, 11),
         onSurfaceVariant: hclToHex(hue, neutralVariantChroma, 38),
         treeLine: hclToHex(hue, secondaryChroma * 0.85, 79),
         outlineVariant: hclToHex(hue, neutralVariantChroma, 84),
+        ambientGlow: hclToRgba(hue, secondaryChroma * 0.85, 58, 0.14),
+        ambientGlowSoft: hclToRgba(hue, secondaryChroma * 0.65, 70, 0.06),
     };
 
     return { dark, light };
