@@ -3,10 +3,12 @@
 
 'use client';
 
+import QrCodeWithLogo from 'qrcode-with-logos';
 import { useEffect, useState } from 'react';
 
+import type { SxProps, Theme } from '@mui/material/styles';
+import Box from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
-import QrCodeWithLogo from 'qrcode-with-logos';
 import { styled, useTheme } from '@mui/material/styles';
 
 /**
@@ -24,6 +26,17 @@ interface QrCodeProps {
      * Content to render on the QR code.
      */
     content: string;
+
+    /**
+     * When set, renders the QR code inside a rounded white quiet-zone frame using the light-mode
+     * primary colour so scanners can read it reliably in both light and dark colour schemes.
+     */
+    framed?: boolean;
+
+    /**
+     * Optional styling overrides applied to the outer QR code container.
+     */
+    sx?: SxProps<Theme>;
 }
 
 /**
@@ -69,7 +82,7 @@ export function QrCode(props: QrCodeProps) {
     }, [ props.content, theme ]);
 
     return (
-        <QrCodeContainer>
+        <QrCodeContainer framed={props.framed} sx={props.sx}>
             { qrCodeSvg
                 // biome-ignore lint/security/noDangerouslySetInnerHtml: required for QR integration
               ? <div dangerouslySetInnerHTML={{ __html: qrCodeSvg }} />
@@ -82,13 +95,16 @@ export function QrCode(props: QrCodeProps) {
  * The <QrCodeContainer> ensures that the QR code displays responsively in the container we've made
  * for it. It mocks a bit with the system's internals, but this seems to be stable enough.
  */
-const QrCodeContainer = styled('div')(({ theme }) => ({
+const QrCodeContainer = styled(Box, {
+    shouldForwardProp: prop => prop !== 'framed',
+})<{ framed?: boolean }>(({ theme }) => ({
     aspectRatio: 1,
     width: '360px',
     maxWidth: '100%',
 
     '& > div': { margin: '-10px' },
     '& > div > svg': {
+        display: 'block',
         width: '100%',
         height: '100%',
     },
@@ -102,4 +118,29 @@ const QrCodeContainer = styled('div')(({ theme }) => ({
     '& > div > svg > g > path[fill="none"]': {
         stroke: theme.vars?.palette.primary.main ?? theme.palette.primary.main,
     },
+
+    variants: [
+        {
+            props: { framed: true },
+            style: {
+                backgroundColor: '#ffffff',
+                borderRadius: theme.spacing(2),
+                padding: theme.spacing(1.5),
+                '& > div': {
+                    height: '100%',
+                    margin: 0,
+                    width: '100%',
+                },
+                '& > div > svg > circle': {
+                    fill: theme.palette.primary.main,
+                },
+                '& > div > svg > circle[stroke="#000"]': {
+                    stroke: theme.palette.primary.main,
+                },
+                '& > div > svg > g > path[fill="none"]': {
+                    stroke: theme.palette.primary.main,
+                },
+            },
+        },
+    ],
 }));

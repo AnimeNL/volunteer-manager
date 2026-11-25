@@ -31,9 +31,10 @@ React View Transitions.
   so only page content transitions, and respect `prefers-reduced-motion`.
 
 ## Isolation & Dependencies
-* Code in `app/schedule2/` may only import from external packages, `@lib` (`app/lib/`), or other
-  modules inside `app/schedule2/`. Depending on anything else in `app/` (such as `app/schedule/`,
-  `app/admin/`, `app/components/`, or `@app/LinkProxy`) is prohibited.
+* Code in `app/schedule2/` may only import from external packages, `@lib` (`app/lib/`),
+  `@components` (`app/components/`), or other modules inside `app/schedule2/`. Depending on
+  anything else in `app/` (such as `app/schedule/`, `app/admin/`, or `@app/LinkProxy`) is
+  prohibited.
 
 ## Naming & Comments
 * Always refer to this portal as `schedule` (never `schedule2`) in symbol names, component names,
