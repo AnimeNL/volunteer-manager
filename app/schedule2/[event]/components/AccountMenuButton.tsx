@@ -124,7 +124,8 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                     <>
                         { !!hasHotelRoom &&
                             <MenuItem component={Link} dense href={`/schedule2/${eventSlug}/hotel`}
-                                      onClick={() => setAnchorEl(null)}>
+                                      onClick={() => setAnchorEl(null)}
+                                      transitionTypes={[ 'nav-forward' ]}>
                                 <ListItemIcon>
                                     <HotelOutlinedIcon fontSize="small" />
                                 </ListItemIcon>
@@ -132,7 +133,8 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                             </MenuItem> }
                         { !!hasTicket &&
                             <MenuItem component={Link} dense href={`/schedule2/${eventSlug}/ticket`}
-                                      onClick={() => setAnchorEl(null)}>
+                                      onClick={() => setAnchorEl(null)}
+                                      transitionTypes={[ 'nav-forward' ]}>
                                 <ListItemIcon>
                                     <ConfirmationNumberOutlinedIcon fontSize="small" />
                                 </ListItemIcon>
@@ -143,7 +145,8 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                 ) }
                 { !!eventSlug &&
                     <MenuItem component={Link} dense href={`/schedule2/${eventSlug}/feedback`}
-                              onClick={() => setAnchorEl(null)}>
+                              onClick={() => setAnchorEl(null)}
+                              transitionTypes={[ 'nav-forward' ]}>
                         <ListItemIcon>
                             <FeedbackOutlinedIcon fontSize="small" />
                         </ListItemIcon>
