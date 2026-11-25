@@ -11,7 +11,6 @@ import Typography from '@mui/material/Typography';
 import type { BooleanPermission } from '@lib/auth/access/Access';
 import { Header } from './Header';
 import { Page, SuspenseReveal } from './Page';
-import { SetTitle } from './ScheduleTitle';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
 
 /**
@@ -40,8 +39,8 @@ interface PlaceholderPageProps {
     permission?: BooleanPermission;
 
     /**
-     * Title displayed in the AppBar, page header, and placeholder card heading. When omitted,
-     * defaults to the resolved event's `shortName`.
+     * Title displayed in the page header and placeholder card heading. When omitted, defaults to
+     * the resolved event's `shortName`.
      */
     title?: string;
 }
@@ -60,19 +59,16 @@ async function PlaceholderContent(
     const title = props.title ?? event.shortName;
 
     return (
-        <>
-            { !props.title && <SetTitle title={title} /> }
-            <Card>
-                <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                        {title}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                        Not yet implemented.
-                    </Typography>
-                </CardContent>
-            </Card>
-        </>
+        <Card>
+            <CardContent>
+                <Typography variant="h6" gutterBottom>
+                    {title}
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                    Not yet implemented.
+                </Typography>
+            </CardContent>
+        </Card>
     );
 }
 
@@ -85,7 +81,7 @@ export function PlaceholderPage(props: PlaceholderPageProps) {
     ) : undefined;
 
     return (
-        <Page header={header} title={props.title}>
+        <Page header={header}>
             <SuspenseReveal
                 fallback={
                     <Card>

@@ -13,7 +13,6 @@ import { DesktopNavigation } from './components/DesktopNavigation';
 import { MobileNavigation } from './components/MobileNavigation';
 import { ScheduleAutoRefresh } from './components/ScheduleAutoRefresh';
 import { ScheduleTheme } from './ScheduleTheme';
-import { ScheduleTitleProvider } from './components/ScheduleTitle';
 import { getAuthenticationContext } from '@lib/auth';
 import { getScheduleAccess } from './lib/getScheduleAccess';
 import { getVolunteerHotelBookings } from './lib/data/hotelData';
@@ -79,46 +78,44 @@ export default async function ScheduleLayout(props: LayoutProps<'/schedule2/[eve
     return (
         <ScheduleTheme themeColor={themeColor}>
             <ScheduleAutoRefresh intervalSeconds={configuredCheckInRateSeconds} />
-            <ScheduleTitleProvider defaultTitle="AnimeCon">
-                <Stack direction="row" sx={{
-                    flex: '1 1 auto',
-                    gap: { md: 1.5 },
-                    marginX: 'auto',
-                    maxWidth: { md: 1280 },
-                    padding: { xs: 0, md: 1.5 },
-                    width: '100%',
+            <Stack direction="row" sx={{
+                flex: '1 1 auto',
+                gap: { md: 1.5 },
+                marginX: 'auto',
+                maxWidth: { md: 1280 },
+                padding: { xs: 0, md: 1.5 },
+                width: '100%',
+            }}>
+                <Box sx={{
+                    display: { xs: 'none', md: 'block' },
+                    flexShrink: 0,
+                    width: kDesktopMenuWidthPx,
                 }}>
-                    <Box sx={{
-                        display: { xs: 'none', md: 'block' },
-                        flexShrink: 0,
-                        width: kDesktopMenuWidthPx,
-                    }}>
-                        <DesktopNavigation params={props.params} />
-                    </Box>
+                    <DesktopNavigation params={props.params} />
+                </Box>
 
-                    <Stack direction="column" spacing={1.5} sx={{ flex: '1 1 auto', minWidth: 0 }}>
-                        <ApplicationBar
-                            accountMenu={
-                                <Suspense fallback={ <AccountMenuButton /> }>
-                                    <AuthenticatedAccountMenu params={props.params} />
-                                </Suspense>
-                            } />
-                        <Stack component="main" spacing={1.5} useFlexGap sx={{
-                            bgcolor: { xs: 'transparent', md: 'm3.sheet' },
-                            borderRadius: { md: `${kSheetBorderRadiusPx}px` },
-                            flex: '1 1 auto',
-                            minWidth: 0,
-                            p: { xs: 0, md: 1.5 },
-                        }}>
-                            {props.children}
-                        </Stack>
+                <Stack direction="column" spacing={1.5} sx={{ flex: '1 1 auto', minWidth: 0 }}>
+                    <ApplicationBar
+                        accountMenu={
+                            <Suspense fallback={ <AccountMenuButton /> }>
+                                <AuthenticatedAccountMenu params={props.params} />
+                            </Suspense>
+                        } />
+                    <Stack component="main" spacing={1.5} useFlexGap sx={{
+                        bgcolor: { xs: 'transparent', md: 'm3.sheet' },
+                        borderRadius: { md: `${kSheetBorderRadiusPx}px` },
+                        flex: '1 1 auto',
+                        minWidth: 0,
+                        p: { xs: 0, md: 1.5 },
+                    }}>
+                        {props.children}
                     </Stack>
                 </Stack>
+            </Stack>
 
-                <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-                    <MobileNavigation params={props.params} />
-                </Box>
-            </ScheduleTitleProvider>
+            <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+                <MobileNavigation params={props.params} />
+            </Box>
         </ScheduleTheme>
     );
 }

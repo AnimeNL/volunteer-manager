@@ -5,8 +5,6 @@ import { Suspense, ViewTransition } from 'react';
 
 import Stack from '@mui/material/Stack';
 
-import { SetTitle } from './ScheduleTitle';
-
 import { kSheetBorderRadiusPx } from '../Constants';
 
 /**
@@ -18,11 +16,6 @@ interface PageProps {
      * the leading element inside the sheet on desktop.
      */
     header?: React.ReactNode;
-
-    /**
-     * Optional static AppBar title to apply while this page is active.
-     */
-    title?: string;
 }
 
 /**
@@ -44,7 +37,6 @@ export function Page(props: React.PropsWithChildren<PageProps>) {
                 default: 'none',
             }}
             default="none">
-            { props.title && <SetTitle title={props.title} /> }
             {props.header}
             <Stack spacing={1.5} useFlexGap sx={{
                 bgcolor: { xs: 'm3.sheet', md: 'transparent' },

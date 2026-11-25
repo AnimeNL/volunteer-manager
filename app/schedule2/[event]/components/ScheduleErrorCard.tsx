@@ -36,7 +36,7 @@ interface ScheduleErrorCardProps {
  */
 export function ScheduleErrorCard(props: ScheduleErrorCardProps) {
     return (
-        <Page title={props.title}>
+        <Page>
             <Card>
                 <CardContent>
                     <Stack spacing={1}>

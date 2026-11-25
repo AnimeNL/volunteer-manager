@@ -126,8 +126,7 @@ export default function ScheduleTicketPage(props: PageProps<'/schedule2/[event]/
                     }
                     icon={ <ConfirmationNumberOutlinedIcon /> }
                     title="Your ticket" />
-            }
-            title="Your ticket">
+            }>
             <SuspenseReveal fallback={ <TicketSkeleton /> }>
                 <TicketContent params={props.params} />
             </SuspenseReveal>
