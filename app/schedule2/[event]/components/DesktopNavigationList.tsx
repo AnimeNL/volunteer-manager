@@ -14,8 +14,8 @@ import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import List from '@mui/material/List';
 
 import type { NavigationData } from '../lib/navigationTypes';
-import type { NavigationSubItem } from './NavigationList';
-import { ExpandableNavigationSection, NavigationLink, SecondaryNavigationItems } from './NavigationList';
+import { ExpandableNavigationSection, NavigationLink, SecondaryNavigationItems,
+    createNavigationSubItem } from './NavigationList';
 import { getNavigationTransitionTypes, getRelativeNavigationPath, getSchedulePath,
     isNavigationPathActive } from '../lib/navigationTypes';
 
@@ -43,15 +43,9 @@ export function VolunteerNavigationItems(props: { data: NavigationData }) {
     const pathname = usePathname();
     const relativePathname = getRelativeNavigationPath(pathname, eventSlug);
 
-    const areaItems: NavigationSubItem[] = areas.map(area => {
-        const path = `/areas/${area.id}`;
-        return {
-            href: getSchedulePath(eventSlug, path),
-            key: area.id,
-            label: area.name,
-            selected: isNavigationPathActive(relativePathname, path),
-        };
-    });
+    const areaItems = areas.map(area =>
+        createNavigationSubItem(
+            eventSlug, relativePathname, `/areas/${area.id}`, area.id, area.name));
 
     return (
         <>

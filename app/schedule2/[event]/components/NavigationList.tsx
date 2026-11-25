@@ -43,6 +43,11 @@ interface NavigationLinkProps {
     activeIcon?: React.ReactNode;
 
     /**
+     * Whether the row hosts a trailing secondary action button inside a `<ListItem>`.
+     */
+    hasAction?: boolean;
+
+    /**
      * Destination URL. When omitted, renders a non-interactive placeholder item.
      */
     href?: string;
@@ -84,9 +89,9 @@ interface NavigationLinkProps {
  */
 export function NavigationLink(props: NavigationLinkProps) {
     return (
-        <NavigationItem component={props.href ? Link : 'div'} href={props.href}
-                        onClick={props.onClick} selected={props.selected} sheet={props.sheet}
-                        transitionTypes={props.transitionTypes}>
+        <NavigationItem component={props.href ? Link : 'div'} hasAction={props.hasAction}
+                        href={props.href} onClick={props.onClick} selected={props.selected}
+                        sheet={props.sheet} transitionTypes={props.transitionTypes}>
             <ListItemIcon>
                 { props.selected && props.activeIcon ? props.activeIcon : props.icon }
             </ListItemIcon>
@@ -98,11 +103,26 @@ export function NavigationLink(props: NavigationLinkProps) {
 /**
  * Sub-item rendered inside an <ExpandableNavigationSection>.
  */
-export interface NavigationSubItem {
+interface NavigationSubItem {
     href: string;
     key: string | number;
     label: string;
     selected: boolean;
+}
+
+/**
+ * Builds a `NavigationSubItem` with a schedule-scoped `href` and active-path check.
+ */
+export function createNavigationSubItem(
+    eventSlug: string, relativePathname: string, path: string, key: string | number, label: string)
+    : NavigationSubItem
+{
+    return {
+        href: getSchedulePath(eventSlug, path),
+        key,
+        label,
+        selected: isNavigationPathActive(relativePathname, path),
+    };
 }
 
 /**
@@ -129,7 +149,20 @@ interface ExpandableNavigationSectionProps {
  */
 export function ExpandableNavigationSection(props: ExpandableNavigationSectionProps) {
     const [ expanded, setExpanded ] = useState<boolean>(props.defaultExpanded ?? false);
-    const hasSubItems = props.items.length > 0;
+    if (!props.items.length) {
+        return (
+            <NavigationLink
+                activeIcon={props.activeIcon}
+                href={props.href}
+                icon={props.icon}
+                label={props.label}
+                onClick={props.onNavigate}
+                selected={props.selected}
+                sheet={props.sheet}
+                transitionTypes={props.transitionTypes} />
+        );
+    }
+
     const expandAriaLabel = `${expanded ? 'Collapse' : 'Expand'} ${props.expandLabel}`;
 
     function handleToggleExpanded() {
@@ -142,46 +175,47 @@ export function ExpandableNavigationSection(props: ExpandableNavigationSectionPr
 
     return (
         <>
-            <ListItem disablePadding sx={{ mb: 0.5 }}
-                      secondaryAction={ hasSubItems ? (
-                          <ExpandButton
-                              aria-expanded={expanded}
-                              aria-label={expandAriaLabel}
-                              edge="end"
-                              expanded={expanded}
-                              onClick={handleToggleExpanded}
-                              sheet={props.sheet}
-                              size="small">
-                              <ExpandMoreIcon fontSize="small" />
-                          </ExpandButton>
-                      ) : undefined }>
-                <NavigationItem component={Link} href={props.href} onClick={props.onNavigate}
-                                selected={props.selected} sheet={props.sheet}
-                                sx={hasSubItems ? { mb: 0, pr: 5 } : { mb: 0 }}
-                                transitionTypes={props.transitionTypes}>
-                    <ListItemIcon>
-                        { props.selected ? props.activeIcon : props.icon }
-                    </ListItemIcon>
-                    <ListItemText primary={props.label}
-                                  slotProps={{ primary: { variant: 'body2' } }} />
-                </NavigationItem>
-            </ListItem>
+            <ExpandableRow
+                disablePadding
+                sheet={props.sheet}
+                secondaryAction={
+                    <ExpandButton
+                        aria-expanded={expanded}
+                        aria-label={expandAriaLabel}
+                        edge="end"
+                        expanded={expanded}
+                        onClick={handleToggleExpanded}
+                        sheet={props.sheet}
+                        size="small">
+                        <ExpandMoreIcon fontSize="small" />
+                    </ExpandButton>
+                }>
+                <NavigationLink
+                    activeIcon={props.activeIcon}
+                    hasAction
+                    href={props.href}
+                    icon={props.icon}
+                    label={props.label}
+                    onClick={props.onNavigate}
+                    selected={props.selected}
+                    sheet={props.sheet}
+                    transitionTypes={props.transitionTypes} />
+            </ExpandableRow>
 
-            { hasSubItems &&
-                <Collapse in={expanded} unmountOnExit>
-                    <SubMenuList disablePadding>
-                        { props.items.map(item => (
-                            <NavigationItem key={item.key} component={Link} href={item.href} nested
-                                            onClick={props.onNavigate} selected={item.selected}
-                                            sheet={props.sheet}
-                                            transitionTypes={props.transitionTypes}>
-                                <ListItemText
-                                    primary={item.label}
-                                    slotProps={{ primary: { noWrap: true, variant: 'body2' } }} />
-                            </NavigationItem>
-                        )) }
-                    </SubMenuList>
-                </Collapse> }
+            <Collapse in={expanded} unmountOnExit>
+                <SubMenuList disablePadding>
+                    { props.items.map(item => (
+                        <NavigationItem key={item.key} component={Link} href={item.href} nested
+                                        onClick={props.onNavigate} selected={item.selected}
+                                        sheet={props.sheet}
+                                        transitionTypes={props.transitionTypes}>
+                            <ListItemText
+                                primary={item.label}
+                                slotProps={{ primary: { noWrap: true, variant: 'body2' } }} />
+                        </NavigationItem>
+                    )) }
+                </SubMenuList>
+            </Collapse>
         </>
     );
 }
@@ -213,15 +247,9 @@ export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
         : getSchedulePath(eventSlug, `/duty-book/${dutyBooks[0]?.team}`);
 
     const dutyBookItems: NavigationSubItem[] = hasMultipleDutyBooks
-        ? dutyBooks.map(entry => {
-            const path = `/duty-book/${entry.team}`;
-            return {
-                href: getSchedulePath(eventSlug, path),
-                key: entry.team,
-                label: entry.name,
-                selected: isNavigationPathActive(relativePathname, path),
-            };
-        })
+        ? dutyBooks.map(entry =>
+            createNavigationSubItem(
+                eventSlug, relativePathname, `/duty-book/${entry.team}`, entry.team, entry.name))
         : [];
 
     const secondaryLinks = [
@@ -286,12 +314,30 @@ export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
 }
 
 /**
+ * Wrapper row for expandable navigation sections, matching `<NavigationItem>` vertical spacing.
+ */
+const ExpandableRow = styled(ListItem, {
+    shouldForwardProp: prop => prop !== 'sheet',
+})<{ sheet?: boolean }>(({ theme }) => ({
+    marginBottom: theme.spacing(0.25),
+
+    variants: [
+        {
+            props: { sheet: true },
+            style: {
+                marginBottom: theme.spacing(0.5),
+            },
+        },
+    ],
+}));
+
+/**
  * Material Design 3 full-pill navigation item shared across desktop sidebar, nested sub-menus, and
  * mobile More sheet.
  */
 const NavigationItem = styled(ListItemButton, {
-    shouldForwardProp: prop => prop !== 'nested' && prop !== 'sheet',
-})<{ nested?: boolean; sheet?: boolean }>(({ theme }) => {
+    shouldForwardProp: prop => prop !== 'hasAction' && prop !== 'nested' && prop !== 'sheet',
+})<{ hasAction?: boolean; nested?: boolean; sheet?: boolean }>(({ theme }) => {
     const palette = (theme.vars || theme).palette;
 
     return {
@@ -350,9 +396,17 @@ const NavigationItem = styled(ListItemButton, {
                     minHeight: 38,
                 },
             },
+            {
+                props: { hasAction: true },
+                style: {
+                    marginBottom: 0,
+                    paddingRight: theme.spacing(5),
+                },
+            },
         ],
     };
-}) as ExtendButtonBase<ListItemButtonTypeMap<{ nested?: boolean; sheet?: boolean }>>;
+}) as ExtendButtonBase<
+    ListItemButtonTypeMap<{ hasAction?: boolean; nested?: boolean; sheet?: boolean }>>;
 
 /**
  * Indented sub-menu list with an in-theme vertical guide line aligned under the parent icon.
