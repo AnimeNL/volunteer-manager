@@ -3,235 +3,184 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
-import AccountCircle from '@mui/icons-material/AccountCircle';
-import AppBar from '@mui/material/AppBar';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import Divider from '@mui/material/Divider';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import Box from '@mui/material/Box';
+import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
-import LightModeIcon from '@mui/icons-material/LightMode';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import LogoutIcon from '@mui/icons-material/Logout';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import Toolbar from '@mui/material/Toolbar';
+import InputBase from '@mui/material/InputBase';
+import SearchIcon from '@mui/icons-material/Search';
 import Typography from '@mui/material/Typography';
-import { keyframes, styled, useColorScheme } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
 
+import { AccountMenuButton } from './AccountMenuButton';
+import { AnimatedTitle } from './AnimatedTitle';
 import { useScheduleTitle } from './ScheduleTitle';
 
-import { kDesktopMaximumWidthPx, kDesktopMenuWidthPx } from '../Constants';
-
-import { signOutAction } from '@lib/auth/actions';
+import { kHeaderBarHeightPx, kShellSpacingPx } from '../Constants';
 
 /**
- * Subtle vertical crossfade keyframes for AppBar title transitions.
+ * Sticky outer header row anchored across view transitions. On mobile, carries `12px` horizontal
+ * padding above the edge-to-edge sheet; on desktop, aligns flush with the content sheet edges.
  */
-const kTitleExitKeyframes = keyframes`
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(-4px);
-    }
-`;
+const HeaderRow = styled(Box)(({ theme }) => ({
+    alignItems: 'center',
+    backgroundColor: (theme.vars || theme).palette.m3.shell,
+    display: 'flex',
+    flexShrink: 0,
+    gap: kShellSpacingPx,
+    paddingLeft: kShellSpacingPx,
+    paddingRight: kShellSpacingPx,
+    paddingTop: kShellSpacingPx,
+    position: 'sticky',
+    top: 0,
+    viewTransitionName: 'schedule2-header',
+    zIndex: theme.zIndex.appBar,
 
-const kTitleEnterKeyframes = keyframes`
-    from {
-        opacity: 0;
-        transform: translateY(4px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-`;
-
-/**
- * Desktop-aligned AppBar toolbar matching <CardContent> horizontal padding.
- */
-const ShellToolbar = styled(Toolbar)(({ theme }) => ({
-    margin: 'auto',
-
-    // Align the title and account icon with desktop <CardContent> horizontal padding:
-    // left = sidebar (263px) + content padding (12px) + card padding (16px) = menuWidth + 16px;
-    // right = container padding (12px) + content padding (12px) + card padding (16px) = 40px.
     [theme.breakpoints.up('md')]: {
-        maxWidth: `${kDesktopMaximumWidthPx}px`,
-        paddingLeft: `${kDesktopMenuWidthPx + 16}px`,
-        paddingRight: theme.spacing(5),
+        paddingLeft: 0,
+        paddingRight: 0,
+        paddingTop: 0,
     },
 }));
 
 /**
- * Container for the crossfading AppBar title text.
+ * Full-pill M3 Expressive outer title/search dock that morphs in place with zero layout shift.
  */
-const TitleContainer = styled(Typography)({
-    flexGrow: 1,
-    minWidth: 0,
-    overflow: 'hidden',
-    position: 'relative',
-}) as typeof Typography;
+const PillDock = styled(Box, {
+    shouldForwardProp: prop => prop !== 'searchActive',
+})<{ searchActive: boolean }>(({ theme }) => {
+    const palette = (theme.vars || theme).palette;
 
-/**
- * Single-line title span supporting static, entering, and exiting transition phases.
- */
-const TitleText = styled('span', {
-    shouldForwardProp: prop => prop !== 'phase',
-})<{ phase: 'static' | 'enter' | 'exit' }>({
-    display: 'block',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
+    return {
+        alignItems: 'center',
+        backgroundColor: palette.m3.dock,
+        borderRadius: 9999,
+        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+        color: palette.m3.onSurface,
+        cursor: 'pointer',
+        display: 'flex',
+        flex: '1 1 auto',
+        gap: theme.spacing(1),
+        height: kHeaderBarHeightPx,
+        minWidth: 0,
+        paddingLeft: theme.spacing(2),
+        paddingRight: theme.spacing(1.5),
+        transition: theme.transitions.create([ 'background-color', 'box-shadow' ], {
+            duration: theme.transitions.duration.shorter,
+        }),
 
-    variants: [
-        {
-            props: { phase: 'enter' },
-            style: {
-                animation:
-                    `${kTitleEnterKeyframes} 160ms cubic-bezier(0.2, 0, 0, 1) 100ms both`,
-                '@media (prefers-reduced-motion: reduce)': {
-                    animation: 'none',
+        ...theme.applyStyles('dark', {
+            boxShadow: 'none',
+        }),
+
+        variants: [
+            {
+                props: { searchActive: true },
+                style: {
+                    backgroundColor: palette.m3.dockActive,
+                    cursor: 'text',
+                    paddingLeft: theme.spacing(0.75),
+                    paddingRight: theme.spacing(0.75),
                 },
             },
-        },
-        {
-            props: { phase: 'exit' },
-            style: {
-                inset: 0,
-                pointerEvents: 'none',
-                position: 'absolute',
-                animation: `${kTitleExitKeyframes} 150ms ease-out both`,
-                '@media (prefers-reduced-motion: reduce)': {
-                    display: 'none',
-                },
-            },
-        },
-    ],
+        ],
+    };
 });
 
 /**
- * Renders the AppBar title with a fast, subtle vertical crossfade whenever the title text changes,
- * while rendering statically on initial mount.
- */
-function AnimatedTitle(props: { title: string }) {
-    const [ state, setState ] = useState<{ current: string; previous?: string; version: number }>({
-        current: props.title,
-        version: 0,
-    });
-
-    if (props.title !== state.current) {
-        setState({
-            current: props.title,
-            previous: state.current,
-            version: state.version + 1,
-        });
-    }
-
-    const handleExitEnd = useCallback(() => {
-        setState(prev => prev.version === state.version ? { ...prev, previous: undefined } : prev);
-    }, [ state.version ]);
-
-    return (
-        <TitleContainer variant="h6" component="div">
-            { state.previous !== undefined &&
-                <TitleText key={`exit-${state.version}`} aria-hidden="true"
-                           onAnimationEnd={handleExitEnd} phase="exit">
-                    {state.previous}
-                </TitleText> }
-            <TitleText key={`enter-${state.version}`}
-                       phase={state.version > 0 ? 'enter' : 'static'}>
-                {state.current}
-            </TitleText>
-        </TitleContainer>
-    );
-}
-
-/**
- * Sticky top bar of the schedule2 App Shell, anchored across view transitions. Provides the active
- * page title from <ScheduleTitleProvider> and an account menu with the colour-scheme toggle.
+ * Outer M3 Expressive pill dock header for `app/schedule2/`. Displays the active page title with a
+ * subtle search trigger, morphing in place across the content width minus the circular account
+ * button when search is activated.
  */
 export function ApplicationBar() {
     const title = useScheduleTitle();
-    const { mode, setMode } = useColorScheme();
+    const inputRef = useRef<HTMLInputElement>(null);
 
-    const [ userMenuAnchor, setUserMenuAnchor ] = useState<HTMLElement | null>(null);
+    const [ searchActive, setSearchActive ] = useState<boolean>(false);
+    const [ query, setQuery ] = useState<string>('');
 
-    const handleMenuClose = useCallback(() => setUserMenuAnchor(null), []);
-    const handleMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
-        setUserMenuAnchor(event.currentTarget);
+    const handleOpenSearch = useCallback(() => {
+        setSearchActive(true);
+        requestAnimationFrame(() => inputRef.current?.focus());
     }, []);
 
-    const handleModeChange = useCallback((_event: unknown, value: string | null) => {
-        switch (value) {
-            case 'dark':
-            case 'light':
-            case 'system':
-                setMode(value);
-                break;
+    const handleCloseSearch = useCallback(() => {
+        setQuery('');
+        setSearchActive(false);
+    }, []);
 
-            default:
-                break;
+    const handleClearOrClose = useCallback((event: React.MouseEvent) => {
+        event.stopPropagation();
+        if (query.length > 0) {
+            setQuery('');
+            inputRef.current?.focus();
+        } else {
+            setSearchActive(false);
         }
-    }, [ setMode ]);
+    }, [ query.length ]);
 
-    const handleSignOut = useCallback(async () => {
-        setUserMenuAnchor(null);
-
-        const response = await signOutAction();
-        if (response.success)
-            window.location.href = response.returnUrl ?? '/';
-    }, []);
+    const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Escape')
+            handleCloseSearch();
+    }, [ handleCloseSearch ]);
 
     return (
-        <>
-            <AppBar position="sticky"
-                    sx={{ display: 'block', viewTransitionName: 'schedule2-header' }}>
-                <ShellToolbar>
-                    <AnimatedTitle title={title} />
-                    <IconButton aria-label="Account menu" color="inherit" edge="end"
-                                onClick={handleMenuOpen} size="large">
-                        <AccountCircle />
-                    </IconButton>
-                </ShellToolbar>
-            </AppBar>
+        <HeaderRow component="header">
+            <PillDock
+                onClick={searchActive ? undefined : handleOpenSearch}
+                role={searchActive ? 'search' : 'button'}
+                searchActive={searchActive}
+                tabIndex={searchActive ? undefined : 0}
+                onKeyDown={searchActive ? undefined : event => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        handleOpenSearch();
+                    }
+                }}>
+                { searchActive ? (
+                    <>
+                        <IconButton aria-label="Close search" onClick={handleCloseSearch}
+                                    size="small" sx={{ color: 'text.secondary' }}>
+                            <ArrowBackIcon fontSize="small" />
+                        </IconButton>
+                        <InputBase
+                            fullWidth
+                            inputProps={{ 'aria-label': 'Search schedule' }}
+                            inputRef={inputRef}
+                            onChange={event => setQuery(event.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder="Search shifts, events, volunteers…"
+                            sx={{ fontSize: '0.875rem' }}
+                            value={query} />
+                        <IconButton aria-label={query ? 'Clear search' : 'Close search'}
+                                    onClick={handleClearOrClose} size="small"
+                                    sx={{ color: 'text.secondary' }}>
+                            <CloseIcon fontSize="small" />
+                        </IconButton>
+                    </>
+                ) : (
+                    <>
+                        <AnimatedTitle title={title} />
+                        <Box sx={{
+                            alignItems: 'center',
+                            color: 'text.secondary',
+                            display: 'inline-flex',
+                            flexShrink: 0,
+                            gap: 0.75,
+                        }}>
+                            <Typography variant="caption"
+                                        sx={{ display: { xs: 'none', sm: 'inline' }, fontWeight: 500 }}>
+                                Search
+                            </Typography>
+                            <SearchIcon fontSize="small" />
+                        </Box>
+                    </>
+                ) }
+            </PillDock>
 
-            <Menu anchorEl={userMenuAnchor}
-                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                  onClose={handleMenuClose}
-                  open={!!userMenuAnchor}>
-                <MenuItem dense disableRipple disableTouchRipple>
-                    <ToggleButtonGroup exclusive fullWidth onChange={handleModeChange} size="small"
-                                       value={mode ?? 'system'}>
-                        <ToggleButton aria-label="Light mode" value="light">
-                            <LightModeIcon fontSize="small" />
-                        </ToggleButton>
-                        <ToggleButton aria-label="System colour scheme" value="system">
-                            <SettingsBrightnessIcon fontSize="small" />
-                        </ToggleButton>
-                        <ToggleButton aria-label="Dark mode" value="dark">
-                            <DarkModeIcon fontSize="small" />
-                        </ToggleButton>
-                    </ToggleButtonGroup>
-                </MenuItem>
-                <Divider />
-                <MenuItem onClick={handleSignOut}>
-                    <ListItemIcon>
-                        <LogoutIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>
-                        Sign out
-                    </ListItemText>
-                </MenuItem>
-            </Menu>
-        </>
+            <AccountMenuButton />
+        </HeaderRow>
     );
 }
