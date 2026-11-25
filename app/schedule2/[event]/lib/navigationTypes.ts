@@ -63,3 +63,36 @@ export function getNavigationTransitionTypes(
 
     return targetIndex > currentIndex ? [ 'nav-forward' ] : [ 'nav-back' ];
 }
+
+/**
+ * Primary tabs available in the mobile floating bottom navigation pill (maximum of four items).
+ */
+export type MobileNavigationTab = 'overview' | 'shifts' | 'areas' | 'more';
+
+/**
+ * Resolves the active mobile bottom navigation tab from a relative schedule2 pathname.
+ */
+export function getActiveMobileTab(relativePathname: string): MobileNavigationTab {
+    if (relativePathname === '' || relativePathname === '/')
+        return 'overview';
+    if (relativePathname.startsWith('/shifts'))
+        return 'shifts';
+    if (relativePathname.startsWith('/areas'))
+        return 'areas';
+
+    return 'more';
+}
+
+/**
+ * Computes the total urgent activity count across secondary routes housed inside the mobile "More"
+ * sheet (unread Duty Book entries + pending Help Requests).
+ */
+export function getMoreMenuActivityCount(data?: NavigationData): number {
+    if (!data)
+        return 0;
+
+    const unreadDutyBooks = data.dutyBooks.reduce((sum, entry) => sum + entry.unread, 0);
+    const pendingHelpRequests = data.helpRequests?.pending ?? 0;
+
+    return unreadDutyBooks + pendingHelpRequests;
+}
