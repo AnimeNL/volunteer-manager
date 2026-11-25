@@ -45,9 +45,13 @@ async function AuthenticatedAccountMenu(props: { params: Promise<{ event: string
         ])
         : [ [], undefined ];
 
+    const hasDevelopment =
+        access?.access.can('event.settings', { event: access.event.slug }) ?? false;
+
     return (
         <AccountMenuButton avatarUrl={user?.avatarUrl}
                            eventSlug={access?.event.slug}
+                           hasDevelopment={hasDevelopment}
                            hasHotelRoom={hotelBookings.length > 0}
                            hasTicket={!!ticketBarcode}
                            userName={user?.name} />

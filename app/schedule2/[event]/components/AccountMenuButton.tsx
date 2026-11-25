@@ -8,6 +8,7 @@ import { useState } from 'react';
 
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
+import CodeIcon from '@mui/icons-material/Code';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import Divider from '@mui/material/Divider';
@@ -45,6 +46,11 @@ interface AccountMenuButtonProps {
     eventSlug?: string;
 
     /**
+     * Whether the signed-in volunteer has access to event settings (`event.settings`).
+     */
+    hasDevelopment?: boolean;
+
+    /**
      * Whether the signed-in volunteer has a confirmed hotel room booking for this event.
      */
     hasHotelRoom?: boolean;
@@ -65,7 +71,7 @@ interface AccountMenuButtonProps {
  * account links, and sign-out for the schedule App Shell.
  */
 export function AccountMenuButton(props: AccountMenuButtonProps) {
-    const { avatarUrl, eventSlug, hasHotelRoom, hasTicket, userName } = props;
+    const { avatarUrl, eventSlug, hasDevelopment, hasHotelRoom, hasTicket, userName } = props;
     const { mode, setMode } = useColorScheme();
     const [ anchorEl, setAnchorEl ] = useState<HTMLElement | null>(null);
 
@@ -151,6 +157,15 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                             <FeedbackOutlinedIcon fontSize="small" />
                         </ListItemIcon>
                         <ListItemText primary="Feedback" />
+                    </MenuItem> }
+                { !!eventSlug && !!hasDevelopment &&
+                    <MenuItem component={Link} dense href={`/schedule2/${eventSlug}/settings`}
+                              onClick={() => setAnchorEl(null)}
+                              transitionTypes={[ 'nav-forward' ]}>
+                        <ListItemIcon>
+                            <CodeIcon fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText primary="Development" />
                     </MenuItem> }
                 <MenuItem dense onClick={handleSignOut}>
                     <ListItemIcon>

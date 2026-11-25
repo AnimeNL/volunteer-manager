@@ -64,7 +64,6 @@ export const getNavigationData = cache(
             .map(team => ({ name: team.name, team: team.slug }));
 
         const hasHelpRequests = permissions.can('event.help-requests', { event: event.slug });
-        const hasSettings = permissions.can('event.settings', { event: event.slug });
         const hasUnrestrictedKnowledge = permissions.can('event.knowledge', { event: event.slug });
 
         const hasKnowledgeBase = await resolveKnowledgeBaseVisibility(
@@ -78,7 +77,6 @@ export const getNavigationData = cache(
             expandEvents: userSettings['user-schedule-expand-events'] ?? true,
             hasHelpRequests,
             hasKnowledgeBase,
-            hasSettings,
             hasShifts,
         };
     });

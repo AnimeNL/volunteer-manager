@@ -24,8 +24,6 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import NotListedLocationIcon from '@mui/icons-material/NotListedLocation';
 import NotListedLocationOutlinedIcon from '@mui/icons-material/NotListedLocationOutlined';
-import SettingsIcon from '@mui/icons-material/Settings';
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import { styled } from '@mui/material/styles';
 
 import type { ExpandableNavigationSectionId } from './NavigationActions';
@@ -198,12 +196,12 @@ interface SecondaryNavigationItemsProps {
 }
 
 /**
- * Renders the secondary schedule routes (Duty book, Help requests, Knowledge base, Volunteers, and
- * Settings) shared between the desktop sidebar and mobile More bottom sheet.
+ * Renders the secondary schedule routes (Duty book, Help requests, Knowledge base, and Volunteers)
+ * shared between the desktop sidebar and mobile More bottom sheet.
  */
 export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
     const { data, onNavigate, relativePathname, sheet } = props;
-    const { dutyBooks, eventSlug, hasHelpRequests, hasKnowledgeBase, hasSettings } = data;
+    const { dutyBooks, eventSlug, hasHelpRequests, hasKnowledgeBase } = data;
 
     const hasMultipleDutyBooks = dutyBooks.length > 1;
     const isDutyBookActive = hasMultipleDutyBooks
@@ -246,13 +244,6 @@ export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
             label: 'Volunteers',
             segment: '/volunteers',
             visible: true,
-        },
-        {
-            activeIcon: <SettingsIcon fontSize="small" />,
-            icon: <SettingsOutlinedIcon fontSize="small" />,
-            label: 'Settings',
-            segment: '/settings',
-            visible: hasSettings,
         },
     ];
 
