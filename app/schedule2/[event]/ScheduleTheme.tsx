@@ -8,7 +8,20 @@ import { useMemo } from 'react';
 
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
-import { ThemeProvider, createTheme, getLuminance, lighten, styled } from '@mui/material/styles';
+import { ThemeProvider, createTheme, styled } from '@mui/material/styles';
+
+import { type M3TonalPalette, computeM3ColorScheme } from './lib/m3ColorScheme';
+
+import { kCardBorderRadiusPx, kSheetBorderRadiusPx } from './Constants';
+
+declare module '@mui/material/styles' {
+    interface Palette {
+        m3: M3TonalPalette;
+    }
+    interface PaletteOptions {
+        m3?: M3TonalPalette;
+    }
+}
 
 /**
  * The Inter font, loaded through Next.js' font stack, matching the administration panel.
@@ -20,11 +33,12 @@ const kInterFont = Inter({
 });
 
 /**
- * Builds the SSR-safe MUI theme configured with CSS variables and `class`-based colour schemes so
- * the App Shell prerenders cleanly on the server and pairs with the root `<InitColorSchemeScript />`.
+ * Builds the SSR-safe Material Design 3 Expressive MUI theme configured with CSS variables and
+ * `class`-based colour schemes so the App Shell prerenders cleanly on the server and pairs with
+ * the root `<InitColorSchemeScript />`.
  */
 function createScheduleTheme(themeColor: string) {
-    const appBarTextColor = getLuminance(themeColor) > 0.5 ? 'rgba(0, 0, 0, 0.87)' : '#ffffff';
+    const scheme = computeM3ColorScheme(themeColor);
 
     return createTheme({
         breakpoints: {
@@ -39,47 +53,112 @@ function createScheduleTheme(themeColor: string) {
         colorSchemes: {
             dark: {
                 palette: {
-                    AppBar: {
-                        darkBg: themeColor,
-                        darkColor: appBarTextColor,
-                    },
                     background: {
-                        default: '#181818',
-                        paper: '#212121',
+                        default: scheme.dark.shell,
+                        paper: scheme.dark.card,
                     },
+                    divider: scheme.dark.outlineVariant,
+                    m3: scheme.dark,
                     primary: {
-                        main: lighten(themeColor, 0.3),
+                        contrastText: scheme.dark.onPrimary,
+                        main: scheme.dark.primary,
                     },
-                } as any,
+                    secondary: {
+                        contrastText: scheme.dark.onSecondaryContainer,
+                        main: scheme.dark.secondaryContainer,
+                    },
+                    text: {
+                        primary: scheme.dark.onSurface,
+                        secondary: scheme.dark.onSurfaceVariant,
+                    },
+                },
             },
             light: {
                 palette: {
                     background: {
-                        default: lighten(themeColor, 0.94),
-                        paper: '#ffffff',
+                        default: scheme.light.shell,
+                        paper: scheme.light.card,
                     },
+                    divider: scheme.light.outlineVariant,
+                    m3: scheme.light,
                     primary: {
-                        main: themeColor,
+                        contrastText: scheme.light.onPrimary,
+                        main: scheme.light.primary,
                     },
-                } as any,
-            },
-        },
-        components: {
-            MuiAppBar: {
-                styleOverrides: {
-                    root: {
-                        backgroundColor: themeColor,
-                        backgroundImage: 'unset',
-                        color: appBarTextColor,
+                    secondary: {
+                        contrastText: scheme.light.onSecondaryContainer,
+                        main: scheme.light.secondaryContainer,
+                    },
+                    text: {
+                        primary: scheme.light.onSurface,
+                        secondary: scheme.light.onSurfaceVariant,
                     },
                 },
             },
-        } as any,
+        },
+        components: {
+            MuiCard: {
+                defaultProps: {
+                    elevation: 0,
+                },
+                styleOverrides: {
+                    root: ({ theme }) => ({
+                        backgroundColor: (theme.vars || theme).palette.m3.card,
+                        backgroundImage: 'none',
+                        borderRadius: kCardBorderRadiusPx,
+                    }),
+                },
+            },
+            MuiCardContent: {
+                styleOverrides: {
+                    root: ({ theme }) => ({
+                        padding: theme.spacing(2),
+                        '&:last-child': {
+                            paddingBottom: theme.spacing(2),
+                        },
+                    }),
+                },
+            },
+            MuiMenu: {
+                styleOverrides: {
+                    paper: ({ theme }) => ({
+                        backgroundColor: (theme.vars || theme).palette.m3.dockActive,
+                        backgroundImage: 'none',
+                        borderRadius: kCardBorderRadiusPx,
+                        marginTop: theme.spacing(1),
+                    }),
+                },
+            },
+            MuiPaper: {
+                styleOverrides: {
+                    root: {
+                        backgroundImage: 'none',
+                    },
+                },
+            },
+            MuiSkeleton: {
+                styleOverrides: {
+                    rounded: {
+                        borderRadius: kCardBorderRadiusPx,
+                    },
+                },
+            },
+            MuiDrawer: {
+                styleOverrides: {
+                    paperAnchorBottom: ({ theme }) => ({
+                        backgroundColor: (theme.vars || theme).palette.m3.shell,
+                        backgroundImage: 'none',
+                        borderTopLeftRadius: kSheetBorderRadiusPx,
+                        borderTopRightRadius: kSheetBorderRadiusPx,
+                    }),
+                },
+            },
+        },
         cssVariables: {
             colorSchemeSelector: 'class',
         },
         shape: {
-            borderRadius: 12,
+            borderRadius: kCardBorderRadiusPx,
         },
         typography: {
             fontFamily: kInterFont.style.fontFamily,
@@ -88,22 +167,14 @@ function createScheduleTheme(themeColor: string) {
 }
 
 /**
- * Full-viewport background container that matches the legacy schedule portal's tiled pattern and
- * bottom padding for the mobile navigation bar, switching seamlessly with CSS colour schemes.
+ * Full-viewport M3 tonal shell container replacing the legacy tiled background pattern.
  */
 const ScheduleBackground = styled(Box)(({ theme }) => ({
-    minHeight: '100vh',
-    paddingBottom: theme.spacing(6),
-    backgroundColor: (theme.vars || theme).palette.background.default,
-    backgroundImage: 'url(/images/schedule/background-light.png)',
-
-    [theme.breakpoints.up('md')]: {
-        paddingBottom: theme.spacing(1),
-    },
-
-    ...theme.applyStyles('dark', {
-        backgroundImage: 'url(/images/schedule/background-dark.png)',
-    }),
+    backgroundColor: (theme.vars || theme).palette.m3.shell,
+    color: (theme.vars || theme).palette.m3.onSurface,
+    display: 'flex',
+    flexDirection: 'column',
+    minHeight: '100dvh',
 }));
 
 /**
