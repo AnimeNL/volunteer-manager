@@ -103,7 +103,7 @@ function RouteAwareMobileNavigationBar() {
  */
 export function MobileNavigation() {
     return (
-        <MobileNavigationContainer elevation={3}>
+        <MobileNavigationContainer elevation={3} square>
             <Suspense fallback={ <MobileNavigationBar /> }>
                 <RouteAwareMobileNavigationBar />
             </Suspense>

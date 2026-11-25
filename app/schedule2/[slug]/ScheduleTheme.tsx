@@ -78,6 +78,9 @@ function createScheduleTheme(themeColor: string) {
         cssVariables: {
             colorSchemeSelector: 'class',
         },
+        shape: {
+            borderRadius: 12,
+        },
         typography: {
             fontFamily: kInterFont.style.fontFamily,
         },

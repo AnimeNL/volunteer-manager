@@ -9,8 +9,12 @@ import { useParams, usePathname } from 'next/navigation';
 
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import EventNoteIcon from '@mui/icons-material/EventNote';
+import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
 import GroupIcon from '@mui/icons-material/Group';
+import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import HomeIcon from '@mui/icons-material/Home';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import InfoIcon from '@mui/icons-material/Info';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -19,23 +23,94 @@ import ListItemText from '@mui/material/ListItemText';
 import { styled } from '@mui/material/styles';
 
 /**
- * Styled navigation item shared across all desktop sidebar entries.
+ * Material Design 3 rounded navigation item shared across all desktop sidebar entries, matching the
+ * theme's card border radius with a tonal primary active container.
  */
-const NavigationItem = styled(ListItemButton)(({ theme }) => ({
-    borderRadius: theme.spacing(1),
-    marginBottom: theme.spacing(1),
-})) as typeof ListItemButton;
+const NavigationItem = styled(ListItemButton)(({ theme }) => {
+    const palette = (theme.vars || theme).palette;
+
+    return {
+        borderRadius: theme.shape.borderRadius,
+        color: palette.text.primary,
+        marginBottom: theme.spacing(0.5),
+        minHeight: 44,
+        paddingLeft: theme.spacing(2),
+        paddingRight: theme.spacing(1.5),
+        transition: theme.transitions.create([ 'background-color', 'color' ], {
+            duration: theme.transitions.duration.shortest,
+        }),
+
+        '& .MuiListItemIcon-root': {
+            color: palette.text.secondary,
+            minWidth: 36,
+        },
+        '& .MuiListItemText-primary': {
+            fontSize: theme.typography.body2.fontSize,
+            fontWeight: 500,
+        },
+        '&.Mui-selected': {
+            backgroundColor: `color-mix(in srgb, ${palette.primary.main} 14%, transparent)`,
+            color: palette.primary.main,
+            '&:hover': {
+                backgroundColor: `color-mix(in srgb, ${palette.primary.main} 20%, transparent)`,
+            },
+            '& .MuiListItemIcon-root': {
+                color: 'inherit',
+            },
+            '& .MuiListItemText-primary': {
+                fontWeight: 600,
+            },
+        },
+
+        ...theme.applyStyles('dark', {
+            '&.Mui-selected': {
+                backgroundColor: `color-mix(in srgb, ${palette.primary.main} 22%, transparent)`,
+                color: palette.primary.light,
+                '&:hover': {
+                    backgroundColor: `color-mix(in srgb, ${palette.primary.main} 28%, transparent)`,
+                },
+            },
+        }),
+    };
+}) as typeof ListItemButton;
 
 /**
  * Navigation entries shown in the desktop sidebar shell, ordered spatially for directional view
  * transitions.
  */
 const kNavigationItems = [
-    { icon: <HomeIcon />, label: 'Overview', segment: '' },
-    { icon: <AccessTimeIcon />, label: 'Your schedule', segment: '/shifts' },
-    { icon: <EventNoteIcon />, label: 'Events', segment: '/areas' },
-    { icon: <InfoOutlinedIcon />, label: 'Knowledge base', segment: '/knowledge', disabled: true },
-    { icon: <GroupIcon />, label: 'Volunteers', segment: '/volunteers', disabled: true },
+    {
+        activeIcon: <HomeIcon fontSize="small" />,
+        icon: <HomeOutlinedIcon fontSize="small" />,
+        label: 'Overview',
+        segment: '',
+    },
+    {
+        activeIcon: <AccessTimeIcon fontSize="small" />,
+        icon: <AccessTimeIcon fontSize="small" />,
+        label: 'Your schedule',
+        segment: '/shifts',
+    },
+    {
+        activeIcon: <EventNoteIcon fontSize="small" />,
+        icon: <EventNoteOutlinedIcon fontSize="small" />,
+        label: 'Events',
+        segment: '/areas',
+    },
+    {
+        activeIcon: <InfoIcon fontSize="small" />,
+        disabled: true,
+        icon: <InfoOutlinedIcon fontSize="small" />,
+        label: 'Knowledge base',
+        segment: '/knowledge',
+    },
+    {
+        activeIcon: <GroupIcon fontSize="small" />,
+        disabled: true,
+        icon: <GroupOutlinedIcon fontSize="small" />,
+        label: 'Volunteers',
+        segment: '/volunteers',
+    },
 ];
 
 /**
@@ -81,13 +156,14 @@ function NavigationListView(props: NavigationListViewProps) {
         <List sx={{ paddingLeft: 2, paddingRight: 0, paddingY: 1 }}>
             { kNavigationItems.map((item, index) => {
                 const isActive = index === activeIndex;
+                const icon = isActive ? item.activeIcon : item.icon;
 
                 if (!slug || item.disabled) {
                     return (
                         <NavigationItem key={item.label} disabled={item.disabled}
                                         selected={isActive}>
                             <ListItemIcon>
-                                {item.icon}
+                                {icon}
                             </ListItemIcon>
                             <ListItemText primary={item.label} />
                         </NavigationItem>
@@ -100,7 +176,7 @@ function NavigationListView(props: NavigationListViewProps) {
                                     selected={isActive}
                                     transitionTypes={getTransitionTypes(activeIndex, index)}>
                         <ListItemIcon>
-                            {item.icon}
+                            {icon}
                         </ListItemIcon>
                         <ListItemText primary={item.label} />
                     </NavigationItem>
