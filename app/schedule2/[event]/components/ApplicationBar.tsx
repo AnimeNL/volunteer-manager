@@ -89,11 +89,22 @@ const PillDock = styled(Box, {
 });
 
 /**
+ * Props accepted by the <ApplicationBar> component.
+ */
+interface ApplicationBarProps {
+    /**
+     * Optional account menu button slot streamed behind `<Suspense>` from the Server Component
+     * layout so the user's avatar loads without blocking static App Shell prerendering.
+     */
+    accountMenu?: React.ReactNode;
+}
+
+/**
  * Outer M3 Expressive pill dock header for `app/schedule2/`. Displays the active page title with a
  * subtle search trigger, morphing in place across the content width minus the circular account
  * button when search is activated.
  */
-export function ApplicationBar() {
+export function ApplicationBar(props: ApplicationBarProps) {
     const title = useScheduleTitle();
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -179,7 +190,7 @@ export function ApplicationBar() {
                 ) }
             </PillDock>
 
-            <AccountMenuButton />
+            { props.accountMenu ?? <AccountMenuButton /> }
         </HeaderRow>
     );
 }

@@ -5,6 +5,7 @@
 
 import { useCallback, useState } from 'react';
 
+import Avatar from '@mui/material/Avatar';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
@@ -25,6 +26,20 @@ import { kHeaderBarHeightPx } from '../Constants';
 import { signOutAction } from '@lib/auth/actions';
 
 /**
+ * Extracts up to two uppercase initials from a user's display name for the avatar fallback.
+ */
+function getInitials(name: string): string {
+    const trimmed = name.trim();
+    if (!trimmed)
+        return '';
+
+    const uppercase = [ ...trimmed ].filter(char => char >= 'A' && char <= 'Z');
+    return uppercase.length
+        ? uppercase.slice(0, 2).join('')
+        : trimmed[0].toUpperCase();
+}
+
+/**
  * Circular M3 tonal account button matching the exact height of the outer title/search pill dock.
  */
 const TonalAccountButton = styled(IconButton)(({ theme }) => {
@@ -35,6 +50,8 @@ const TonalAccountButton = styled(IconButton)(({ theme }) => {
         color: palette.m3.onSecondaryContainer,
         flexShrink: 0,
         height: kHeaderBarHeightPx,
+        overflow: 'hidden',
+        padding: 0,
         width: kHeaderBarHeightPx,
         '&:hover': {
             backgroundColor: `color-mix(in srgb, ${palette.m3.secondaryContainer} 88%, ${palette.m3.onSecondaryContainer})`,
@@ -43,10 +60,42 @@ const TonalAccountButton = styled(IconButton)(({ theme }) => {
 });
 
 /**
+ * Circular avatar filling `<TonalAccountButton>`, falling back to tonal initials or a person icon.
+ */
+const AccountAvatar = styled(Avatar)(({ theme }) => {
+    const palette = (theme.vars || theme).palette;
+
+    return {
+        backgroundColor: 'transparent',
+        color: palette.m3.onSecondaryContainer,
+        fontSize: '0.875rem',
+        fontWeight: 600,
+        height: kHeaderBarHeightPx,
+        width: kHeaderBarHeightPx,
+    };
+});
+
+/**
+ * Props accepted by the <AccountMenuButton> component.
+ */
+interface AccountMenuButtonProps {
+    /**
+     * URL of the signed-in user's avatar image, if set.
+     */
+    avatarUrl?: string;
+
+    /**
+     * Display name of the signed-in user for alt text and initials fallback.
+     */
+    userName?: string;
+}
+
+/**
  * Circular M3 tonal account button and dropdown menu providing colour-scheme switching and
  * sign-out for the `app/schedule2/` App Shell.
  */
-export function AccountMenuButton() {
+export function AccountMenuButton(props: AccountMenuButtonProps) {
+    const { avatarUrl, userName } = props;
     const { mode, setMode } = useColorScheme();
     const [ anchorEl, setAnchorEl ] = useState<HTMLElement | null>(null);
 
@@ -69,10 +118,14 @@ export function AccountMenuButton() {
             window.location.href = response.returnUrl ?? '/';
     }, []);
 
+    const initials = userName ? getInitials(userName) : '';
+
     return (
         <>
             <TonalAccountButton aria-label="Account menu" onClick={handleOpen}>
-                <PersonIcon fontSize="small" />
+                <AccountAvatar alt={userName} src={avatarUrl}>
+                    { initials || <PersonIcon fontSize="small" /> }
+                </AccountAvatar>
             </TonalAccountButton>
 
             <Menu anchorEl={anchorEl}
