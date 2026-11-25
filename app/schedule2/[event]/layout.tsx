@@ -99,7 +99,7 @@ export default async function ScheduleLayout(props: LayoutProps<'/schedule2/[eve
                                     <AuthenticatedAccountMenu params={props.params} />
                                 </Suspense>
                             } />
-                        <Stack component="main" spacing={1.5} sx={{
+                        <Stack component="main" spacing={1.5} useFlexGap sx={{
                             bgcolor: 'm3.sheet',
                             borderRadius: {
                                 xs: `${kSheetBorderRadiusPx}px ${kSheetBorderRadiusPx}px 0 0`,
