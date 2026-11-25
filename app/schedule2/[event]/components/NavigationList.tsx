@@ -28,8 +28,11 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import { styled } from '@mui/material/styles';
 
+import type { ExpandableNavigationSectionId } from './NavigationActions';
 import type { NavigationData } from '../lib/navigationTypes';
 import { getNavigationTransitionTypes } from '../lib/navigationTypes';
+
+import { updateNavigationSectionExpanded } from './NavigationActions';
 
 /**
  * Props accepted by the <NavigationLink> component.
@@ -115,6 +118,7 @@ interface ExpandableNavigationSectionProps {
     items: NavigationSubItem[];
     label: string;
     onNavigate?: () => void;
+    sectionId: ExpandableNavigationSectionId;
     selected: boolean;
     sheet?: boolean;
     transitionTypes?: string[];
@@ -129,6 +133,14 @@ export function ExpandableNavigationSection(props: ExpandableNavigationSectionPr
     const hasSubItems = props.items.length > 0;
     const expandAriaLabel = `${expanded ? 'Collapse' : 'Expand'} ${props.expandLabel}`;
 
+    function handleToggleExpanded() {
+        const nextExpanded = !expanded;
+        setExpanded(nextExpanded);
+
+        updateNavigationSectionExpanded(props.sectionId, nextExpanded).catch(error =>
+            console.warn(`Unable to store navigation state (${props.sectionId}): ${error}`));
+    }
+
     return (
         <>
             <ListItem disablePadding sx={{ mb: 0.5 }}
@@ -138,7 +150,7 @@ export function ExpandableNavigationSection(props: ExpandableNavigationSectionPr
                               aria-label={expandAriaLabel}
                               edge="end"
                               expanded={expanded}
-                              onClick={() => setExpanded(open => !open)}
+                              onClick={handleToggleExpanded}
                               sheet={props.sheet}
                               size="small">
                               <ExpandMoreIcon fontSize="small" />
@@ -249,12 +261,14 @@ export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
             { dutyBooks.length > 0 &&
                 <ExpandableNavigationSection
                     activeIcon={ <BookIcon fontSize="small" /> }
+                    defaultExpanded={data.expandDutyBook}
                     expandLabel="duty books"
                     href={dutyBookHref}
                     icon={ <BookOutlinedIcon fontSize="small" /> }
                     items={dutyBookItems}
                     label="Duty book"
                     onNavigate={onNavigate}
+                    sectionId="duty-book"
                     selected={isDutyBookActive}
                     sheet={sheet}
                     transitionTypes={

@@ -44,6 +44,13 @@ export type UserSettingsMap = {
 
     'user-ai-example-messages': string;
     'user-ai-example-messages-promo-time': number;
+
+    // ---------------------------------------------------------------------------------------------
+    // Schedule settings
+    // ---------------------------------------------------------------------------------------------
+
+    'user-schedule-expand-duty-book': boolean;
+    'user-schedule-expand-events': boolean;
 };
 
 /**

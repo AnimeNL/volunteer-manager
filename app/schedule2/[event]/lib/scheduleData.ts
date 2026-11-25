@@ -7,6 +7,7 @@ import { cacheLife, cacheTag } from 'next/cache';
 
 import type { NavigationArea, NavigationData } from './navigationTypes';
 import { getScheduleAccess } from './getScheduleAccess';
+import { readUserSettings } from '@lib/UserSettings';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots, tContent,
     tContentCategories, tEventsTeams, tSchedule, tShifts, tTeams, tUsersEvents } from '@lib/database';
 
@@ -44,12 +45,17 @@ export const getNavigationData = cache(
         const festivalId = event.integrations?.anPlanFestivalId;
         const memberTeams = events.get(event.slug);
 
-        const [ hasShifts, areas, dutyBookTeams, knowledgeCategories ] = await Promise.all([
-            hasUserEventShifts(event.id, user.id),
-            festivalId ? getProgramAreas(festivalId) : Promise.resolve([]),
-            getEventDutyBookTeams(event.id),
-            getEventKnowledgeCategories(event.id),
-        ]);
+        const [ hasShifts, areas, dutyBookTeams, knowledgeCategories, userSettings ] =
+            await Promise.all([
+                hasUserEventShifts(event.id, user.id),
+                festivalId ? getProgramAreas(festivalId) : Promise.resolve([]),
+                getEventDutyBookTeams(event.id),
+                getEventKnowledgeCategories(event.id),
+                readUserSettings(user.id, [
+                    'user-schedule-expand-duty-book',
+                    'user-schedule-expand-events',
+                ], /* disableFallback= */ true),
+            ]);
 
         const dutyBooks = dutyBookTeams
             .filter(team =>
@@ -68,6 +74,8 @@ export const getNavigationData = cache(
             areas,
             dutyBooks,
             eventSlug: event.slug,
+            expandDutyBook: userSettings['user-schedule-expand-duty-book'] ?? false,
+            expandEvents: userSettings['user-schedule-expand-events'] ?? true,
             hasHelpRequests,
             hasKnowledgeBase,
             hasSettings,

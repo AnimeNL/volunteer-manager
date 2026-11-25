@@ -15,10 +15,14 @@ React View Transitions.
 * Cache reusable server reads with `'use cache'`, `cacheLife()`, and `cacheTag()`. Stream live or
   per-user data behind granular `<Suspense>` boundaries with meaningful fallbacks.
 
-## No API Routes for Data Fetching
+## No API Routes for Data Fetching & Server Action Auth
 * Do not add or call `/api/*` endpoints to fetch schedule data. Load data directly in React Server
   Components behind `<Suspense>` boundaries, and use Server Actions (following `app/AGENTS.md`) for
   mutations.
+* Server Actions in `app/schedule2/` are called by volunteers, not only administrators. Always use
+  `requireVolunteerAuthentication()`, `requireVolunteerAuthenticationWithEvent()`, or
+  `requireVolunteerAuthenticationWithEventAndTeam()` from `@lib/auth` — never
+  `requireAuthentication*()`, which requires administrative access (`event.visible`).
 
 ## View Transitions
 * Use React's `<ViewTransition>` component and `<Link transitionTypes={[...]}>` for route

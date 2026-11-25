@@ -3,11 +3,20 @@
 
 import { PlaceholderPage } from '../components/PlaceholderPage';
 
+import Paper from '@mui/material/Paper';
+
 /**
  * Placeholder Hotel room page for the schedule portal.
  */
 export default function ScheduleHotelPage(props: PageProps<'/schedule2/[event]/hotel'>) {
-    return <PlaceholderPage params={props.params} title="Hotel room" />;
+    return (
+        <>
+            <PlaceholderPage params={props.params} title="Hotel room" />
+            <Paper sx={{ p: 2 }}>
+                Page content goes here.
+            </Paper>
+        </>
+    );
 }
 
 export const instant = true;

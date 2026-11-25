@@ -32,6 +32,8 @@ export interface NavigationData {
     areas: NavigationArea[];
     dutyBooks: NavigationDutyBook[];
     eventSlug: string;
+    expandDutyBook: boolean;
+    expandEvents: boolean;
     hasHelpRequests: boolean;
     hasKnowledgeBase: boolean;
     hasSettings: boolean;

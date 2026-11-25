@@ -37,7 +37,7 @@ export function DesktopNavigationList(props: React.PropsWithChildren) {
  * Renders volunteer-specific desktop sidebar entries streamed in behind `<Suspense>`.
  */
 export function VolunteerNavigationItems(props: { data: NavigationData }) {
-    const { areas, eventSlug, hasShifts } = props.data;
+    const { areas, eventSlug, expandEvents, hasShifts } = props.data;
 
     const pathname = usePathname();
     const relativePathname = getRelativeNavigationPath(pathname, eventSlug);
@@ -66,12 +66,13 @@ export function VolunteerNavigationItems(props: { data: NavigationData }) {
 
             <ExpandableNavigationSection
                 activeIcon={ <EventNoteIcon fontSize="small" /> }
-                defaultExpanded
+                defaultExpanded={expandEvents}
                 expandLabel="areas"
                 href={`/schedule2/${eventSlug}/areas`}
                 icon={ <EventNoteOutlinedIcon fontSize="small" /> }
                 items={areaItems}
                 label="Events"
+                sectionId="events"
                 selected={relativePathname === '/areas'}
                 transitionTypes={getNavigationTransitionTypes(relativePathname, '/areas')} />
 
