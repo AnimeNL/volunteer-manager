@@ -8,9 +8,7 @@ import Skeleton from '@mui/material/Skeleton';
 
 import { DesktopNavigationList, VolunteerNavigationItems } from './DesktopNavigationList';
 import { getEvent } from '@lib/cache';
-import { getPendingHelpRequestsCount, getProgramAreas, getUserDutyBooks, getUserEventShifts,
-    hasKnowledgeBaseContent } from '../lib/scheduleData';
-import { getScheduleAccess } from '../lib/getScheduleAccess';
+import { getNavigationData } from '../lib/scheduleData';
 
 import { kDesktopMenuWidthPx } from '../Constants';
 
@@ -40,57 +38,14 @@ async function EventBannerImage(props: DesktopNavigationProps) {
 }
 
 /**
- * Streams volunteer-specific sidebar items behind `<Suspense>`. Returns null when the visitor is
- * not signed in or lacks access to this event's schedule portal.
+ * Streams volunteer-specific sidebar items behind `<Suspense>` using the shared request-cached
+ * `getNavigationData()` loader.
  */
 async function AuthenticatedNavigationItems(props: DesktopNavigationProps) {
-    const { event: eventSlug } = await props.params;
-    const access = await getScheduleAccess(eventSlug);
-    if (!access)
-        return null;
+    const { event } = await props.params;
+    const data = await getNavigationData(event);
 
-    const festivalId = access.event.integrations?.anPlanFestivalId;
-    const canViewHelpRequests = access.access.can('event.help-requests', {
-        event: access.event.slug,
-    });
-
-    const [ shifts, programAreas, dutyBooks, pendingHelpRequests, hasKnowledgeBase ] =
-        await Promise.all([
-            getUserEventShifts(access.event.id, access.user.id),
-            festivalId ? getProgramAreas(festivalId) : Promise.resolve([]),
-            getUserDutyBooks(access.event.id, access.event.slug, access.user.id, access.access),
-            canViewHelpRequests
-                ? getPendingHelpRequestsCount(access.event.id)
-                : Promise.resolve(undefined),
-            hasKnowledgeBaseContent(
-                access.event.id, access.event.slug, access.user.id, access.access),
-        ]);
-
-    const currentMs = access.currentTime.epochMilliseconds;
-    const hasActiveShift = shifts.some(
-        shift => shift.startEpochMs <= currentMs && shift.endEpochMs > currentMs);
-
-    const areas = programAreas.map(area => ({
-        activeCount: area.timeslots.reduce(
-            (count, slot) => count + (
-                slot.startEpochMs <= currentMs && slot.endEpochMs > currentMs ? 1 : 0),
-            0),
-        id: area.id,
-        name: area.name,
-    }));
-
-    return (
-        <VolunteerNavigationItems
-            areas={areas}
-            dutyBooks={dutyBooks}
-            hasActiveShift={hasActiveShift}
-            hasKnowledgeBase={hasKnowledgeBase}
-            hasShifts={shifts.length > 0}
-            helpRequests={pendingHelpRequests !== undefined
-                ? { pending: pendingHelpRequests }
-                : undefined}
-            slug={access.event.slug} />
-    );
+    return data ? <VolunteerNavigationItems data={data} /> : null;
 }
 
 /**

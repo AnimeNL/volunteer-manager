@@ -28,14 +28,43 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import NotListedLocationIcon from '@mui/icons-material/NotListedLocation';
 import NotListedLocationOutlinedIcon from '@mui/icons-material/NotListedLocationOutlined';
-import { styled } from '@mui/material/styles';
+import { type Theme, styled } from '@mui/material/styles';
+
+import type { NavigationArea, NavigationData, NavigationDutyBook } from '../lib/navigationTypes';
+import { getNavigationTransitionTypes, getRelativeNavigationPath } from '../lib/navigationTypes';
 
 /**
- * Spatial order of top-level navigation segments for directional view transitions.
+ * Shared tonal primary selected highlight styles for top-level and nested sidebar items.
  */
-const kSectionOrder = [
-    '', '/shifts', '/areas', '/duty-book', '/help-requests', '/knowledge', '/volunteers',
-];
+function selectedHighlightStyles(theme: Theme) {
+    const palette = (theme.vars || theme).palette;
+
+    return {
+        '&.Mui-selected': {
+            backgroundColor: `color-mix(in srgb, ${palette.primary.main} 18%, transparent)`,
+            color: palette.primary.main,
+            '&:hover': {
+                backgroundColor: `color-mix(in srgb, ${palette.primary.main} 24%, transparent)`,
+            },
+            '& .MuiListItemIcon-root': {
+                color: 'inherit',
+            },
+            '& .MuiListItemText-primary': {
+                fontWeight: 600,
+            },
+        },
+
+        ...theme.applyStyles('dark', {
+            '&.Mui-selected': {
+                backgroundColor: `color-mix(in srgb, ${palette.primary.main} 28%, transparent)`,
+                color: palette.primary.light,
+                '&:hover': {
+                    backgroundColor: `color-mix(in srgb, ${palette.primary.main} 34%, transparent)`,
+                },
+            },
+        }),
+    };
+}
 
 /**
  * Material Design 3 rounded navigation item shared across all desktop sidebar entries, matching the
@@ -63,29 +92,8 @@ const NavigationItem = styled(ListItemButton)(({ theme }) => {
             fontSize: theme.typography.body2.fontSize,
             fontWeight: 500,
         },
-        '&.Mui-selected': {
-            backgroundColor: `color-mix(in srgb, ${palette.primary.main} 18%, transparent)`,
-            color: palette.primary.main,
-            '&:hover': {
-                backgroundColor: `color-mix(in srgb, ${palette.primary.main} 24%, transparent)`,
-            },
-            '& .MuiListItemIcon-root': {
-                color: 'inherit',
-            },
-            '& .MuiListItemText-primary': {
-                fontWeight: 600,
-            },
-        },
 
-        ...theme.applyStyles('dark', {
-            '&.Mui-selected': {
-                backgroundColor: `color-mix(in srgb, ${palette.primary.main} 28%, transparent)`,
-                color: palette.primary.light,
-                '&:hover': {
-                    backgroundColor: `color-mix(in srgb, ${palette.primary.main} 34%, transparent)`,
-                },
-            },
-        }),
+        ...selectedHighlightStyles(theme),
     };
 }) as typeof ListItemButton;
 
@@ -110,7 +118,7 @@ const SubMenuList = styled(List)(({ theme }) => {
 });
 
 /**
- * Nested area navigation item inside an expanded sidebar section.
+ * Nested navigation item inside an expanded sidebar section.
  */
 const SubNavigationItem = styled(ListItemButton)(({ theme }) => {
     const palette = (theme.vars || theme).palette;
@@ -135,26 +143,8 @@ const SubNavigationItem = styled(ListItemButton)(({ theme }) => {
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
         },
-        '&.Mui-selected': {
-            backgroundColor: `color-mix(in srgb, ${palette.primary.main} 18%, transparent)`,
-            color: palette.primary.main,
-            '&:hover': {
-                backgroundColor: `color-mix(in srgb, ${palette.primary.main} 24%, transparent)`,
-            },
-            '& .MuiListItemText-primary': {
-                fontWeight: 600,
-            },
-        },
 
-        ...theme.applyStyles('dark', {
-            '&.Mui-selected': {
-                backgroundColor: `color-mix(in srgb, ${palette.primary.main} 28%, transparent)`,
-                color: palette.primary.light,
-                '&:hover': {
-                    backgroundColor: `color-mix(in srgb, ${palette.primary.main} 34%, transparent)`,
-                },
-            },
-        }),
+        ...selectedHighlightStyles(theme),
     };
 }) as typeof ListItemButton;
 
@@ -238,55 +228,18 @@ const ExpandButton = styled(IconButton, {
 }));
 
 /**
- * Resolves the relative pathname under `/schedule2/[event]`.
- */
-function getRelativePathname(pathname: string, slug?: string): string {
-    const baseUrl = slug ? `/schedule2/${slug}` : '';
-    return baseUrl && pathname.startsWith(baseUrl) ? pathname.slice(baseUrl.length) : '';
-}
-
-/**
- * Determines directional view-transition types between top-level sidebar sections.
- */
-function getTransitionTypes(relativePathname: string, targetSegment: string): string[] | undefined {
-    const currentIndex = kSectionOrder.findIndex(segment =>
-        segment === '' ? relativePathname === '' : relativePathname.startsWith(segment));
-    const targetIndex = kSectionOrder.indexOf(targetSegment);
-
-    if (currentIndex < 0 || targetIndex < 0 || currentIndex === targetIndex)
-        return undefined;
-
-    return targetIndex > currentIndex ? [ 'nav-forward' ] : [ 'nav-back' ];
-}
-
-/**
- * Props accepted by the <OverviewItem> component.
- */
-interface OverviewItemProps {
-    /**
-     * Current pathname relative to `/schedule2/[event]`, when resolved on the client.
-     */
-    relativePathname?: string;
-
-    /**
-     * Current event slug, when resolved from route params inside `<Suspense>`.
-     */
-    slug?: string;
-}
-
-/**
  * Renders the always-visible Overview entry. Used both as the static `<Suspense>` fallback and for
  * the live route-aware item to prevent layout shift.
  */
-function OverviewItem(props: OverviewItemProps) {
-    const { relativePathname, slug } = props;
+function OverviewItem(props: { eventSlug?: string; relativePathname?: string }) {
+    const { eventSlug, relativePathname } = props;
 
     const isActive = relativePathname === '';
     const icon = isActive
         ? <HomeIcon fontSize="small" />
         : <HomeOutlinedIcon fontSize="small" />;
 
-    if (!slug) {
+    if (!eventSlug) {
         return (
             <NavigationItem selected={isActive}>
                 <ListItemIcon>
@@ -298,7 +251,7 @@ function OverviewItem(props: OverviewItemProps) {
     }
 
     return (
-        <NavigationItem component={Link} href={`/schedule2/${slug}`}
+        <NavigationItem component={Link} href={`/schedule2/${eventSlug}`}
                         selected={isActive}
                         transitionTypes={relativePathname ? [ 'nav-back' ] : undefined}>
             <ListItemIcon>
@@ -316,140 +269,46 @@ function RouteAwareOverviewItem() {
     const params = useParams<{ event?: string }>();
     const pathname = usePathname();
 
-    const slug = typeof params.event === 'string' ? params.event : undefined;
-    const relativePathname = getRelativePathname(pathname, slug);
+    const eventSlug = typeof params.event === 'string' ? params.event : undefined;
+    const relativePathname = getRelativeNavigationPath(pathname, eventSlug);
 
-    return <OverviewItem relativePathname={relativePathname} slug={slug} />;
+    return <OverviewItem eventSlug={eventSlug} relativePathname={relativePathname} />;
 }
 
 /**
- * Program area summary passed to the desktop sidebar for rendering nested Events entries.
+ * Expandable Events section with per-area rows (expanded by default) and subtle active counters.
  */
-interface NavigationAreaItem {
-    activeCount: number;
-    id: number;
-    name: string;
-}
+function EventsSection(props: {
+    areas: NavigationArea[];
+    eventSlug: string;
+    relativePathname: string;
+}) {
+    const { areas, eventSlug, relativePathname } = props;
+    const [ expanded, setExpanded ] = useState<boolean>(true);
+    const handleToggle = useCallback(() => setExpanded(open => !open), []);
 
-/**
- * Duty Book summary passed to the desktop sidebar for rendering team-scoped Duty Book entries.
- */
-interface NavigationDutyBookItem {
-    name: string;
-    team: string;
-    unread: number;
-}
-
-/**
- * Props accepted by the <VolunteerNavigationItems> component.
- */
-interface VolunteerNavigationItemsProps {
-    /**
-     * Program areas for the event, rendered as expandable sub-rows under Events.
-     */
-    areas: NavigationAreaItem[];
-
-    /**
-     * Duty Books accessible to the signed-in volunteer, with unread incident counts.
-     */
-    dutyBooks: NavigationDutyBookItem[];
-
-    /**
-     * Whether the signed-in volunteer currently has an active shift.
-     */
-    hasActiveShift: boolean;
-
-    /**
-     * Whether the event has at least one visible Knowledge Base category for this user.
-     */
-    hasKnowledgeBase: boolean;
-
-    /**
-     * Whether the signed-in volunteer has at least one scheduled shift for this event.
-     */
-    hasShifts: boolean;
-
-    /**
-     * Pending help requests summary when the user has access to Help requests.
-     */
-    helpRequests?: { pending: number };
-
-    /**
-     * Event slug for building navigation destinations.
-     */
-    slug: string;
-}
-
-/**
- * Renders volunteer-specific desktop sidebar entries streamed in behind `<Suspense>`.
- */
-export function VolunteerNavigationItems(props: VolunteerNavigationItemsProps) {
-    const {
-        areas, dutyBooks, hasActiveShift, hasKnowledgeBase, hasShifts, helpRequests, slug,
-    } = props;
-
-    const pathname = usePathname();
-    const relativePathname = getRelativePathname(pathname, slug);
-
-    const [ eventsExpanded, setEventsExpanded ] = useState<boolean>(true);
-    const [ dutyBookExpanded, setDutyBookExpanded ] = useState<boolean>(false);
-
-    const handleToggleEvents = useCallback(() => {
-        setEventsExpanded(expanded => !expanded);
-    }, []);
-
-    const handleToggleDutyBook = useCallback(() => {
-        setDutyBookExpanded(expanded => !expanded);
-    }, []);
-
-    const isShiftsActive = relativePathname.startsWith('/shifts');
     const isEventsActive = relativePathname === '/areas';
-    const isHelpRequestsActive = relativePathname.startsWith('/help-requests');
-    const isKnowledgeBaseActive = relativePathname.startsWith('/knowledge');
-    const isVolunteersActive = relativePathname.startsWith('/volunteers');
     const totalActiveEvents = areas.reduce((sum, area) => sum + area.activeCount, 0);
-
-    const hasMultipleDutyBooks = dutyBooks.length > 1;
-    const totalUnreadDutyBook = dutyBooks.reduce((sum, entry) => sum + entry.unread, 0);
-    const isDutyBookActive = hasMultipleDutyBooks
-        ? relativePathname === '/duty-book'
-        : relativePathname.startsWith('/duty-book');
-    const dutyBookHref = hasMultipleDutyBooks
-        ? `/schedule2/${slug}/duty-book`
-        : dutyBooks.length === 1
-            ? `/schedule2/${slug}/duty-book/${dutyBooks[0].team}`
-            : '';
+    const transitionTypes = getNavigationTransitionTypes(relativePathname, '/areas');
 
     return (
         <>
-            { hasShifts &&
-                <NavigationItem component={Link} href={`/schedule2/${slug}/shifts`}
-                                selected={isShiftsActive}
-                                transitionTypes={getTransitionTypes(relativePathname, '/shifts')}>
-                    <ListItemIcon>
-                        <AccessTimeIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText primary="Your schedule" />
-                    { hasActiveShift &&
-                        <ActivityDot aria-label="Active shift" title="Active shift" /> }
-                </NavigationItem> }
-
             <ListItem disablePadding sx={{ mb: 0.5 }}
                       secondaryAction={ areas.length > 0 ? (
                           <ExpandButton
-                              aria-expanded={eventsExpanded}
-                              aria-label={eventsExpanded ? 'Collapse areas' : 'Expand areas'}
+                              aria-expanded={expanded}
+                              aria-label={expanded ? 'Collapse areas' : 'Expand areas'}
                               edge="end"
-                              expanded={eventsExpanded}
-                              onClick={handleToggleEvents}
+                              expanded={expanded}
+                              onClick={handleToggle}
                               size="small">
                               <ExpandMoreIcon fontSize="small" />
                           </ExpandButton>
                       ) : undefined }>
-                <NavigationItem component={Link} href={`/schedule2/${slug}/areas`}
+                <NavigationItem component={Link} href={`/schedule2/${eventSlug}/areas`}
                                 selected={isEventsActive}
                                 sx={areas.length > 0 ? { mb: 0, pr: 5 } : { mb: 0 }}
-                                transitionTypes={getTransitionTypes(relativePathname, '/areas')}>
+                                transitionTypes={transitionTypes}>
                     <ListItemIcon>
                         { isEventsActive
                             ? <EventNoteIcon fontSize="small" />
@@ -464,7 +323,7 @@ export function VolunteerNavigationItems(props: VolunteerNavigationItemsProps) {
             </ListItem>
 
             { areas.length > 0 &&
-                <Collapse in={eventsExpanded} unmountOnExit>
+                <Collapse in={expanded} unmountOnExit>
                     <SubMenuList disablePadding>
                         { areas.map(area => {
                             const areaPath = `/areas/${area.id}`;
@@ -472,14 +331,10 @@ export function VolunteerNavigationItems(props: VolunteerNavigationItemsProps) {
                                 relativePathname.startsWith(`${areaPath}/`);
 
                             return (
-                                <SubNavigationItem
-                                    key={area.id}
-                                    component={Link}
-                                    href={`/schedule2/${slug}${areaPath}`}
-                                    selected={isAreaActive}
-                                    transitionTypes={
-                                        getTransitionTypes(relativePathname, '/areas')
-                                    }>
+                                <SubNavigationItem key={area.id} component={Link}
+                                                   href={`/schedule2/${eventSlug}${areaPath}`}
+                                                   selected={isAreaActive}
+                                                   transitionTypes={transitionTypes}>
                                     <ListItemText primary={area.name} />
                                     { area.activeCount > 0 &&
                                         <CounterBadge
@@ -491,85 +346,141 @@ export function VolunteerNavigationItems(props: VolunteerNavigationItemsProps) {
                         }) }
                     </SubMenuList>
                 </Collapse> }
+        </>
+    );
+}
 
-            { dutyBooks.length > 0 &&
-                <>
-                    <ListItem disablePadding sx={{ mb: 0.5 }}
-                              secondaryAction={ hasMultipleDutyBooks ? (
-                                  <ExpandButton
-                                      aria-expanded={dutyBookExpanded}
-                                      aria-label={
-                                          dutyBookExpanded
-                                              ? 'Collapse duty books'
-                                              : 'Expand duty books'
-                                      }
-                                      edge="end"
-                                      expanded={dutyBookExpanded}
-                                      onClick={handleToggleDutyBook}
-                                      size="small">
-                                      <ExpandMoreIcon fontSize="small" />
-                                  </ExpandButton>
-                              ) : undefined }>
-                        <NavigationItem
-                            component={Link}
-                            href={dutyBookHref}
-                            selected={isDutyBookActive}
-                            sx={hasMultipleDutyBooks ? { mb: 0, pr: 5 } : { mb: 0 }}
-                            transitionTypes={getTransitionTypes(relativePathname, '/duty-book')}>
-                            <ListItemIcon>
-                                { isDutyBookActive
-                                    ? <BookIcon fontSize="small" />
-                                    : <BookOutlinedIcon fontSize="small" /> }
-                            </ListItemIcon>
-                            <ListItemText primary="Duty book" />
-                            { totalUnreadDutyBook > 0 &&
-                                <CounterBadge
-                                    aria-label={`${totalUnreadDutyBook} unread duty book items`}
-                                    tone="urgent">
-                                    {totalUnreadDutyBook}
-                                </CounterBadge> }
-                        </NavigationItem>
-                    </ListItem>
+/**
+ * Expandable Duty book section (collapsed by default) with urgent unread counters.
+ */
+function DutyBookSection(props: {
+    dutyBooks: NavigationDutyBook[];
+    eventSlug: string;
+    relativePathname: string;
+}) {
+    const { dutyBooks, eventSlug, relativePathname } = props;
+    const [ expanded, setExpanded ] = useState<boolean>(false);
+    const handleToggle = useCallback(() => setExpanded(open => !open), []);
 
-                    { hasMultipleDutyBooks &&
-                        <Collapse in={dutyBookExpanded} unmountOnExit>
-                            <SubMenuList disablePadding>
-                                { dutyBooks.map(dutyBook => {
-                                    const dutyBookPath = `/duty-book/${dutyBook.team}`;
-                                    const isTeamActive = relativePathname === dutyBookPath ||
-                                        relativePathname.startsWith(`${dutyBookPath}/`);
+    if (!dutyBooks.length)
+        return null;
 
-                                    return (
-                                        <SubNavigationItem
-                                            key={dutyBook.team}
-                                            component={Link}
-                                            href={`/schedule2/${slug}${dutyBookPath}`}
-                                            selected={isTeamActive}
-                                            transitionTypes={
-                                                getTransitionTypes(relativePathname, '/duty-book')
-                                            }>
-                                            <ListItemText primary={dutyBook.name} />
-                                            { dutyBook.unread > 0 &&
-                                                <CounterBadge
-                                                    aria-label={
-                                                        `${dutyBook.unread} unread duty book items`
-                                                    }
-                                                    tone="urgent">
-                                                    {dutyBook.unread}
-                                                </CounterBadge> }
-                                        </SubNavigationItem>
-                                    );
-                                }) }
-                            </SubMenuList>
-                        </Collapse> }
-                </> }
+    const hasMultiple = dutyBooks.length > 1;
+    const totalUnread = dutyBooks.reduce((sum, entry) => sum + entry.unread, 0);
+    const isActive = hasMultiple
+        ? relativePathname === '/duty-book'
+        : relativePathname.startsWith('/duty-book');
+    const href = hasMultiple
+        ? `/schedule2/${eventSlug}/duty-book`
+        : `/schedule2/${eventSlug}/duty-book/${dutyBooks[0].team}`;
+    const transitionTypes = getNavigationTransitionTypes(relativePathname, '/duty-book');
+
+    return (
+        <>
+            <ListItem disablePadding sx={{ mb: 0.5 }}
+                      secondaryAction={ hasMultiple ? (
+                          <ExpandButton
+                              aria-expanded={expanded}
+                              aria-label={expanded ? 'Collapse duty books' : 'Expand duty books'}
+                              edge="end"
+                              expanded={expanded}
+                              onClick={handleToggle}
+                              size="small">
+                              <ExpandMoreIcon fontSize="small" />
+                          </ExpandButton>
+                      ) : undefined }>
+                <NavigationItem component={Link} href={href} selected={isActive}
+                                sx={hasMultiple ? { mb: 0, pr: 5 } : { mb: 0 }}
+                                transitionTypes={transitionTypes}>
+                    <ListItemIcon>
+                        { isActive
+                            ? <BookIcon fontSize="small" />
+                            : <BookOutlinedIcon fontSize="small" /> }
+                    </ListItemIcon>
+                    <ListItemText primary="Duty book" />
+                    { totalUnread > 0 &&
+                        <CounterBadge aria-label={`${totalUnread} unread duty book items`}
+                                      tone="urgent">
+                            {totalUnread}
+                        </CounterBadge> }
+                </NavigationItem>
+            </ListItem>
+
+            { hasMultiple &&
+                <Collapse in={expanded} unmountOnExit>
+                    <SubMenuList disablePadding>
+                        { dutyBooks.map(dutyBook => {
+                            const dutyBookPath = `/duty-book/${dutyBook.team}`;
+                            const isTeamActive = relativePathname === dutyBookPath ||
+                                relativePathname.startsWith(`${dutyBookPath}/`);
+
+                            return (
+                                <SubNavigationItem key={dutyBook.team} component={Link}
+                                                   href={`/schedule2/${eventSlug}${dutyBookPath}`}
+                                                   selected={isTeamActive}
+                                                   transitionTypes={transitionTypes}>
+                                    <ListItemText primary={dutyBook.name} />
+                                    { dutyBook.unread > 0 &&
+                                        <CounterBadge
+                                            aria-label={`${dutyBook.unread} unread duty book items`}
+                                            tone="urgent">
+                                            {dutyBook.unread}
+                                        </CounterBadge> }
+                                </SubNavigationItem>
+                            );
+                        }) }
+                    </SubMenuList>
+                </Collapse> }
+        </>
+    );
+}
+
+/**
+ * Renders volunteer-specific desktop sidebar entries streamed in behind `<Suspense>`.
+ */
+export function VolunteerNavigationItems(props: { data: NavigationData }) {
+    const {
+        areas, dutyBooks, eventSlug, hasActiveShift, hasKnowledgeBase, hasShifts, helpRequests,
+    } = props.data;
+
+    const pathname = usePathname();
+    const relativePathname = getRelativeNavigationPath(pathname, eventSlug);
+
+    const isShiftsActive = relativePathname.startsWith('/shifts');
+    const isHelpRequestsActive = relativePathname.startsWith('/help-requests');
+    const isKnowledgeBaseActive = relativePathname.startsWith('/knowledge');
+    const isVolunteersActive = relativePathname.startsWith('/volunteers');
+
+    return (
+        <>
+            { hasShifts &&
+                <NavigationItem
+                    component={Link}
+                    href={`/schedule2/${eventSlug}/shifts`}
+                    selected={isShiftsActive}
+                    transitionTypes={getNavigationTransitionTypes(relativePathname, '/shifts')}>
+                    <ListItemIcon>
+                        <AccessTimeIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText primary="Your schedule" />
+                    { hasActiveShift &&
+                        <ActivityDot aria-label="Active shift" title="Active shift" /> }
+                </NavigationItem> }
+
+            <EventsSection areas={areas} eventSlug={eventSlug}
+                           relativePathname={relativePathname} />
+
+            <DutyBookSection dutyBooks={dutyBooks} eventSlug={eventSlug}
+                             relativePathname={relativePathname} />
 
             { helpRequests !== undefined &&
                 <NavigationItem
                     component={Link}
-                    href={`/schedule2/${slug}/help-requests`}
+                    href={`/schedule2/${eventSlug}/help-requests`}
                     selected={isHelpRequestsActive}
-                    transitionTypes={getTransitionTypes(relativePathname, '/help-requests')}>
+                    transitionTypes={
+                        getNavigationTransitionTypes(relativePathname, '/help-requests')
+                    }>
                     <ListItemIcon>
                         { isHelpRequestsActive
                             ? <NotListedLocationIcon fontSize="small" />
@@ -587,9 +498,9 @@ export function VolunteerNavigationItems(props: VolunteerNavigationItemsProps) {
             { hasKnowledgeBase &&
                 <NavigationItem
                     component={Link}
-                    href={`/schedule2/${slug}/knowledge`}
+                    href={`/schedule2/${eventSlug}/knowledge`}
                     selected={isKnowledgeBaseActive}
-                    transitionTypes={getTransitionTypes(relativePathname, '/knowledge')}>
+                    transitionTypes={getNavigationTransitionTypes(relativePathname, '/knowledge')}>
                     <ListItemIcon>
                         { isKnowledgeBaseActive
                             ? <InfoIcon fontSize="small" />
@@ -600,9 +511,9 @@ export function VolunteerNavigationItems(props: VolunteerNavigationItemsProps) {
 
             <NavigationItem
                 component={Link}
-                href={`/schedule2/${slug}/volunteers`}
+                href={`/schedule2/${eventSlug}/volunteers`}
                 selected={isVolunteersActive}
-                transitionTypes={getTransitionTypes(relativePathname, '/volunteers')}>
+                transitionTypes={getNavigationTransitionTypes(relativePathname, '/volunteers')}>
                 <ListItemIcon>
                     { isVolunteersActive
                         ? <GroupIcon fontSize="small" />
