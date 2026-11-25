@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Box from '@mui/material/Box';
@@ -42,6 +42,24 @@ export function ApplicationBar(props: ApplicationBarProps) {
 
     const [ searchActive, setSearchActive ] = useState<boolean>(false);
     const [ query, setQuery ] = useState<string>('');
+
+    useEffect(() => {
+        function handleWindowKeyDown(event: KeyboardEvent) {
+            if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey &&
+                event.key.toLowerCase() === 'f')
+            {
+                event.preventDefault();
+                setSearchActive(true);
+                requestAnimationFrame(() => {
+                    inputRef.current?.focus();
+                    inputRef.current?.select();
+                });
+            }
+        }
+
+        window.addEventListener('keydown', handleWindowKeyDown);
+        return () => window.removeEventListener('keydown', handleWindowKeyDown);
+    }, []);
 
     function handleOpenSearch() {
         setSearchActive(true);
