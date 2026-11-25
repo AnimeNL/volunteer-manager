@@ -8,7 +8,7 @@ import Skeleton from '@mui/material/Skeleton';
 
 import { DesktopNavigationList, VolunteerNavigationItems } from './DesktopNavigationList';
 import { getEvent } from '@lib/cache';
-import { getProgramAreas, getUserEventShifts } from '../lib/scheduleData';
+import { getProgramAreas, getUserDutyBooks, getUserEventShifts } from '../lib/scheduleData';
 import { getScheduleAccess } from '../lib/getScheduleAccess';
 
 import { kDesktopMenuWidthPx } from '../Constants';
@@ -49,9 +49,10 @@ async function AuthenticatedNavigationItems(props: DesktopNavigationProps) {
         return null;
 
     const festivalId = access.event.integrations?.anPlanFestivalId;
-    const [ shifts, programAreas ] = await Promise.all([
+    const [ shifts, programAreas, dutyBooks ] = await Promise.all([
         getUserEventShifts(access.event.id, access.user.id),
         festivalId ? getProgramAreas(festivalId) : Promise.resolve([]),
+        getUserDutyBooks(access.event.id, access.event.slug, access.user.id, access.access),
     ]);
 
     const currentMs = access.currentTime.epochMilliseconds;
@@ -69,6 +70,7 @@ async function AuthenticatedNavigationItems(props: DesktopNavigationProps) {
 
     return (
         <VolunteerNavigationItems areas={areas}
+                                  dutyBooks={dutyBooks}
                                   hasActiveShift={hasActiveShift}
                                   hasShifts={shifts.length > 0}
                                   slug={access.event.slug} />

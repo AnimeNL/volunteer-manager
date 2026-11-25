@@ -4,10 +4,11 @@
 import 'server-only';
 import { cacheLife, cacheTag } from 'next/cache';
 
-import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots, tSchedule,
-    tShifts } from '@lib/database';
+import type { AccessControl } from '@lib/auth/access/AccessControl';
+import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots, tDutyBook,
+    tDutyBookViewers, tEventsTeams, tSchedule, tShifts, tTeams, tUsersEvents } from '@lib/database';
 
-import { kActivityType } from '@lib/database/Types';
+import { kActivityType, kRegistrationStatus } from '@lib/database/Types';
 
 /**
  * Serializable scheduled shift record returned from the cached shift loader.
@@ -83,6 +84,80 @@ export async function getUserEventShifts(
         location: row.shiftLocation || row.activityLocation || 'Volunteer Lounge',
         startEpochMs: row.start.epochMilliseconds,
         endEpochMs: row.end.epochMilliseconds,
+    }));
+}
+
+/**
+ * Serializable Duty Book summary returned for a team accessible to the signed-in user.
+ */
+interface DutyBookRecord {
+    name: string;
+    team: string;
+    unread: number;
+}
+
+/**
+ * Loads all Duty Books accessible to `userId` in `eventId` together with live per-team unread
+ * incident counts, sorted alphabetically by team name.
+ */
+export async function getUserDutyBooks(
+    eventId: number, eventSlug: string, userId: number, access: AccessControl)
+    : Promise<DutyBookRecord[]>
+{
+    const dbInstance = db;
+    const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
+
+    const teams = await dbInstance.selectFrom(tEventsTeams)
+        .innerJoin(tTeams)
+            .on(tTeams.teamId.equals(tEventsTeams.teamId))
+                .and(tTeams.teamFlagEnableDutyBook.equals(/* true= */ 1))
+                .and(tTeams.teamDeleted.isNull())
+        .leftJoin(usersEventsJoin)
+            .on(usersEventsJoin.eventId.equals(tEventsTeams.eventId))
+                .and(usersEventsJoin.teamId.equals(tEventsTeams.teamId))
+                .and(usersEventsJoin.userId.equals(userId))
+                .and(usersEventsJoin.registrationStatus.equals(kRegistrationStatus.Accepted))
+        .where(tEventsTeams.eventId.equals(eventId))
+            .and(tEventsTeams.enableTeam.equals(/* true= */ 1))
+        .select({
+            id: tTeams.teamId,
+            name: tTeams.teamName,
+            slug: tTeams.teamSlug,
+            isMember: usersEventsJoin.userId.isNotNull(),
+        })
+        .orderBy(tTeams.teamName, 'asc')
+        .executeSelectMany();
+
+    const accessibleTeams = teams.filter(team =>
+        team.isMember ||
+        access.can('event.duty-book', 'read', { event: eventSlug, team: team.slug }));
+
+    if (!accessibleTeams.length)
+        return [];
+
+    const dutyBookViewersJoin = tDutyBookViewers.forUseInLeftJoin();
+
+    const unreadCounts = await dbInstance.selectFrom(tDutyBook)
+        .leftJoin(dutyBookViewersJoin)
+            .on(dutyBookViewersJoin.dutyBookId.equals(tDutyBook.dutyBookId))
+                .and(dutyBookViewersJoin.dutyBookViewerUserId.equals(userId))
+        .where(tDutyBook.dutyBookEventId.equals(eventId))
+            .and(tDutyBook.dutyBookTeamId.in(accessibleTeams.map(team => team.id)))
+            .and(tDutyBook.dutyBookDeleted.isNull())
+            .and(dutyBookViewersJoin.dutyBookId.isNull())
+        .select({
+            teamId: tDutyBook.dutyBookTeamId,
+            unread: dbInstance.countAll(),
+        })
+        .groupBy(tDutyBook.dutyBookTeamId)
+        .executeSelectMany();
+
+    const unreadByTeam = new Map(unreadCounts.map(entry => [ entry.teamId, entry.unread ]));
+
+    return accessibleTeams.map(team => ({
+        name: team.name,
+        team: team.slug,
+        unread: unreadByTeam.get(team.id) ?? 0,
     }));
 }
 

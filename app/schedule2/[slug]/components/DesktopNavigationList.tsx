@@ -8,6 +8,8 @@ import { Suspense, useCallback, useState } from 'react';
 import { useParams, usePathname } from 'next/navigation';
 
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import BookIcon from '@mui/icons-material/Book';
+import BookOutlinedIcon from '@mui/icons-material/BookOutlined';
 import Collapse from '@mui/material/Collapse';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
@@ -25,7 +27,7 @@ import { styled } from '@mui/material/styles';
 /**
  * Spatial order of top-level navigation segments for directional view transitions.
  */
-const kSectionOrder = [ '', '/shifts', '/areas' ];
+const kSectionOrder = [ '', '/shifts', '/areas', '/duty-book' ];
 
 /**
  * Material Design 3 rounded navigation item shared across all desktop sidebar entries, matching the
@@ -165,9 +167,12 @@ const ActivityDot = styled('span')(({ theme }) => {
 });
 
 /**
- * Subtle pill counter badge displayed for active event counts.
+ * Pill counter badge supporting subtle (active events) and urgent (unread duty book / help
+ * requests) tones.
  */
-const CounterBadge = styled('span')(({ theme }) => {
+const CounterBadge = styled('span', {
+    shouldForwardProp: prop => prop !== 'tone',
+})<{ tone?: 'subtle' | 'urgent' }>(({ theme }) => {
     const palette = (theme.vars || theme).palette;
 
     return {
@@ -186,6 +191,16 @@ const CounterBadge = styled('span')(({ theme }) => {
         minWidth: 20,
         paddingLeft: theme.spacing(0.75),
         paddingRight: theme.spacing(0.75),
+
+        variants: [
+            {
+                props: { tone: 'urgent' },
+                style: {
+                    backgroundColor: palette.error.main,
+                    color: palette.error.contrastText,
+                },
+            },
+        ],
     };
 });
 
@@ -309,6 +324,15 @@ interface NavigationAreaItem {
 }
 
 /**
+ * Duty Book summary passed to the desktop sidebar for rendering team-scoped Duty Book entries.
+ */
+interface NavigationDutyBookItem {
+    name: string;
+    team: string;
+    unread: number;
+}
+
+/**
  * Props accepted by the <VolunteerNavigationItems> component.
  */
 interface VolunteerNavigationItemsProps {
@@ -316,6 +340,11 @@ interface VolunteerNavigationItemsProps {
      * Program areas for the event, rendered as expandable sub-rows under Events.
      */
     areas: NavigationAreaItem[];
+
+    /**
+     * Duty Books accessible to the signed-in volunteer, with unread incident counts.
+     */
+    dutyBooks: NavigationDutyBookItem[];
 
     /**
      * Whether the signed-in volunteer currently has an active shift.
@@ -337,20 +366,36 @@ interface VolunteerNavigationItemsProps {
  * Renders volunteer-specific desktop sidebar entries streamed in behind `<Suspense>`.
  */
 export function VolunteerNavigationItems(props: VolunteerNavigationItemsProps) {
-    const { areas, hasActiveShift, hasShifts, slug } = props;
+    const { areas, dutyBooks, hasActiveShift, hasShifts, slug } = props;
 
     const pathname = usePathname();
     const relativePathname = getRelativePathname(pathname, slug);
 
     const [ eventsExpanded, setEventsExpanded ] = useState<boolean>(true);
+    const [ dutyBookExpanded, setDutyBookExpanded ] = useState<boolean>(false);
 
     const handleToggleEvents = useCallback(() => {
         setEventsExpanded(expanded => !expanded);
     }, []);
 
+    const handleToggleDutyBook = useCallback(() => {
+        setDutyBookExpanded(expanded => !expanded);
+    }, []);
+
     const isShiftsActive = relativePathname.startsWith('/shifts');
     const isEventsActive = relativePathname === '/areas';
     const totalActiveEvents = areas.reduce((sum, area) => sum + area.activeCount, 0);
+
+    const hasMultipleDutyBooks = dutyBooks.length > 1;
+    const totalUnreadDutyBook = dutyBooks.reduce((sum, entry) => sum + entry.unread, 0);
+    const isDutyBookActive = hasMultipleDutyBooks
+        ? relativePathname === '/duty-book'
+        : relativePathname.startsWith('/duty-book');
+    const dutyBookHref = hasMultipleDutyBooks
+        ? `/schedule2/${slug}/duty-book`
+        : dutyBooks.length === 1
+            ? `/schedule2/${slug}/duty-book/${dutyBooks[0].team}`
+            : '';
 
     return (
         <>
@@ -423,6 +468,78 @@ export function VolunteerNavigationItems(props: VolunteerNavigationItemsProps) {
                         }) }
                     </SubMenuList>
                 </Collapse> }
+
+            { dutyBooks.length > 0 &&
+                <>
+                    <ListItem disablePadding sx={{ mb: 0.5 }}
+                              secondaryAction={ hasMultipleDutyBooks ? (
+                                  <ExpandButton
+                                      aria-expanded={dutyBookExpanded}
+                                      aria-label={
+                                          dutyBookExpanded
+                                              ? 'Collapse duty books'
+                                              : 'Expand duty books'
+                                      }
+                                      edge="end"
+                                      expanded={dutyBookExpanded}
+                                      onClick={handleToggleDutyBook}
+                                      size="small">
+                                      <ExpandMoreIcon fontSize="small" />
+                                  </ExpandButton>
+                              ) : undefined }>
+                        <NavigationItem
+                            component={Link}
+                            href={dutyBookHref}
+                            selected={isDutyBookActive}
+                            sx={hasMultipleDutyBooks ? { mb: 0, pr: 5 } : { mb: 0 }}
+                            transitionTypes={getTransitionTypes(relativePathname, '/duty-book')}>
+                            <ListItemIcon>
+                                { isDutyBookActive
+                                    ? <BookIcon fontSize="small" />
+                                    : <BookOutlinedIcon fontSize="small" /> }
+                            </ListItemIcon>
+                            <ListItemText primary="Duty book" />
+                            { totalUnreadDutyBook > 0 &&
+                                <CounterBadge
+                                    aria-label={`${totalUnreadDutyBook} unread duty book items`}
+                                    tone="urgent">
+                                    {totalUnreadDutyBook}
+                                </CounterBadge> }
+                        </NavigationItem>
+                    </ListItem>
+
+                    { hasMultipleDutyBooks &&
+                        <Collapse in={dutyBookExpanded} unmountOnExit>
+                            <SubMenuList disablePadding>
+                                { dutyBooks.map(dutyBook => {
+                                    const dutyBookPath = `/duty-book/${dutyBook.team}`;
+                                    const isTeamActive = relativePathname === dutyBookPath ||
+                                        relativePathname.startsWith(`${dutyBookPath}/`);
+
+                                    return (
+                                        <SubNavigationItem
+                                            key={dutyBook.team}
+                                            component={Link}
+                                            href={`/schedule2/${slug}${dutyBookPath}`}
+                                            selected={isTeamActive}
+                                            transitionTypes={
+                                                getTransitionTypes(relativePathname, '/duty-book')
+                                            }>
+                                            <ListItemText primary={dutyBook.name} />
+                                            { dutyBook.unread > 0 &&
+                                                <CounterBadge
+                                                    aria-label={
+                                                        `${dutyBook.unread} unread duty book items`
+                                                    }
+                                                    tone="urgent">
+                                                    {dutyBook.unread}
+                                                </CounterBadge> }
+                                        </SubNavigationItem>
+                                    );
+                                }) }
+                            </SubMenuList>
+                        </Collapse> }
+                </> }
         </>
     );
 }
