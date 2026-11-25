@@ -41,7 +41,7 @@ async function PlaceholderContent(props: PlaceholderPageProps) {
             { !props.title && <SetTitle title={title} /> }
             <Card>
                 <CardContent>
-                    <Typography variant="h6" gutterBottom>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }} gutterBottom>
                         {title}
                     </Typography>
                     <Typography variant="body2" sx={{ color: 'text.secondary' }}>
