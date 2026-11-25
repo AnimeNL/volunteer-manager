@@ -10,8 +10,12 @@ import type { Theme } from '@mui/material/styles';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import AppBar from '@mui/material/AppBar';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
+import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import LightModeIcon from '@mui/icons-material/LightMode';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import LogoutIcon from '@mui/icons-material/Logout';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
@@ -24,6 +28,8 @@ import { useColorScheme } from '@mui/material/styles';
 import { useScheduleTitle } from './ScheduleTitle';
 
 import { kDesktopMaximumWidthPx, kDesktopMenuWidthPx, kEnforceSingleLine } from '../Constants';
+
+import { signOutAction } from '@lib/auth/actions';
 
 /**
  * Styling rules for the <ApplicationBar> component.
@@ -80,6 +86,14 @@ export function ApplicationBar() {
         }
     }, [ setMode ]);
 
+    const handleSignOut = useCallback(async () => {
+        setUserMenuAnchor(null);
+
+        const response = await signOutAction();
+        if (response.success)
+            window.location.href = response.returnUrl ?? '/';
+    }, []);
+
     return (
         <>
             <AppBar position="sticky" sx={kStyles.container}>
@@ -112,6 +126,15 @@ export function ApplicationBar() {
                             <DarkModeIcon fontSize="small" />
                         </ToggleButton>
                     </ToggleButtonGroup>
+                </MenuItem>
+                <Divider />
+                <MenuItem onClick={handleSignOut}>
+                    <ListItemIcon>
+                        <LogoutIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>
+                        Sign out
+                    </ListItemText>
                 </MenuItem>
             </Menu>
         </>

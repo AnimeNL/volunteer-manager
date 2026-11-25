@@ -14,7 +14,8 @@ import Typography from '@mui/material/Typography';
 
 import { PageTransition } from '../components/PageTransition';
 import { SetTitle } from '../components/ScheduleTitle';
-import { getMockAreas } from '../lib/mockScheduleData';
+import { getProgramAreas } from '../lib/scheduleData';
+import { requireScheduleAccess } from '../lib/getScheduleAccess';
 
 /**
  * Fallback skeleton displayed in the App Shell while convention areas stream in.
@@ -33,11 +34,15 @@ function AreasSkeleton() {
 }
 
 /**
- * Streams mocked convention areas behind `<Suspense>`.
+ * Streams the event's real program areas and live active event counts behind `<Suspense>`.
  */
 async function AreasContent(props: Pick<PageProps<'/schedule2/[slug]/areas'>, 'params'>) {
     const { slug } = await props.params;
-    const areas = await getMockAreas(slug);
+    const { currentTime, event } = await requireScheduleAccess(slug);
+
+    const festivalId = event.integrations?.anPlanFestivalId;
+    const areas = festivalId ? await getProgramAreas(festivalId) : [];
+    const currentMs = currentTime.epochMilliseconds;
 
     return (
         <Card>
@@ -45,40 +50,60 @@ async function AreasContent(props: Pick<PageProps<'/schedule2/[slug]/areas'>, 'p
                 <Stack direction="row"
                        sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
                     <Typography variant="h6">
-                        Events by area (mocked)
+                        Events by area
                     </Typography>
                     <Typography variant="body2">
-                        <Link href={`/schedule2/${slug}`} transitionTypes={[ 'nav-back' ]}
+                        <Link href={`/schedule2/${event.slug}`} transitionTypes={[ 'nav-back' ]}
                               style={{ color: 'inherit' }}>
                             ← Overview
                         </Link>
                     </Typography>
                 </Stack>
-                <Stack divider={ <Divider /> } spacing={1.5}>
-                    { areas.map(area => (
-                        <Stack key={area.id} direction="row" spacing={2}
-                               sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                            <div>
-                                <Typography variant="subtitle1">
-                                    {area.name}
-                                </Typography>
-                                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                                    {area.locations.join(' · ')}
-                                </Typography>
-                            </div>
-                            { area.activeCount > 0 &&
-                                <Chip color="error" label={`${area.activeCount} active`}
-                                      size="small" /> }
-                        </Stack>
-                    )) }
-                </Stack>
+
+                { areas.length === 0 ? (
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        No program areas are available for {event.shortName} yet.
+                    </Typography>
+                ) : (
+                    <Stack divider={ <Divider /> } spacing={1.5}>
+                        { areas.map(area => {
+                            const activeCount = area.timeslots.reduce(
+                                (count, slot) => count + (
+                                    slot.startEpochMs <= currentMs && slot.endEpochMs > currentMs
+                                        ? 1
+                                        : 0),
+                                0);
+
+                            return (
+                                <Stack key={area.id} direction="row" spacing={2}
+                                       sx={{
+                                           alignItems: 'center',
+                                           justifyContent: 'space-between',
+                                       }}>
+                                    <div>
+                                        <Typography variant="subtitle1">
+                                            {area.name}
+                                        </Typography>
+                                        <Typography variant="body2"
+                                                    sx={{ color: 'text.secondary' }}>
+                                            {area.locations.map(l => l.name).join(' · ')}
+                                        </Typography>
+                                    </div>
+                                    { activeCount > 0 &&
+                                        <Chip color="error" label={`${activeCount} active`}
+                                              size="small" /> }
+                                </Stack>
+                            );
+                        }) }
+                    </Stack>
+                ) }
             </CardContent>
         </Card>
     );
 }
 
 /**
- * Stub areas page for verifying cross-route Instant Navigation and View Transitions.
+ * Program areas page for `app/schedule2/[slug]/areas`.
  */
 export default function Schedule2AreasPage(props: PageProps<'/schedule2/[slug]/areas'>) {
     return (

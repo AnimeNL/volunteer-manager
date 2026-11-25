@@ -14,7 +14,9 @@ import Typography from '@mui/material/Typography';
 
 import { PageTransition } from '../components/PageTransition';
 import { SetTitle } from '../components/ScheduleTitle';
-import { getMockShifts } from '../lib/mockScheduleData';
+import { formatDate } from '@lib/Temporal';
+import { getUserEventShifts } from '../lib/scheduleData';
+import { requireScheduleAccess } from '../lib/getScheduleAccess';
 
 /**
  * Fallback skeleton displayed in the App Shell while shift data streams in.
@@ -33,11 +35,28 @@ function ShiftsSkeleton() {
 }
 
 /**
- * Streams mocked volunteer shift entries behind `<Suspense>`.
+ * Classifies a shift relative to `currentMs`.
+ */
+function getShiftStatus(
+    startEpochMs: number, endEpochMs: number, currentMs: number): 'active' | 'past' | 'upcoming'
+{
+    if (endEpochMs <= currentMs)
+        return 'past';
+    if (startEpochMs <= currentMs)
+        return 'active';
+
+    return 'upcoming';
+}
+
+/**
+ * Streams the authenticated volunteer's real shifts behind `<Suspense>`.
  */
 async function ShiftsContent(props: Pick<PageProps<'/schedule2/[slug]/shifts'>, 'params'>) {
     const { slug } = await props.params;
-    const shifts = await getMockShifts(slug);
+    const { currentTime, event, user } = await requireScheduleAccess(slug);
+
+    const shifts = await getUserEventShifts(event.id, user.id);
+    const currentMs = currentTime.epochMilliseconds;
 
     return (
         <Card>
@@ -45,39 +64,62 @@ async function ShiftsContent(props: Pick<PageProps<'/schedule2/[slug]/shifts'>, 
                 <Stack direction="row"
                        sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
                     <Typography variant="h6">
-                        Your schedule (mocked)
+                        Your schedule
                     </Typography>
                     <Typography variant="body2">
-                        <Link href={`/schedule2/${slug}`} transitionTypes={[ 'nav-back' ]}
+                        <Link href={`/schedule2/${event.slug}`} transitionTypes={[ 'nav-back' ]}
                               style={{ color: 'inherit' }}>
                             ← Overview
                         </Link>
                     </Typography>
                 </Stack>
-                <Stack divider={ <Divider /> } spacing={1.5}>
-                    { shifts.map(shift => (
-                        <Stack key={shift.id} direction="row" spacing={2}
-                               sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                            <div>
-                                <Typography variant="subtitle1">
-                                    {shift.title}
-                                </Typography>
-                                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                                    {shift.day} · {shift.timeRange} · {shift.location}
-                                </Typography>
-                            </div>
-                            <Chip label={shift.status} size="small"
-                                  color={shift.status === 'active' ? 'success' : 'default'} />
-                        </Stack>
-                    )) }
-                </Stack>
+
+                { shifts.length === 0 ? (
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        You currently have no scheduled shifts for {event.shortName}.
+                    </Typography>
+                ) : (
+                    <Stack divider={ <Divider /> } spacing={1.5}>
+                        { shifts.map(shift => {
+                            const status = getShiftStatus(
+                                shift.startEpochMs, shift.endEpochMs, currentMs);
+                            const start = Temporal.Instant.fromEpochMilliseconds(shift.startEpochMs)
+                                .toZonedDateTimeISO(event.timeZone);
+                            const end = Temporal.Instant.fromEpochMilliseconds(shift.endEpochMs)
+                                .toZonedDateTimeISO(event.timeZone);
+
+                            return (
+                                <Stack key={shift.id} direction="row" spacing={2}
+                                       sx={{
+                                           alignItems: 'center',
+                                           justifyContent: 'space-between',
+                                           opacity: status === 'past' ? 0.6 : 1,
+                                       }}>
+                                    <div>
+                                        <Typography variant="subtitle1">
+                                            {shift.title}
+                                        </Typography>
+                                        <Typography variant="body2"
+                                                    sx={{ color: 'text.secondary' }}>
+                                            {formatDate(start, 'dddd')} ·{' '}
+                                            {formatDate(start, 'HH:mm')} –{' '}
+                                            {formatDate(end, 'HH:mm')} · {shift.location}
+                                        </Typography>
+                                    </div>
+                                    <Chip label={status} size="small"
+                                          color={status === 'active' ? 'success' : 'default'} />
+                                </Stack>
+                            );
+                        }) }
+                    </Stack>
+                ) }
             </CardContent>
         </Card>
     );
 }
 
 /**
- * Stub shifts page for verifying cross-route Instant Navigation and View Transitions.
+ * Volunteer shifts page for `app/schedule2/[slug]/shifts`.
  */
 export default function Schedule2ShiftsPage(props: PageProps<'/schedule2/[slug]/shifts'>) {
     return (
