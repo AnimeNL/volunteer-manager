@@ -52,7 +52,7 @@ export function Header(props: HeaderProps) {
                     'var(--mui-palette-m3-card) 135%)',
             },
             borderRadius: { md: `${kCardBorderRadiusPx}px` },
-            px: 2,
+            px: { xs: 1.5, md: 2 },
             py: { xs: 0.5, md: 1.75 },
         }}>
             <Avatar aria-hidden="true" variant="rounded" sx={{
@@ -68,7 +68,7 @@ export function Header(props: HeaderProps) {
                 {props.icon}
             </Avatar>
             <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>
-                <Typography component="h1" variant="h6" noWrap>
+                <Typography component="h1" variant="h6" noWrap sx={{ lineHeight: 1.3 }}>
                     {props.title}
                 </Typography>
                 { !!props.description &&
