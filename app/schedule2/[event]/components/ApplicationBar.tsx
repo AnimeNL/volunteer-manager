@@ -118,7 +118,7 @@ export function ApplicationBar(props: ApplicationBarProps) {
                                         size="small">
                             <ArrowBackIcon fontSize="small" />
                         </DockIconButton>
-                        <InputBase
+                        <SearchInput
                             fullWidth
                             inputProps={{ 'aria-label': 'Search schedule' }}
                             inputRef={inputRef}
@@ -128,7 +128,6 @@ export function ApplicationBar(props: ApplicationBarProps) {
                                     handleCloseSearch();
                             }}
                             placeholder="Search shifts, events, volunteers…"
-                            size="small"
                             value={query} />
                         <DockIconButton aria-label={query ? 'Clear search' : 'Close search'}
                                         onClick={handleClearOrClose} size="small">
@@ -237,3 +236,13 @@ const SearchTrigger = styled('div')(({ theme }) => ({
 const DockIconButton = styled(IconButton)(({ theme }) => ({
     color: (theme.vars || theme).palette.text.secondary,
 }));
+
+/**
+ * Search input with MUI's asymmetric default vertical padding removed so its text baseline matches
+ * the resting dock title.
+ */
+const SearchInput = styled(InputBase)({
+    '& .MuiInputBase-input': {
+        padding: 0,
+    },
+});
