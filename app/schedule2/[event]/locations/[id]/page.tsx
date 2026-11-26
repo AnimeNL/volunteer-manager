@@ -59,8 +59,7 @@ async function LocationScheduleContent(props: { params: Promise<{ event: string;
                         <Stack spacing={0.75} useFlexGap>
                             <SectionHeader
                                 muted={day.isPast}
-                                title={day.label}
-                                variant="overline" />
+                                title={day.label} />
                             <ScheduleList muted={day.isPast}>
                                 { day.events.map(programEvent =>
                                     <ScheduleListRow
@@ -96,8 +95,7 @@ function LocationScheduleSkeleton() {
             { groups.map((group, groupIndex) =>
                 <Stack key={groupIndex} spacing={0.75} useFlexGap>
                     <SectionHeader
-                        title={ <Skeleton variant="text" width={group.titleWidth} /> }
-                        variant="overline" />
+                        title={ <Skeleton variant="text" width={group.titleWidth} /> } />
                     <ScheduleList>
                         { group.rows.map((rowWidth, rowIndex) =>
                             <ScheduleListRow

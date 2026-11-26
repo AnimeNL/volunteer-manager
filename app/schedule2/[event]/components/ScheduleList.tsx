@@ -416,7 +416,7 @@ const HiddenIconBadge = styled('span', {
     color: '#8c5a12',
     display: 'inline-flex',
     flexShrink: 0,
-    fontSize: '0.8125rem',
+    fontSize: theme.typography.caption.fontSize,
     opacity: 0.92,
     ...theme.applyStyles('dark', {
         color: '#d9b87c',

@@ -12,7 +12,8 @@ import Typography from '@mui/material/Typography';
  */
 interface SectionHeaderProps {
     /**
-     * Optional right-aligned label displayed beside the chevron when `href` is set (e.g. "Schedule").
+     * Optional right-aligned label displayed beside the chevron when `href` is set (e.g.
+     * "Full schedule").
      */
     actionLabel?: string;
 
@@ -27,7 +28,7 @@ interface SectionHeaderProps {
     muted?: boolean;
 
     /**
-     * Primary section heading text.
+     * Primary section heading text, rendered with MUI's uppercase `overline` typography.
      */
     title: React.ReactNode;
 
@@ -35,12 +36,6 @@ interface SectionHeaderProps {
      * Optional React View Transition types applied when navigating via `href`.
      */
     transitionTypes?: string[];
-
-    /**
-     * Visual hierarchy variant: sentence-case `'title'` for rooms/entities (default), or uppercase
-     * `'overline'` for day or status groupings.
-     */
-    variant?: 'overline' | 'title';
 }
 
 /**
@@ -48,14 +43,7 @@ interface SectionHeaderProps {
  * optionally link through to a detail page with a right-aligned action label and chevron.
  */
 export function SectionHeader(props: SectionHeaderProps) {
-    const { actionLabel, href, muted = false, title, transitionTypes, variant = 'title' } = props;
-
-    const isOverline = variant === 'overline';
-    const titleColor = muted
-        ? 'textDisabled'
-        : isOverline
-            ? 'textSecondary'
-            : 'textPrimary';
+    const { actionLabel, href, muted = false, title, transitionTypes } = props;
 
     const content = (
         <Stack direction="row" spacing={1} sx={{
@@ -66,16 +54,10 @@ export function SectionHeader(props: SectionHeaderProps) {
         }}>
             <Typography
                 component="h2"
-                variant={isOverline ? 'caption' : 'subtitle2'}
-                color={titleColor}
+                variant="overline"
+                color={muted ? 'textDisabled' : 'textSecondary'}
                 noWrap
-                sx={isOverline ? {
-                    fontWeight: 600,
-                    letterSpacing: '0.06em',
-                    textTransform: 'uppercase',
-                } : {
-                    fontWeight: 600,
-                }}>
+                sx={{ fontWeight: 600, lineHeight: 1.5 }}>
                 {title}
             </Typography>
             { !!href &&
@@ -85,7 +67,7 @@ export function SectionHeader(props: SectionHeaderProps) {
                     flexShrink: 0,
                 }}>
                     { !!actionLabel &&
-                        <Typography variant="caption" color="inherit" sx={{ fontWeight: 500 }}>
+                        <Typography variant="caption" color="inherit">
                             {actionLabel}
                         </Typography> }
                     <ChevronRightIcon fontSize="small" />
@@ -98,6 +80,7 @@ export function SectionHeader(props: SectionHeaderProps) {
 
     return (
         <Link href={href} transitionTypes={transitionTypes} style={{
+            WebkitTapHighlightColor: 'transparent',
             color: 'inherit',
             display: 'block',
             textDecoration: 'none',
