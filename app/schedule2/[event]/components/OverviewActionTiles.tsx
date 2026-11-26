@@ -8,7 +8,6 @@ import { useState } from 'react';
 
 import type { ButtonBaseTypeMap, ExtendButtonBase } from '@mui/material/ButtonBase';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
 import CloseIcon from '@mui/icons-material/Close';
@@ -148,31 +147,21 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
                         component={Link}
                         href={getSchedulePath(eventSlug, hero.segment)}
                         transitionTypes={getNavigationTransitionTypes('', hero.segment)}>
-                        <Stack direction="row" spacing={1.5} sx={{
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            minWidth: 0,
-                            width: '100%',
-                        }}>
-                            <Stack direction="row" spacing={1.5}
-                                   sx={{ alignItems: 'center', minWidth: 0 }}>
-                                <HeroIconBadge>
-                                    {hero.icon}
-                                </HeroIconBadge>
-                                <Box sx={{ minWidth: 0 }}>
-                                    <Typography variant="subtitle1" noWrap
-                                                sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                                        {hero.label}
-                                    </Typography>
-                                    <Typography variant="caption" noWrap
-                                                sx={{ display: 'block', opacity: 0.82 }}>
-                                        {hero.heroSubtitle}
-                                    </Typography>
-                                </Box>
-                            </Stack>
-                            <HeroArrowBadge>
-                                <ArrowForwardIcon fontSize="small" />
-                            </HeroArrowBadge>
+                        <Stack direction="row" spacing={1.5}
+                               sx={{ alignItems: 'center', minWidth: 0, width: '100%' }}>
+                            <HeroIconBadge>
+                                {hero.icon}
+                            </HeroIconBadge>
+                            <Box sx={{ minWidth: 0 }}>
+                                <Typography variant="subtitle1" noWrap
+                                            sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                                    {hero.label}
+                                </Typography>
+                                <Typography variant="caption" noWrap
+                                            sx={{ display: 'block', opacity: 0.82 }}>
+                                    {hero.heroSubtitle}
+                                </Typography>
+                            </Box>
                         </Stack>
                     </HeroTileButton>
                     <DismissButton
@@ -258,6 +247,17 @@ const DismissButton = styled(IconButton, {
             backgroundColor: `color-mix(in srgb, ${color} 14%, transparent)`,
             opacity: 1,
         },
+
+        variants: [
+            {
+                props: { tone: 'primary' },
+                style: {
+                    right: theme.spacing(1.25),
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                },
+            },
+        ],
     };
 });
 
@@ -312,25 +312,6 @@ const HeroIconBadge = styled(Box)(({ theme }) => {
         height: 36,
         justifyContent: 'center',
         width: 36,
-    };
-});
-
-/**
- * Trailing circular arrow indicator on the hero tile.
- */
-const HeroArrowBadge = styled(Box)(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
-
-    return {
-        alignItems: 'center',
-        backgroundColor: `color-mix(in srgb, ${palette.m3.onPrimary} 20%, transparent)`,
-        borderRadius: 9999,
-        color: palette.m3.onPrimary,
-        display: 'inline-flex',
-        flexShrink: 0,
-        height: 30,
-        justifyContent: 'center',
-        width: 30,
     };
 });
 
