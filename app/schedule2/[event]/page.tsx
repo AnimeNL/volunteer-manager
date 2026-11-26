@@ -1,20 +1,30 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
+import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import type { OverviewActionTileId } from './components/OverviewActions';
+import type { OverviewVendorEntry } from './components/OverviewVendorCard';
 import { EventBanner } from './components/EventBanner';
 import { OverviewActionTiles } from './components/OverviewActionTiles';
+import { OverviewVendorCard } from './components/OverviewVendorCard';
 import { Page, SuspenseReveal } from './components/Page';
+import { getActiveVendors } from './lib/data/vendorData';
 import { getVolunteerHotelBookings } from './lib/data/hotelData';
 import { getVolunteerTicket } from './lib/data/ticketData';
+import { readSettings } from '@lib/Settings';
 import { readUserSettings } from '@lib/UserSettings';
 import { requireScheduleAccess } from './lib/getScheduleAccess';
+
+import { kAnyTeam } from '@lib/auth/access';
+import { kVendorTeam } from '@lib/database/Types';
 
 /**
  * Authenticates the overview request behind `<Suspense>` and renders the volunteer's actionable
@@ -73,6 +83,70 @@ function OverviewActionsSkeleton() {
 }
 
 /**
+ * Authenticates the overview request behind `<Suspense>` and renders the unified on-site First Aid
+ * and Security card based on portal settings and `volunteers.vendor-teams` access.
+ */
+async function OverviewVendors(props: { params: Promise<{ event: string }> }) {
+    const { event: eventSlug } = await props.params;
+    const { access, currentTime, event } = await requireScheduleAccess(eventSlug);
+
+    const fullVendorAccess = access.can('volunteers.vendor-teams', 'read', {
+        event: event.slug,
+        team: kAnyTeam,
+    });
+
+    const settings = await readSettings([
+        'schedule-vendor-first-aid-card',
+        'schedule-vendor-security-card',
+    ]);
+
+    const showFirstAid = fullVendorAccess || !!settings['schedule-vendor-first-aid-card'];
+    const showSecurity = fullVendorAccess || !!settings['schedule-vendor-security-card'];
+
+    if (!showFirstAid && !showSecurity)
+        return null;
+
+    const [ firstAidNames, securityNames ] = await Promise.all([
+        showFirstAid ? getActiveVendors(event, kVendorTeam.FirstAid, currentTime) : undefined,
+        showSecurity ? getActiveVendors(event, kVendorTeam.Security, currentTime) : undefined,
+    ]);
+
+    const entries: OverviewVendorEntry[] = [];
+    if (firstAidNames !== undefined)
+        entries.push({ names: firstAidNames, team: kVendorTeam.FirstAid });
+    if (securityNames !== undefined)
+        entries.push({ names: securityNames, team: kVendorTeam.Security });
+
+    return (
+        <OverviewVendorCard clickable={fullVendorAccess} entries={entries}
+                            eventSlug={event.slug} />
+    );
+}
+
+/**
+ * Skeleton placeholder matching the unified two-row on-site vendor card while data streams.
+ */
+function OverviewVendorsSkeleton() {
+    const row = (
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', px: 2, py: 1.25 }}>
+            <Skeleton variant="rounded" width={32} height={32} sx={{ borderRadius: '10px' }} />
+            <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>
+                <Skeleton variant="text" width={72} height={18} />
+                <Skeleton variant="text" width={136} height={18} />
+            </Box>
+        </Stack>
+    );
+
+    return (
+        <Card>
+            {row}
+            <Divider />
+            {row}
+        </Card>
+    );
+}
+
+/**
  * Temporary placeholder card while the remaining overview sections are being built out.
  */
 async function OverviewPlaceholder(props: { params: Promise<{ event: string }> }) {
@@ -102,6 +176,9 @@ export default function ScheduleLandingPage(props: PageProps<'/schedule2/[event]
             <EventBanner params={props.params} variant="widescreen" />
             <SuspenseReveal fallback={ <OverviewActionsSkeleton /> }>
                 <OverviewActions params={props.params} />
+            </SuspenseReveal>
+            <SuspenseReveal fallback={ <OverviewVendorsSkeleton /> }>
+                <OverviewVendors params={props.params} />
             </SuspenseReveal>
             <SuspenseReveal
                 fallback={
