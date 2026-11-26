@@ -12,7 +12,7 @@ import db, { tVendors, tVendorsSchedule } from '@lib/database';
 /**
  * Serializable representation of a scheduled vendor team member for calendar display.
  */
-interface VendorScheduleMember {
+export interface VendorScheduleMember {
     id: number;
     name: string;
 }
@@ -20,7 +20,7 @@ interface VendorScheduleMember {
 /**
  * Serializable representation of a single scheduled vendor shift for calendar display.
  */
-interface VendorScheduleShift {
+export interface VendorScheduleShift {
     end: string;
     id: string;
     start: string;
