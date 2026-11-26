@@ -49,6 +49,8 @@ export type UserSettingsMap = {
     // Schedule settings
     // ---------------------------------------------------------------------------------------------
 
+    'schedule-time-offset-seconds': number;  // overrides a regular setting
+
     'user-schedule-expand-duty-book': boolean;
     'user-schedule-expand-events': boolean;
     'user-schedule-hide-feedback-tile': boolean;
