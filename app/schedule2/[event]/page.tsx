@@ -3,12 +3,10 @@
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 
 import type { OverviewActionTileId } from './components/OverviewActions';
 import type { OverviewVendorEntry } from './components/OverviewVendorCard';
@@ -147,27 +145,6 @@ function OverviewVendorsSkeleton() {
 }
 
 /**
- * Temporary placeholder card while the remaining overview sections are being built out.
- */
-async function OverviewPlaceholder(props: { params: Promise<{ event: string }> }) {
-    const { event: eventSlug } = await props.params;
-    const { event } = await requireScheduleAccess(eventSlug);
-
-    return (
-        <Card>
-            <CardContent>
-                <Typography variant="h6" gutterBottom>
-                    {event.shortName}
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                    Not yet implemented.
-                </Typography>
-            </CardContent>
-        </Card>
-    );
-}
-
-/**
  * Overview landing page for the event schedule portal.
  */
 export default function ScheduleLandingPage(props: PageProps<'/schedule2/[event]'>) {
@@ -179,17 +156,6 @@ export default function ScheduleLandingPage(props: PageProps<'/schedule2/[event]
             </SuspenseReveal>
             <SuspenseReveal fallback={ <OverviewVendorsSkeleton /> }>
                 <OverviewVendors params={props.params} />
-            </SuspenseReveal>
-            <SuspenseReveal
-                fallback={
-                    <Card>
-                        <CardContent>
-                            <Skeleton variant="text" width="35%" height={28} />
-                            <Skeleton variant="text" width="50%" height={20} sx={{ mt: 1 }} />
-                        </CardContent>
-                    </Card>
-                }>
-                <OverviewPlaceholder params={props.params} />
             </SuspenseReveal>
         </Page>
     );

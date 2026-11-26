@@ -100,15 +100,14 @@ export function OverviewVendorCard(props: OverviewVendorCardProps) {
                             {icon}
                         </VendorIconBadge>
                         <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>
-                            <Typography variant="subtitle2"
-                                        color={isEmpty ? 'text.secondary' : 'text.primary'}
+                            <Typography variant="subtitle2" color="textPrimary"
                                         sx={{ fontWeight: 600, lineHeight: 1.25 }}>
                                 {title}
                             </Typography>
                             <Typography variant="body2"
-                                        color={isEmpty ? 'text.disabled' : 'text.secondary'}
+                                        color={isEmpty ? 'textDisabled' : 'textSecondary'}
                                         sx={{ lineHeight: 1.35 }}>
-                                { isEmpty ? 'Nobody on site' : entry.names.join(', ') }
+                                { isEmpty ? 'Nobody is currently on site' : entry.names.join(', ') }
                             </Typography>
                         </Box>
                         { clickable &&
