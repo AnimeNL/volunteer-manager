@@ -10,7 +10,6 @@ import Typography from '@mui/material/Typography';
 import { EventBanner } from './components/EventBanner';
 import { OverviewActionTiles } from './components/OverviewActionTiles';
 import { Page, SuspenseReveal } from './components/Page';
-import { getNavigationData } from './lib/scheduleData';
 import { getVolunteerHotelBookings } from './lib/data/hotelData';
 import { getVolunteerTicket } from './lib/data/ticketData';
 import { readUserSettings } from '@lib/UserSettings';
@@ -24,9 +23,8 @@ async function OverviewActions(props: { params: Promise<{ event: string }> }) {
     const { event: eventSlug } = await props.params;
     const { event, user } = await requireScheduleAccess(eventSlug);
 
-    const [ hotelBookings, navigation, ticket, userSettings ] = await Promise.all([
+    const [ hotelBookings, ticket, userSettings ] = await Promise.all([
         getVolunteerHotelBookings(event, user.id),
-        getNavigationData(event.slug),
         getVolunteerTicket(event, user.id),
         readUserSettings(user.id, [
             'user-schedule-hide-feedback-tile',
@@ -41,10 +39,7 @@ async function OverviewActions(props: { params: Promise<{ event: string }> }) {
             eventSlug={event.slug}
             showFeedback={!userSettings['user-schedule-hide-feedback-tile']}
             showHotel={hotelBookings.length > 0 && !userSettings['user-schedule-hide-hotel-tile']}
-            showSchedule={
-                (navigation?.hasSchedule ?? false) &&
-                !userSettings['user-schedule-hide-schedule-tile']
-            }
+            showSchedule={!userSettings['user-schedule-hide-schedule-tile']}
             showTicket={!!ticket && !userSettings['user-schedule-hide-ticket-tile']} />
     );
 }

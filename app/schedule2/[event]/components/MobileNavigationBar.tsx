@@ -54,8 +54,7 @@ export function MobileNavigationBar(props: MobileNavigationBarProps) {
                 activeTab={moreOpen ? 'more' : activeTab}
                 eventSlug={slug}
                 onOpenMore={() => setMoreOpen(true)}
-                relativePathname={relativePathname}
-                showSchedule={data?.hasSchedule ?? false} />
+                relativePathname={relativePathname} />
 
             <MobileMoreSheet
                 data={data}
@@ -74,7 +73,6 @@ interface MobileFloatingPillProps {
     eventSlug?: string;
     onOpenMore?: () => void;
     relativePathname?: string;
-    showSchedule?: boolean;
 }
 
 /**
@@ -82,7 +80,7 @@ interface MobileFloatingPillProps {
  * `<Suspense>` fallback and the route-aware live bar to prevent layout shift.
  */
 export function MobileFloatingPill(props: MobileFloatingPillProps) {
-    const { activeTab, eventSlug, onOpenMore, relativePathname, showSchedule = false } = props;
+    const { activeTab, eventSlug, onOpenMore, relativePathname } = props;
 
     const tabs: {
         ariaLabel?: string;
@@ -90,7 +88,6 @@ export function MobileFloatingPill(props: MobileFloatingPillProps) {
         id: MobileNavigationTab;
         label: string;
         segment?: string;
-        visible: boolean;
     }[] = [
         {
             id: 'overview',
@@ -99,7 +96,6 @@ export function MobileFloatingPill(props: MobileFloatingPillProps) {
             icon: activeTab === 'overview'
                 ? <HomeIcon fontSize="small" />
                 : <HomeOutlinedIcon fontSize="small" />,
-            visible: true,
         },
         {
             id: 'shifts',
@@ -107,7 +103,6 @@ export function MobileFloatingPill(props: MobileFloatingPillProps) {
             ariaLabel: 'Your schedule',
             segment: '/shifts',
             icon: <AccessTimeIcon fontSize="small" />,
-            visible: showSchedule,
         },
         {
             id: 'areas',
@@ -116,20 +111,18 @@ export function MobileFloatingPill(props: MobileFloatingPillProps) {
             icon: activeTab === 'areas'
                 ? <EventNoteIcon fontSize="small" />
                 : <EventNoteOutlinedIcon fontSize="small" />,
-            visible: true,
         },
         {
             id: 'more',
             label: 'More',
             icon: <AppsIcon fontSize="small" />,
-            visible: true,
         },
     ];
 
     return (
         <FloatingNavHost>
             <FloatingPill component="nav" aria-label="Primary navigation" elevation={0}>
-                { tabs.filter(tab => tab.visible).map(tab => {
+                { tabs.map(tab => {
                     const active = activeTab === tab.id;
                     const content = (
                         <>

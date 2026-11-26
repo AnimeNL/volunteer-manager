@@ -9,8 +9,7 @@ import type { NavigationArea, NavigationData } from './navigationTypes';
 import { getScheduleAccess } from './getScheduleAccess';
 import { readUserSettings } from '@lib/UserSettings';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots, tContent,
-    tContentCategories, tEventsTeams, tTeams, tUsersEvents, tUsersEventsFavourites }
-    from '@lib/database';
+    tContentCategories, tEventsTeams, tTeams, tUsersEvents } from '@lib/database';
 
 import { kActivityType, kRegistrationStatus } from '@lib/database/Types';
 
@@ -46,11 +45,8 @@ export const getNavigationData = cache(
         const festivalId = event.integrations?.anPlanFestivalId;
         const memberTeams = events.get(event.slug);
 
-        const isVolunteer = !!memberTeams?.size;
-
-        const [ hasSchedule, areas, dutyBookTeams, knowledgeCategories, userSettings ] =
+        const [ areas, dutyBookTeams, knowledgeCategories, userSettings ] =
             await Promise.all([
-                isVolunteer ? Promise.resolve(true) : hasUserEventSchedule(event.id, user.id),
                 festivalId ? getProgramAreas(festivalId) : Promise.resolve([]),
                 getEventDutyBookTeams(event.id),
                 getEventKnowledgeCategories(event.id),
@@ -80,37 +76,8 @@ export const getNavigationData = cache(
             expandEvents: userSettings['user-schedule-expand-events'] ?? true,
             hasHelpRequests,
             hasKnowledgeBase,
-            hasSchedule,
         };
     });
-
-/**
- * Returns whether `userId` is an accepted volunteer or has at least one favourited activity in
- * `eventId`.
- */
-async function hasUserEventSchedule(eventId: number, userId: number): Promise<boolean> {
-    'use cache';
-    cacheLife('minutes');
-    cacheTag(
-        'schedule-favourites', `schedule-favourites:${eventId}:${userId}`,
-        'schedule-volunteers', `schedule-volunteers:${eventId}:${userId}`);
-
-    const [ volunteerCount, favouriteCount ] = await Promise.all([
-        db.selectFrom(tUsersEvents)
-            .where(tUsersEvents.eventId.equals(eventId))
-                .and(tUsersEvents.userId.equals(userId))
-                .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
-            .selectCountAll()
-            .executeSelectOne(),
-        db.selectFrom(tUsersEventsFavourites)
-            .where(tUsersEventsFavourites.eventId.equals(eventId))
-                .and(tUsersEventsFavourites.userId.equals(userId))
-            .selectCountAll()
-            .executeSelectOne(),
-    ]);
-
-    return volunteerCount > 0 || favouriteCount > 0;
-}
 
 /**
  * Loads all enabled Duty Book teams for `eventId`, sorted alphabetically by team name.
