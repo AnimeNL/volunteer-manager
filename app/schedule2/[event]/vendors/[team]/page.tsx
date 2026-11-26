@@ -4,17 +4,18 @@
 import { forbidden, notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
+import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import LocalHospitalOutlinedIcon from '@mui/icons-material/LocalHospitalOutlined';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
 import Skeleton from '@mui/material/Skeleton';
-import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
 
 import type { VendorTeam } from '@lib/database/Types';
 import { Header } from '../../components/Header';
 import { Page, SuspenseReveal } from '../../components/Page';
-import { hasVendorSchedule } from '../../lib/data/vendorData';
+import { VendorScheduleCalendar } from './VendorScheduleCalendar';
+import { getVendorSchedule } from '../../lib/data/vendorData';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
 
 import { kAnyTeam } from '@lib/auth/access';
@@ -72,13 +73,14 @@ async function VendorHeaderDescription(props: { params: Promise<{ team: string }
 
 /**
  * Authenticates the request behind `<Suspense>`, validates the vendor team parameter,
- * `volunteers.vendor-teams` permission, and shift availability, and renders the placeholder card.
+ * `volunteers.vendor-teams` permission, and shift availability, and renders the vendor schedule
+ * calendar.
  */
 async function VendorScheduleContent(
     props: { params: Promise<{ event: string; team: string }> })
 {
     const { event: eventSlug, team: rawTeam } = await props.params;
-    const { access, event } = await requireScheduleAccess(eventSlug);
+    const { access, currentTime, event } = await requireScheduleAccess(eventSlug);
 
     const team = parseVendorTeam(rawTeam);
     if (!team)
@@ -87,20 +89,43 @@ async function VendorScheduleContent(
     if (!access.can('volunteers.vendor-teams', 'read', { event: event.slug, team: kAnyTeam }))
         forbidden();
 
-    if (!await hasVendorSchedule(event, team))
+    const { shifts, vendors } = await getVendorSchedule(event, team);
+    if (!shifts.length)
         notFound();
 
-    const { title } = kVendorPageInfo[team];
-
     return (
-        <CardContent>
-            <Typography variant="h6" gutterBottom>
-                {title}
-            </Typography>
-            <Typography variant="body2" color="textSecondary">
-                Not yet implemented.
-            </Typography>
-        </CardContent>
+        <VendorScheduleCalendar
+            currentTime={currentTime.toInstant().toString()}
+            shifts={shifts}
+            timeZone={event.timeZone}
+            vendors={vendors} />
+    );
+}
+
+/**
+ * Skeleton placeholder matching the full-size calendar toolbar, optional side panel, and time grid
+ * while vendor shifts are streaming.
+ */
+function VendorScheduleSkeleton() {
+    return (
+        <Stack spacing={1.5} sx={{
+            height: { xs: 'calc(100dvh - 230px)', md: 'calc(100dvh - 180px)' },
+            minHeight: 540,
+            p: 1.5,
+        }}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <Skeleton variant="rounded" width={36} height={32} />
+                <Skeleton variant="rounded" width={72} height={32} />
+                <Skeleton variant="text" width={140} height={28} />
+                <Box sx={{ flex: '1 1 auto' }} />
+                <Skeleton variant="rounded" width={180} height={32} />
+            </Stack>
+            <Stack direction="row" spacing={1.5} sx={{ flex: '1 1 auto', minHeight: 0 }}>
+                <Skeleton variant="rounded" width={250} height="100%"
+                          sx={{ display: { xs: 'none', md: 'block' }, flexShrink: 0 }} />
+                <Skeleton variant="rounded" height="100%" sx={{ flex: '1 1 auto' }} />
+            </Stack>
+        </Stack>
     );
 }
 
@@ -132,13 +157,7 @@ export default function ScheduleVendorTeamPage(
                     } />
             }>
             <Card>
-                <SuspenseReveal
-                    fallback={
-                        <CardContent>
-                            <Skeleton variant="text" width="35%" height={28} />
-                            <Skeleton variant="text" width="50%" height={20} sx={{ mt: 1 }} />
-                        </CardContent>
-                    }>
+                <SuspenseReveal fallback={ <VendorScheduleSkeleton /> }>
                     <VendorScheduleContent params={props.params} />
                 </SuspenseReveal>
             </Card>
