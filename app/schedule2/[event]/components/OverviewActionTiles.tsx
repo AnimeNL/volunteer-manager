@@ -4,7 +4,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import type { ButtonBaseTypeMap, ExtendButtonBase } from '@mui/material/ButtonBase';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
@@ -101,6 +101,11 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
     const [ dismissed, setDismissed ] = useState<ReadonlySet<OverviewActionTileId>>(
         () => new Set());
 
+    // Remount <ActionTileButton> when Next.js hides this route via <Activity mode="hidden"> so
+    // in-flight MUI <TouchRipple> elements are not stranded and replayed on back navigation.
+    const [ rippleKey, setRippleKey ] = useState<number>(0);
+    useEffect(() => () => setRippleKey(key => key + 1), []);
+
     async function handleDismiss(tileId: OverviewActionTileId) {
         setDismissed(current => new Set([ ...current, tileId ]));
 
@@ -126,6 +131,7 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
             <Grid size={{ xs: 12, md: secondaryIds.length > 0 ? 5 : 12 }}>
                 <Box sx={{ height: '100%', position: 'relative' }}>
                     <ActionTileButton
+                        key={rippleKey}
                         accent={hero.accent}
                         component={Link}
                         hero
@@ -167,6 +173,7 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
                             <Grid key={tileId} size="grow">
                                 <Box sx={{ height: '100%', position: 'relative' }}>
                                     <ActionTileButton
+                                        key={rippleKey}
                                         accent={tile.accent}
                                         component={Link}
                                         href={getSchedulePath(eventSlug, tile.segment)}
