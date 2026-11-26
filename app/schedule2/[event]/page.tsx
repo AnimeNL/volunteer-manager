@@ -51,17 +51,17 @@ function OverviewActionsSkeleton() {
     return (
         <Grid container spacing={1.25}>
             <Grid size={{ xs: 12, md: 5 }}>
-                <Skeleton variant="rounded" sx={{ height: { xs: 68, md: 80 } }} />
+                <Skeleton variant="rounded" height={80} />
             </Grid>
             <Grid container spacing={1.25} size={{ xs: 12, md: 7 }}>
                 <Grid size="grow">
-                    <Skeleton variant="rounded" sx={{ height: { xs: 78, md: 80 } }} />
+                    <Skeleton variant="rounded" height={80} />
                 </Grid>
                 <Grid size="grow">
-                    <Skeleton variant="rounded" sx={{ height: { xs: 78, md: 80 } }} />
+                    <Skeleton variant="rounded" height={80} />
                 </Grid>
                 <Grid size="grow">
-                    <Skeleton variant="rounded" sx={{ height: { xs: 78, md: 80 } }} />
+                    <Skeleton variant="rounded" height={80} />
                 </Grid>
             </Grid>
         </Grid>

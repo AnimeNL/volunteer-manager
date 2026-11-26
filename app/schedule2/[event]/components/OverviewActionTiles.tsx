@@ -236,8 +236,8 @@ const DismissButton = styled(IconButton, {
         opacity: 0.65,
         padding: theme.spacing(0.5),
         position: 'absolute',
-        right: theme.spacing(0.75),
-        top: theme.spacing(0.75),
+        right: theme.spacing(1),
+        top: theme.spacing(1),
         transition: theme.transitions.create([ 'background-color', 'opacity' ], {
             duration: theme.transitions.duration.shorter,
         }),
@@ -252,7 +252,6 @@ const DismissButton = styled(IconButton, {
             {
                 props: { tone: 'primary' },
                 style: {
-                    right: theme.spacing(1.25),
                     top: '50%',
                     transform: 'translateY(-50%)',
                 },
@@ -274,18 +273,14 @@ const HeroTileButton = styled(ButtonBase)(({ theme }) => {
         borderRadius: kCardBorderRadiusPx,
         color: palette.m3.onPrimary,
         height: '100%',
-        minHeight: 68,
-        padding: theme.spacing(1.5, 5.5, 1.5, 1.75),
+        minHeight: 80,
+        padding: theme.spacing(1.5, 5.5, 1.5, 1.5),
         textAlign: 'left',
         textDecoration: 'none',
         transition: theme.transitions.create([ 'filter', 'transform' ], {
             duration: theme.transitions.duration.shorter,
         }),
         width: '100%',
-
-        [theme.breakpoints.up('md')]: {
-            minHeight: 80,
-        },
 
         '&:hover': {
             filter: 'brightness(0.96)',
@@ -328,7 +323,7 @@ const SecondaryTileButton = styled(ButtonBase, {
         borderRadius: kCardBorderRadiusPx,
         color: tone.text,
         height: '100%',
-        minHeight: 78,
+        minHeight: 80,
         padding: theme.spacing(1.5),
         textAlign: 'left',
         textDecoration: 'none',
@@ -336,10 +331,6 @@ const SecondaryTileButton = styled(ButtonBase, {
             duration: theme.transitions.duration.shorter,
         }),
         width: '100%',
-
-        [theme.breakpoints.up('md')]: {
-            minHeight: 80,
-        },
 
         '&:hover': {
             filter: 'brightness(0.96)',
