@@ -148,7 +148,7 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
             }}>
                 <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>
                     <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', minWidth: 0 }}>
-                        <RowTitle state={state} variant="body2" noWrap>
+                        <RowTitle hasSubtitle={!!subtitle} state={state} variant="body2" noWrap>
                             {title}
                         </RowTitle>
                         { hidden &&
@@ -156,7 +156,7 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
                                 <HiddenIconBadge
                                     aria-label="Hidden from regular volunteers"
                                     muted={isPast}>
-                                    <VisibilityOffOutlinedIcon fontSize="small" />
+                                    <VisibilityOffOutlinedIcon fontSize="inherit" />
                                 </HiddenIconBadge>
                             </Tooltip> }
                     </Stack>
@@ -256,20 +256,24 @@ const SegmentedListRoot = styled(Box)(({ theme }) => {
         flexDirection: 'column',
         gap: 3,
 
-        '& > *': {
+        '& > [data-state]': {
             backgroundColor: palette.m3.card,
             borderRadius: 4,
             overflow: 'hidden',
         },
 
-        '& > :first-of-type': {
+        '& > [data-state]:first-of-type': {
             borderTopLeftRadius: kCardBorderRadiusPx,
             borderTopRightRadius: kCardBorderRadiusPx,
         },
 
-        '& > :last-of-type': {
+        '& > [data-state]:last-of-type': {
             borderBottomLeftRadius: kCardBorderRadiusPx,
             borderBottomRightRadius: kCardBorderRadiusPx,
+        },
+
+        '& > a[data-state="default"]:hover': {
+            backgroundColor: `color-mix(in srgb, ${palette.m3.card} 94%, ${palette.text.primary})`,
         },
     };
 });
@@ -338,14 +342,20 @@ const RowStatic = styled(Box, {
  * Primary row title text styled by row state.
  */
 const RowTitle = styled(Typography, {
-    shouldForwardProp: prop => prop !== 'state',
-})<{ state: ScheduleListRowState }>(({ theme }) => {
+    shouldForwardProp: prop => prop !== 'hasSubtitle' && prop !== 'state',
+})<{ hasSubtitle: boolean; state: ScheduleListRowState }>(({ theme }) => {
     const palette = (theme.vars || theme).palette;
 
     return {
         color: palette.text.primary,
         lineHeight: 1.35,
         variants: [
+            {
+                props: { hasSubtitle: true },
+                style: {
+                    fontWeight: 600,
+                },
+            },
             {
                 props: { state: 'active' },
                 style: {
@@ -406,6 +416,7 @@ const HiddenIconBadge = styled('span', {
     color: '#8c5a12',
     display: 'inline-flex',
     flexShrink: 0,
+    fontSize: '0.8125rem',
     opacity: 0.92,
     ...theme.applyStyles('dark', {
         color: '#d9b87c',
