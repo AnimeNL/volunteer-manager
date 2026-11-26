@@ -6,6 +6,7 @@ import { Suspense, ViewTransition } from 'react';
 import Stack from '@mui/material/Stack';
 
 import { PageScrollReset } from './PageScrollReset';
+import { PullToRefresh } from './PullToRefresh';
 
 import { kSheetBorderRadiusPx } from '../Constants';
 
@@ -56,7 +57,9 @@ export function Page(props: React.PropsWithChildren<PageProps>) {
                     xs: 'calc(80px + env(safe-area-inset-bottom, 0px))',
                     md: 0,
                 },
+                position: { xs: 'relative', md: 'static' },
             }}>
+                <PullToRefresh />
                 <Suspense fallback={null}>
                     <PageScrollReset />
                 </Suspense>
