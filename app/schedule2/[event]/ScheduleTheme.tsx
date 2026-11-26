@@ -181,6 +181,13 @@ const ScheduleBackground = styled(Box)(({ theme }) => {
         color: palette.text.primary,
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '100dvh',
+        height: '100dvh',
+        overflow: 'hidden',
+
+        [theme.breakpoints.up('md')]: {
+            height: 'auto',
+            minHeight: '100dvh',
+            overflow: 'visible',
+        },
     };
 });

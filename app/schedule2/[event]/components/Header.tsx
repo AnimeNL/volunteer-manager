@@ -48,6 +48,7 @@ export function Header(props: HeaderProps) {
             alignItems: 'center',
             borderBottom: { md: 1 },
             borderColor: { md: 'divider' },
+            flexShrink: 0,
             px: { xs: 1.5, md: 0 },
             pt: { xs: 0.5, md: 0 },
             pb: { xs: 0.5, md: 1.5 },

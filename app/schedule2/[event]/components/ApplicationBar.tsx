@@ -86,8 +86,9 @@ export function ApplicationBar(props: ApplicationBarProps) {
 }
 
 /**
- * Sticky outer header row anchored across view transitions. On mobile, carries `12px` horizontal
- * padding above the edge-to-edge sheet; on desktop, aligns flush with the content sheet edges.
+ * Outer header row anchored across view transitions. On mobile, sits pinned above the scrolling
+ * sheet with `12px` horizontal padding; on desktop, aligns flush with the content sheet edges and
+ * scrolls with the page beside the sticky sidebar.
  */
 const HeaderRow = styled('header')(({ theme }) => ({
     alignItems: 'center',
@@ -97,10 +98,7 @@ const HeaderRow = styled('header')(({ theme }) => ({
     paddingLeft: theme.spacing(1.5),
     paddingRight: theme.spacing(1.5),
     paddingTop: theme.spacing(1.5),
-    position: 'sticky',
-    top: 0,
     viewTransitionName: 'schedule-header',
-    zIndex: theme.zIndex.appBar,
 
     [theme.breakpoints.up('md')]: {
         paddingLeft: 0,

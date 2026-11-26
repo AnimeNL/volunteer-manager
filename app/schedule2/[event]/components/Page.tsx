@@ -5,6 +5,8 @@ import { Suspense, ViewTransition } from 'react';
 
 import Stack from '@mui/material/Stack';
 
+import { PageScrollReset } from './PageScrollReset';
+
 import { kSheetBorderRadiusPx } from '../Constants';
 
 /**
@@ -45,13 +47,19 @@ export function Page(props: React.PropsWithChildren<PageProps>) {
                     md: 0,
                 },
                 flex: '1 1 auto',
+                minHeight: { xs: 0, md: 'auto' },
                 minWidth: 0,
+                overflowY: { xs: 'auto', md: 'visible' },
+                overscrollBehaviorY: { xs: 'contain', md: 'auto' },
                 p: { xs: 1.5, md: 0 },
                 pb: {
                     xs: 'calc(80px + env(safe-area-inset-bottom, 0px))',
                     md: 0,
                 },
             }}>
+                <Suspense fallback={null}>
+                    <PageScrollReset />
+                </Suspense>
                 {props.children}
             </Stack>
         </ViewTransition>

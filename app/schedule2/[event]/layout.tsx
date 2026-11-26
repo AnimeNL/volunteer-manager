@@ -85,6 +85,7 @@ export default async function ScheduleLayout(props: LayoutProps<'/schedule2/[eve
                 gap: { md: 1.5 },
                 marginX: 'auto',
                 maxWidth: { md: 1280 },
+                minHeight: { xs: 0, md: 'auto' },
                 padding: { xs: 0, md: 1.5 },
                 width: '100%',
             }}>
@@ -96,7 +97,11 @@ export default async function ScheduleLayout(props: LayoutProps<'/schedule2/[eve
                     <DesktopNavigation params={props.params} />
                 </Box>
 
-                <Stack direction="column" spacing={1.5} sx={{ flex: '1 1 auto', minWidth: 0 }}>
+                <Stack direction="column" spacing={1.5} sx={{
+                    flex: '1 1 auto',
+                    minHeight: { xs: 0, md: 'auto' },
+                    minWidth: 0,
+                }}>
                     <ApplicationBar
                         accountMenu={
                             <Suspense fallback={ <AccountMenuButton /> }>
@@ -107,6 +112,7 @@ export default async function ScheduleLayout(props: LayoutProps<'/schedule2/[eve
                         bgcolor: { xs: 'transparent', md: 'm3.sheet' },
                         borderRadius: { md: `${kSheetBorderRadiusPx}px` },
                         flex: '1 1 auto',
+                        minHeight: { xs: 0, md: 'auto' },
                         minWidth: 0,
                         p: { xs: 0, md: 1.5 },
                     }}>

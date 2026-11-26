@@ -25,7 +25,12 @@ interface DesktopNavigationProps {
  */
 export function DesktopNavigation(props: DesktopNavigationProps) {
     return (
-        <Stack spacing={1.5} sx={{ position: 'sticky', top: 12 }}>
+        <Stack spacing={1.5} sx={{
+            maxHeight: 'calc(100dvh - 24px)',
+            overflowY: 'auto',
+            position: 'sticky',
+            top: 12,
+        }}>
             <EventBanner params={props.params} variant="sidebar" />
             <DesktopNavigationList>
                 <Suspense fallback={null}>
