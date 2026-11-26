@@ -261,33 +261,51 @@ const DismissButton = styled(IconButton, {
 });
 
 /**
+ * Shared interactive surface styles for overview action tiles, using a translucent M3 state-layer
+ * overlay on hover without shifting the tile position.
+ */
+const ActionTileBase = styled(ButtonBase)(({ theme }) => ({
+    borderRadius: kCardBorderRadiusPx,
+    height: '100%',
+    minHeight: 80,
+    overflow: 'hidden',
+    position: 'relative',
+    textAlign: 'left',
+    textDecoration: 'none',
+    width: '100%',
+
+    '&::after': {
+        backgroundColor: 'transparent',
+        content: '""',
+        inset: 0,
+        pointerEvents: 'none',
+        position: 'absolute',
+        transition: theme.transitions.create('background-color', {
+            duration: theme.transitions.duration.shorter,
+        }),
+    },
+
+    '&:hover::after': {
+        backgroundColor: 'rgba(0, 0, 0, 0.08)',
+
+        ...theme.applyStyles('dark', {
+            backgroundColor: 'rgba(255, 255, 255, 0.10)',
+        }),
+    },
+})) as ExtendButtonBase<ButtonBaseTypeMap>;
+
+/**
  * Expressive primary-gradient hero CTA button for the overview page.
  */
-const HeroTileButton = styled(ButtonBase)(({ theme }) => {
+const HeroTileButton = styled(ActionTileBase)(({ theme }) => {
     const palette = (theme.vars || theme).palette;
 
     return {
         background:
             `linear-gradient(135deg, ${palette.m3.primary} 0%, ` +
             `${palette.m3.primaryGradientEnd} 100%)`,
-        borderRadius: kCardBorderRadiusPx,
         color: palette.m3.onPrimary,
-        height: '100%',
-        minHeight: 80,
         padding: theme.spacing(1.5, 5.5, 1.5, 1.5),
-        textAlign: 'left',
-        textDecoration: 'none',
-        transition: theme.transitions.create([ 'filter', 'transform' ], {
-            duration: theme.transitions.duration.shorter,
-        }),
-        width: '100%',
-
-        '&:hover': {
-            filter: 'brightness(0.96)',
-        },
-        '&:active': {
-            transform: 'scale(0.99)',
-        },
     };
 }) as ExtendButtonBase<ButtonBaseTypeMap>;
 
@@ -313,31 +331,15 @@ const HeroIconBadge = styled(Box)(({ theme }) => {
 /**
  * Compact analogous-tone secondary CTA tile with an icon badge and single-word label.
  */
-const SecondaryTileButton = styled(ButtonBase, {
+const SecondaryTileButton = styled(ActionTileBase, {
     shouldForwardProp: prop => prop !== 'accent',
 })<{ accent: TileAccentKey }>(({ accent, theme }) => {
     const tone = (theme.vars || theme).palette.m3[accent];
 
     return {
         backgroundColor: tone.background,
-        borderRadius: kCardBorderRadiusPx,
         color: tone.text,
-        height: '100%',
-        minHeight: 80,
         padding: theme.spacing(1.5),
-        textAlign: 'left',
-        textDecoration: 'none',
-        transition: theme.transitions.create([ 'filter', 'transform' ], {
-            duration: theme.transitions.duration.shorter,
-        }),
-        width: '100%',
-
-        '&:hover': {
-            filter: 'brightness(0.96)',
-        },
-        '&:active': {
-            transform: 'scale(0.98)',
-        },
     };
 }) as ExtendButtonBase<ButtonBaseTypeMap<{ accent: TileAccentKey }>>;
 
