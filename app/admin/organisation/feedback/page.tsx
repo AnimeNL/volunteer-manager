@@ -44,7 +44,7 @@ const feedbackDataSource = createDataSource('organisation/feedback', withRowMode
     feedback: z.string(),
 
     /**
-     * Volunteer to whom this feedback has been assigned, if any.
+     * Volunteer to whom this feedback has been assigned, or who responded to it.
      */
     assignedTo: z.object({
         id: z.number(),
@@ -70,7 +70,9 @@ const feedbackDataSource = createDataSource('organisation/feedback', withRowMode
             .leftJoin(usersJoin)
                 .on(usersJoin.userId.equals(tFeedback.userId))
             .leftJoin(usersAssignedJoin)
-                .on(usersAssignedJoin.userId.equals(tFeedback.feedbackAssignedUserId))
+                .on(usersAssignedJoin.userId.equals(
+                    tFeedback.feedbackAssignedUserId.valueWhenNull(
+                        tFeedback.feedbackResponseUserId)))
             .where(
                 usersJoin.name.containsInsensitiveIfValue(params.search).or(
                 usersAssignedJoin.name.containsInsensitiveIfValue(params.search).or(
