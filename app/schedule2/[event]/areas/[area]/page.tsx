@@ -1,6 +1,9 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { cache } from 'react';
+import { notFound } from 'next/navigation';
+
 import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
@@ -9,18 +12,75 @@ import { Header } from '../../components/Header';
 import { Page, SuspenseReveal } from '../../components/Page';
 import { ScheduleList, ScheduleListRow } from '../../components/ScheduleList';
 import { SectionHeader } from '../../components/SectionHeader';
-import { getMockAreaDetail } from '../../lib/data/mockProgramData';
+import { formatDate } from '@lib/Temporal';
 import { getSchedulePath } from '../../lib/navigationTypes';
+import { readSetting } from '@lib/Settings';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
+import db, { tActivities, tActivitiesAreas, tActivitiesLocations,
+    tActivitiesTimeslots } from '@lib/database';
+
+import { kActivityType } from '@lib/database/Types';
+
+/**
+ * Hour of the morning at which the logical festival day rolls over.
+ */
+const kLogicalDayChangeHour = 4;
+
+/**
+ * Request-cached loader fetching all scheduled program timeslots for `areaParam` in `festivalId`.
+ */
+const loadAreaData = cache(async (festivalId: number | undefined, areaParam: string) => {
+    const areaId = Number(areaParam);
+    if (!festivalId || !Number.isInteger(areaId))
+        return undefined;
+
+    const rows = await db.selectFrom(tActivities)
+        .innerJoin(tActivitiesTimeslots)
+            .on(tActivitiesTimeslots.activityId.equals(tActivities.activityId))
+                .and(tActivitiesTimeslots.timeslotDeleted.isNull())
+        .innerJoin(tActivitiesLocations)
+            .on(tActivitiesLocations.locationId.equals(tActivitiesTimeslots.timeslotLocationId))
+                .and(tActivitiesLocations.locationDeleted.isNull())
+        .innerJoin(tActivitiesAreas)
+            .on(tActivitiesAreas.areaId.equals(tActivitiesLocations.locationAreaId))
+                .and(tActivitiesAreas.areaDeleted.isNull())
+        .where(tActivities.activityFestivalId.equals(festivalId))
+            .and(tActivities.activityType.equals(kActivityType.Program))
+            .and(tActivities.activityDeleted.isNull())
+            .and(tActivitiesAreas.areaId.equals(areaId))
+        .select({
+            activityId: tActivities.activityId,
+            areaName: tActivitiesAreas.areaDisplayName.valueWhenNull(tActivitiesAreas.areaName),
+            end: tActivitiesTimeslots.timeslotEndTime,
+            hidden: tActivities.activityVisible.equals(/* false= */ 0),
+            locationId: tActivitiesLocations.locationId,
+            locationName: tActivitiesLocations.locationDisplayName.valueWhenNull(
+                tActivitiesLocations.locationName),
+            start: tActivitiesTimeslots.timeslotStartTime,
+            timeslotId: tActivitiesTimeslots.timeslotId,
+            title: tActivities.activityTitle,
+        })
+        .executeSelectMany();
+
+    if (!rows.length)
+        return undefined;
+
+    return {
+        locationCount: new Set(rows.map(row => row.locationId)).size,
+        name: rows[0].areaName,
+        rows,
+    };
+});
 
 /**
  * Streams the resolved area title into the page `<Header>`.
  */
 async function AreaTitle(props: { params: Promise<{ area: string; event: string }> }) {
     const { area, event: eventSlug } = await props.params;
-    await requireScheduleAccess(eventSlug);
+    const { event } = await requireScheduleAccess(eventSlug);
+    const data = await loadAreaData(event.integrations?.anPlanFestivalId, area);
 
-    return getMockAreaDetail(area).name;
+    return data?.name ?? null;
 }
 
 /**
@@ -28,9 +88,13 @@ async function AreaTitle(props: { params: Promise<{ area: string; event: string 
  */
 async function AreaDescription(props: { params: Promise<{ area: string; event: string }> }) {
     const { area, event: eventSlug } = await props.params;
-    await requireScheduleAccess(eventSlug);
+    const { event } = await requireScheduleAccess(eventSlug);
+    const data = await loadAreaData(event.integrations?.anPlanFestivalId, area);
+    if (!data)
+        return null;
 
-    return getMockAreaDetail(area).description;
+    const label = data.locationCount === 1 ? 'location' : 'locations';
+    return `${data.locationCount} ${label} in this area`;
 }
 
 /**
@@ -38,31 +102,110 @@ async function AreaDescription(props: { params: Promise<{ area: string; event: s
  */
 async function AreaLocationsContent(props: { params: Promise<{ area: string; event: string }> }) {
     const { area, event: eventSlug } = await props.params;
-    const { event } = await requireScheduleAccess(eventSlug);
-    const areaDetail = getMockAreaDetail(area);
+    const { currentTime, event } = await requireScheduleAccess(eventSlug);
+
+    const [ data, listLimit ] = await Promise.all([
+        loadAreaData(event.integrations?.anPlanFestivalId, area),
+        readSetting('schedule-activity-list-limit'),
+    ]);
+
+    if (!data)
+        notFound();
+
+    type TimeslotRow = typeof data.rows[number];
+
+    const maxEvents = listLimit ?? 5;
+    const nowMs = currentTime.epochMilliseconds;
+    const today = currentTime.subtract({ hours: kLogicalDayChangeHour }).toPlainDate();
+
+    const locationMap = new Map<
+        number, { active: TimeslotRow[]; id: number; name: string; upcoming: TimeslotRow[] }>();
+
+    for (const row of data.rows) {
+        let location = locationMap.get(row.locationId);
+        if (!location) {
+            location = { active: [], id: row.locationId, name: row.locationName, upcoming: [] };
+            locationMap.set(row.locationId, location);
+        }
+
+        if (row.end.epochMilliseconds <= nowMs)
+            continue;
+
+        if (row.start.epochMilliseconds <= nowMs)
+            location.active.push(row);
+        else
+            location.upcoming.push(row);
+    }
+
+    const locations = [ ...locationMap.values() ]
+        .map(location => {
+            location.active.sort((lhs, rhs) =>
+                lhs.end.epochMilliseconds - rhs.end.epochMilliseconds);
+            location.upcoming.sort((lhs, rhs) =>
+                lhs.start.epochMilliseconds - rhs.start.epochMilliseconds);
+
+            const remainingSlots = Math.max(0, maxEvents - location.active.length);
+            return {
+                events: [ ...location.active, ...location.upcoming.slice(0, remainingSlots) ],
+                id: location.id,
+                name: location.name,
+            };
+        })
+        .sort((lhs, rhs) =>
+            Number(!lhs.events.length) - Number(!rhs.events.length) ||
+            lhs.name.localeCompare(rhs.name));
 
     return (
         <Stack spacing={2} useFlexGap>
-            { areaDetail.locations.map(location =>
-                <Stack key={location.id} spacing={0.75} useFlexGap>
-                    <SectionHeader
-                        actionLabel="Full schedule"
-                        href={getSchedulePath(event.slug, `/locations/${location.id}`)}
-                        title={location.name}
-                        transitionTypes={[ 'nav-forward' ]} />
-                    <ScheduleList>
-                        { location.events.map(programEvent =>
-                            <ScheduleListRow
-                                key={programEvent.id}
-                                hidden={programEvent.hidden}
-                                href={getSchedulePath(event.slug, `/events/${programEvent.id}`)}
-                                progress={programEvent.progress}
-                                state={programEvent.state}
-                                title={programEvent.title}
-                                trailing={programEvent.time}
-                                transitionTypes={[ 'nav-forward' ]} /> ) }
-                    </ScheduleList>
-                </Stack> ) }
+            { locations.map(location => {
+                const isEmpty = !location.events.length;
+
+                return (
+                    <Stack key={location.id} spacing={0.75} useFlexGap>
+                        <SectionHeader
+                            actionLabel="Full schedule"
+                            href={getSchedulePath(event.slug, `/locations/${location.id}`)}
+                            muted={isEmpty}
+                            title={location.name}
+                            transitionTypes={[ 'nav-forward' ]} />
+                        <ScheduleList muted={isEmpty}>
+                            { isEmpty &&
+                                <ScheduleListRow title="No upcoming events" /> }
+                            { location.events.map(row => {
+                                const start = row.start.withTimeZone(event.timeZone);
+                                const end = row.end.withTimeZone(event.timeZone);
+                                const startMs = row.start.epochMilliseconds;
+                                const endMs = row.end.epochMilliseconds;
+                                const isActive = startMs <= nowMs;
+
+                                const sameDay = today.equals(
+                                    start.subtract({ hours: kLogicalDayChangeHour }).toPlainDate());
+
+                                const trailing = isActive
+                                    ? `until ${formatDate(end, 'HH:mm')}`
+                                    : `${formatDate(start, sameDay ? 'HH:mm' : 'ddd, HH:mm')}` +
+                                      `–${formatDate(end, 'HH:mm')}`;
+
+                                return (
+                                    <ScheduleListRow
+                                        key={row.timeslotId}
+                                        hidden={row.hidden}
+                                        href={getSchedulePath(
+                                            event.slug, `/events/${row.activityId}`)}
+                                        progress={isActive
+                                            ? Math.round(((nowMs - startMs) / (endMs - startMs))
+                                                * 100)
+                                            : undefined}
+                                        state={isActive ? 'active' : 'default'}
+                                        title={row.title}
+                                        trailing={trailing}
+                                        transitionTypes={[ 'nav-forward' ]} />
+                                );
+                            }) }
+                        </ScheduleList>
+                    </Stack>
+                );
+            }) }
         </Stack>
     );
 }
