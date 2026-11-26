@@ -35,7 +35,7 @@ type TileAccentKey = 'tileAccentA' | 'tileAccentB' | 'tileAccentC';
  * Static metadata describing each actionable overview tile.
  */
 interface ActionTileMetadata {
-    accent: TileAccentKey;
+    accent?: TileAccentKey;
     heroSubtitle: string;
     icon: React.ReactNode;
     label: string;
@@ -43,7 +43,8 @@ interface ActionTileMetadata {
 }
 
 /**
- * Registry of overview action tile definitions indexed by tile ID.
+ * Registry of overview action tile definitions indexed by tile ID. Each tile keeps a stable colour
+ * identity (`accent` omitted for primary, or an analogous tone) regardless of layout slot.
  */
 const kActionTiles: Record<OverviewActionTileId, ActionTileMetadata> = {
     feedback: {
@@ -68,7 +69,6 @@ const kActionTiles: Record<OverviewActionTileId, ActionTileMetadata> = {
         segment: '/shifts',
     },
     ticket: {
-        accent: 'tileAccentA',
         heroSubtitle: 'Welcoming you to the festival',
         icon: <QrCode2Icon fontSize="small" />,
         label: 'Your ticket',
@@ -126,12 +126,14 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
             <Grid size={{ xs: 12, md: secondaryIds.length > 0 ? 5 : 12 }}>
                 <Box sx={{ height: '100%', position: 'relative' }}>
                     <ActionTileButton
+                        accent={hero.accent}
                         component={Link}
+                        hero
                         href={getSchedulePath(eventSlug, hero.segment)}
                         transitionTypes={getNavigationTransitionTypes('', hero.segment)}>
                         <Stack direction="row" spacing={1.5}
                                sx={{ alignItems: 'center', minWidth: 0, width: '100%' }}>
-                            <TileIconBadge>
+                            <TileIconBadge accent={hero.accent} hero>
                                 {hero.icon}
                             </TileIconBadge>
                             <Box sx={{ minWidth: 0 }}>
@@ -147,7 +149,9 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
                         </Stack>
                     </ActionTileButton>
                     <DismissButton
+                        accent={hero.accent}
                         aria-label={`Dismiss ${hero.label}`}
+                        hero
                         onClick={() => handleDismiss(heroId)}
                         size="small">
                         <CloseIcon fontSize="small" />
@@ -205,12 +209,12 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
 }
 
 /**
- * Interactive overview tile surface. Renders the primary-gradient hero treatment when `accent` is
- * omitted, or the corresponding analogous tonal surface when `accent` is provided.
+ * Interactive overview tile surface. Colour is determined by `accent` (primary gradient when
+ * omitted, or the matching analogous tone), while `hero` controls the wider hero layout padding.
  */
 const ActionTileButton = styled(ButtonBase, {
-    shouldForwardProp: prop => prop !== 'accent',
-})<{ accent?: TileAccentKey }>(({ accent, theme }) => {
+    shouldForwardProp: prop => prop !== 'accent' && prop !== 'hero',
+})<{ accent?: TileAccentKey; hero?: boolean }>(({ accent, hero, theme }) => {
     const palette = (theme.vars || theme).palette;
     const tone = accent ? palette.m3[accent] : undefined;
 
@@ -224,7 +228,7 @@ const ActionTileButton = styled(ButtonBase, {
         height: '100%',
         minHeight: 80,
         overflow: 'hidden',
-        padding: tone ? theme.spacing(1.5) : theme.spacing(1.5, 5.5, 1.5, 1.5),
+        padding: hero ? theme.spacing(1.5, 5.5, 1.5, 1.5) : theme.spacing(1.5),
         position: 'relative',
         textAlign: 'left',
         textDecoration: 'none',
@@ -249,18 +253,18 @@ const ActionTileButton = styled(ButtonBase, {
             }),
         },
     };
-}) as ExtendButtonBase<ButtonBaseTypeMap<{ accent?: TileAccentKey }>>;
+}) as ExtendButtonBase<ButtonBaseTypeMap<{ accent?: TileAccentKey; hero?: boolean }>>;
 
 /**
- * Rounded icon badge for an overview tile, sized at 36px for the hero tile and 32px for secondary
- * analogous tiles.
+ * Rounded icon badge for an overview tile, sized at 36px in the hero slot and 32px in secondary
+ * slots while preserving the tile's colour identity via `accent`.
  */
 const TileIconBadge = styled(Box, {
-    shouldForwardProp: prop => prop !== 'accent',
-})<{ accent?: TileAccentKey }>(({ accent, theme }) => {
+    shouldForwardProp: prop => prop !== 'accent' && prop !== 'hero',
+})<{ accent?: TileAccentKey; hero?: boolean }>(({ accent, hero, theme }) => {
     const palette = (theme.vars || theme).palette;
     const tone = accent ? palette.m3[accent] : undefined;
-    const size = tone ? 32 : 36;
+    const size = hero ? 36 : 32;
 
     return {
         alignItems: 'center',
@@ -279,11 +283,11 @@ const TileIconBadge = styled(Box, {
 
 /**
  * Subtle close button overlaid on each action tile without nesting buttons inside links. Vertically
- * centered on the hero tile (`accent` omitted) and anchored top-right on secondary tiles.
+ * centered when `hero` is set and anchored top-right on secondary tiles.
  */
 const DismissButton = styled(IconButton, {
-    shouldForwardProp: prop => prop !== 'accent',
-})<{ accent?: TileAccentKey }>(({ accent, theme }) => {
+    shouldForwardProp: prop => prop !== 'accent' && prop !== 'hero',
+})<{ accent?: TileAccentKey; hero?: boolean }>(({ accent, hero, theme }) => {
     const palette = (theme.vars || theme).palette;
     const color = accent ? palette.m3[accent].text : palette.m3.onPrimary;
 
@@ -293,8 +297,8 @@ const DismissButton = styled(IconButton, {
         padding: theme.spacing(0.5),
         position: 'absolute',
         right: theme.spacing(1),
-        top: accent ? theme.spacing(1) : '50%',
-        transform: accent ? undefined : 'translateY(-50%)',
+        top: hero ? '50%' : theme.spacing(1),
+        transform: hero ? 'translateY(-50%)' : undefined,
         transition: theme.transitions.create([ 'background-color', 'opacity' ], {
             duration: theme.transitions.duration.shorter,
         }),
