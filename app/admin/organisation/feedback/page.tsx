@@ -44,6 +44,14 @@ const feedbackDataSource = createDataSource('organisation/feedback', withRowMode
     feedback: z.string(),
 
     /**
+     * Volunteer to whom this feedback has been assigned, if any.
+     */
+    assignedTo: z.object({
+        id: z.number(),
+        name: z.string(),
+    }).optional(),
+
+    /**
      * Our response to the feedback.
      */
     response: z.enum(kFeedbackResponse).optional(),
@@ -54,17 +62,21 @@ const feedbackDataSource = createDataSource('organisation/feedback', withRowMode
     },
 
     async list(params, props) {
-        const usersJoin = tUsers.forUseInLeftJoin();
+        const usersJoin = tUsers.forUseInLeftJoinAs('uj');
+        const usersAssignedJoin = tUsers.forUseInLeftJoinAs('uaj');
 
         const dbInstance = db;
         const results = await dbInstance.selectFrom(tFeedback)
             .leftJoin(usersJoin)
                 .on(usersJoin.userId.equals(tFeedback.userId))
+            .leftJoin(usersAssignedJoin)
+                .on(usersAssignedJoin.userId.equals(tFeedback.feedbackAssignedUserId))
             .where(
                 usersJoin.name.containsInsensitiveIfValue(params.search).or(
+                usersAssignedJoin.name.containsInsensitiveIfValue(params.search).or(
                 tFeedback.feedbackName.containsInsensitiveIfValue(params.search).or(
                 tFeedback.feedbackText.containsInsensitiveIfValue(params.search)
-            )))
+            ))))
             .select({
                 id: tFeedback.feedbackId,
                 date: dbInstance.dateTimeAsString(tFeedback.feedbackDate),
@@ -74,10 +86,15 @@ const feedbackDataSource = createDataSource('organisation/feedback', withRowMode
                         .valueWhenNull('Unknown'),
                 },
                 feedback: tFeedback.feedbackText,
+                assignedTo: {
+                    id: usersAssignedJoin.userId,
+                    name: usersAssignedJoin.name,
+                },
                 response: tFeedback.feedbackResponse,
             })
             .orderBy(
                 params.sort.field === 'user' ? 'user.name'
+                    : params.sort.field === 'assignedTo' ? 'assignedTo.name'
                     : params.sort.field === 'feedback' ? 'feedback'
                     : 'date',
                 params.sort.direction)
@@ -93,6 +110,10 @@ const feedbackDataSource = createDataSource('organisation/feedback', withRowMode
                     id: row.user.id ?? undefined,
                     name: row.user.name,
                 },
+                assignedTo: row.assignedTo?.id ? {
+                    id: row.assignedTo.id,
+                    name: row.assignedTo.name,
+                } : undefined,
                 response: row.response ?? undefined,
             })),
         };
@@ -129,7 +150,17 @@ export default async function FeedbackPage() {
             field: 'feedback',
             headerName: 'Feedback',
 
-            flex: 4,
+            flex: 3,
+        },
+        {
+            field: 'assignedTo',
+            headerName: 'Assigned to',
+            flex: 1,
+
+            template: 'account',
+            templateProps: {
+                noAccountLabel: 'Unassigned',
+            },
         },
         {
             display: 'flex',
