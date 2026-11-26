@@ -11,11 +11,11 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
 import CloseIcon from '@mui/icons-material/Close';
-import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
 import Grid from '@mui/material/Grid';
 import HotelOutlinedIcon from '@mui/icons-material/HotelOutlined';
 import IconButton from '@mui/material/IconButton';
+import QrCode2Icon from '@mui/icons-material/QrCode2';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
@@ -69,9 +69,9 @@ const kActionTiles: Record<OverviewActionTileId, ActionTileMetadata> = {
     },
     ticket: {
         accent: 'tileAccentA',
-        heroSubtitle: 'Your entry to the festival',
-        icon: <ConfirmationNumberOutlinedIcon fontSize="small" />,
-        label: 'Ticket',
+        heroSubtitle: 'Welcoming you to the festival',
+        icon: <QrCode2Icon fontSize="small" />,
+        label: 'Your ticket',
         segment: '/ticket',
     },
 };

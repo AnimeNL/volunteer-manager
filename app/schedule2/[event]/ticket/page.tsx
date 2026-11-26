@@ -6,7 +6,7 @@ import { Suspense } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
-import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
+import QrCode2Icon from '@mui/icons-material/QrCode2';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -116,7 +116,7 @@ export default function ScheduleTicketPage(props: PageProps<'/schedule2/[event]/
                             <TicketDescription params={props.params} />
                         </Suspense>
                     }
-                    icon={ <ConfirmationNumberOutlinedIcon /> }
+                    icon={ <QrCode2Icon /> }
                     title="Your ticket" />
             }>
             <Card>
