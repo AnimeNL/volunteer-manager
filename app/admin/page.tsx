@@ -10,6 +10,7 @@ import { DatabaseCard } from './dashboard/DatabaseCard';
 import { EventCard } from './dashboard/EventCard';
 import { ProfilePromotionCard } from './dashboard/ProfilePromotionCard';
 import { SchedulerCard } from './dashboard/SchedulerCard';
+import { TodoCard, queryTodoItems } from './dashboard/TodoCard';
 import { WelcomeCard } from './dashboard/WelcomeCard';
 import { readUserSettings } from '@lib/UserSettings';
 import { requireAuthentication } from '@lib/auth';
@@ -21,13 +22,19 @@ import { requireAuthentication } from '@lib/auth';
 export default async function AdminPage() {
     const { access, user } = await requireAuthentication();
 
-    const userSettings = await readUserSettings(
-        user.id, [ 'ai-example-messages' ], /* disableFallback= */ true);
+    const [ userSettings, todoItems ] = await Promise.all([
+        readUserSettings(user.id, [ 'ai-example-messages' ], /* disableFallback= */ true),
+        queryTodoItems(user.id, access),
+    ]);
 
     const cards: React.ReactNode[] = [
         <EventCard key="event-card" access={access} />,
-        <BirthdayCard key="birthday-card" access={access} />,
     ];
+
+    if (todoItems.length > 0)
+        cards.push(<TodoCard key="todo-card" items={todoItems} />);
+
+    cards.push(<BirthdayCard key="birthday-card" access={access} />);
 
     if (access.can('system.logs', 'read'))
         cards.push(<ActivityCard key="activity-card" />);
