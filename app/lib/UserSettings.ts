@@ -166,3 +166,19 @@ export async function writeUserSettings<T extends keyof UserSettingsMap>(
         }
     }
 }
+
+/**
+ * Deletes the given `settings` across all users from the database and clears the `UserSettings`
+ * cache. Returns the number of deleted setting rows.
+ */
+export async function clearUserSettings(settings: (keyof UserSettingsMap)[]): Promise<number> {
+    if (!settings.length)
+        return 0;
+
+    const deletedRows = await db.deleteFrom(tUsersSettings)
+        .where(tUsersSettings.settingName.in(settings))
+        .executeDelete();
+
+    Cache.getInstance('UserSettings').clear();
+    return deletedRows;
+}

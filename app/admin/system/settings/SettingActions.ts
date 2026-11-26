@@ -5,9 +5,10 @@
 
 import { z } from 'zod/v4';
 
+import { type UserSettingsMap, clearUserSettings } from '@lib/UserSettings';
 import { LogBuilder } from '@lib/log';
-import { requireAuthentication } from '@lib/auth';
 import { executeServerAction } from '@lib/serverAction';
+import { requireAuthentication } from '@lib/auth';
 import { writeSettings } from '@lib/Settings';
 
 /**
@@ -36,6 +37,16 @@ const kNumberSettings = new Set([
     'session-cleanup-interval-days',
     'system-role-account-user-id',
 ]);
+
+/**
+ * User settings controlling dismissed tiles on the schedule overview page.
+ */
+const kScheduleOverviewTileSettings: (keyof UserSettingsMap)[] = [
+    'user-schedule-hide-feedback-tile',
+    'user-schedule-hide-hotel-tile',
+    'user-schedule-hide-schedule-tile',
+    'user-schedule-hide-ticket-tile',
+];
 
 /**
  * Server Action schema for updating system settings.
@@ -90,5 +101,30 @@ export async function updateSettings(formData: unknown) {
             });
 
         return { success: true };
+    });
+}
+
+/**
+ * Server Action schema for resetting dismissed schedule overview tiles across all users.
+ */
+const kResetScheduleOverviewTilesData = z.object({ /* no parameters */ });
+
+/**
+ * Server Action clearing all dismissed schedule overview tile user settings across all users.
+ */
+export async function resetScheduleOverviewTiles() {
+    return executeServerAction({}, kResetScheduleOverviewTilesData, async (_data, props) => {
+        await requireAuthentication(props.authenticationContext, 'system.internals.settings');
+
+        const clearedCount = await clearUserSettings(kScheduleOverviewTileSettings);
+
+        LogBuilder.for('UpdateSystemSettings')
+            .withInitiatorUser(props.user)
+            .withSeverity('Warning')
+            .record({
+                updated: kScheduleOverviewTileSettings,
+            });
+
+        return { clearedCount, success: true };
     });
 }
