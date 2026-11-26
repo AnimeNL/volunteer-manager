@@ -15,6 +15,7 @@ import Divider from '@mui/material/Divider';
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
 import HotelOutlinedIcon from '@mui/icons-material/HotelOutlined';
 import IconButton from '@mui/material/IconButton';
+import InstallMobileIcon from '@mui/icons-material/InstallMobile';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
@@ -30,6 +31,7 @@ import { useColorScheme } from '@mui/material/styles';
 
 import { getNavigationTransitionTypes, getRelativeNavigationPath,
     getSchedulePath } from '../lib/navigationTypes';
+import { useInstallPrompt } from '../lib/installPrompt';
 
 import { kHeaderBarHeightPx } from '../Constants';
 
@@ -77,7 +79,13 @@ interface AccountMenuButtonProps {
 export function AccountMenuButton(props: AccountMenuButtonProps) {
     const { avatarUrl, eventSlug, hasDevelopment, hasHotelRoom, hasTicket, userName } = props;
     const { mode, setMode } = useColorScheme();
+    const { canInstall, install } = useInstallPrompt();
     const [ anchorEl, setAnchorEl ] = useState<HTMLElement | null>(null);
+
+    function handleInstall() {
+        setAnchorEl(null);
+        void install();
+    }
 
     function handleModeChange(_event: unknown, value: string | null) {
         if (value === 'dark' || value === 'light' || value === 'system')
@@ -137,6 +145,13 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                         hasHotelRoom={hasHotelRoom}
                         hasTicket={hasTicket}
                         onClose={() => setAnchorEl(null)} /> }
+                { canInstall &&
+                    <MenuItem onClick={handleInstall}>
+                        <ListItemIcon>
+                            <InstallMobileIcon fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText primary="Install app…" />
+                    </MenuItem> }
                 <MenuItem onClick={handleSignOut}>
                     <ListItemIcon>
                         <LogoutIcon fontSize="small" />
