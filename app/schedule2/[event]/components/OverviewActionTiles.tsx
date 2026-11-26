@@ -148,25 +148,32 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
                         component={Link}
                         href={getSchedulePath(eventSlug, hero.segment)}
                         transitionTypes={getNavigationTransitionTypes('', hero.segment)}>
-                        <Stack direction="row" spacing={1.5}
-                               sx={{ alignItems: 'center', minWidth: 0 }}>
-                            <HeroIconBadge>
-                                {hero.icon}
-                            </HeroIconBadge>
-                            <Box sx={{ minWidth: 0 }}>
-                                <Typography variant="subtitle1" noWrap
-                                            sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                                    {hero.label}
-                                </Typography>
-                                <Typography variant="caption" noWrap
-                                            sx={{ display: 'block', opacity: 0.82 }}>
-                                    {hero.heroSubtitle}
-                                </Typography>
-                            </Box>
+                        <Stack direction="row" spacing={1.5} sx={{
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            minWidth: 0,
+                            width: '100%',
+                        }}>
+                            <Stack direction="row" spacing={1.5}
+                                   sx={{ alignItems: 'center', minWidth: 0 }}>
+                                <HeroIconBadge>
+                                    {hero.icon}
+                                </HeroIconBadge>
+                                <Box sx={{ minWidth: 0 }}>
+                                    <Typography variant="subtitle1" noWrap
+                                                sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                                        {hero.label}
+                                    </Typography>
+                                    <Typography variant="caption" noWrap
+                                                sx={{ display: 'block', opacity: 0.82 }}>
+                                        {hero.heroSubtitle}
+                                    </Typography>
+                                </Box>
+                            </Stack>
+                            <HeroArrowBadge>
+                                <ArrowForwardIcon fontSize="small" />
+                            </HeroArrowBadge>
                         </Stack>
-                        <HeroArrowBadge>
-                            <ArrowForwardIcon fontSize="small" />
-                        </HeroArrowBadge>
                     </HeroTileButton>
                     <DismissButton
                         aria-label={`Dismiss ${hero.label}`}
@@ -188,13 +195,25 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
                                     component={Link}
                                     href={getSchedulePath(eventSlug, tile.segment)}
                                     transitionTypes={getNavigationTransitionTypes('', tile.segment)}>
-                                    <SecondaryIconBadge accent={tile.accent}>
-                                        {tile.icon}
-                                    </SecondaryIconBadge>
-                                    <Typography variant="subtitle2" noWrap
-                                                sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                                        {tile.label}
-                                    </Typography>
+                                    <Stack spacing={1.25} sx={{
+                                        alignItems: 'flex-start',
+                                        height: '100%',
+                                        justifyContent: 'space-between',
+                                        minWidth: 0,
+                                        width: '100%',
+                                    }}>
+                                        <SecondaryIconBadge accent={tile.accent}>
+                                            {tile.icon}
+                                        </SecondaryIconBadge>
+                                        <Typography variant="subtitle2" noWrap
+                                                    sx={{
+                                                        fontWeight: 600,
+                                                        lineHeight: 1.2,
+                                                        maxWidth: '100%',
+                                                    }}>
+                                            {tile.label}
+                                        </Typography>
+                                    </Stack>
                                 </SecondaryTileButton>
                                 <DismissButton
                                     accent={tile.accent}
@@ -249,16 +268,12 @@ const HeroTileButton = styled(ButtonBase)(({ theme }) => {
     const palette = (theme.vars || theme).palette;
 
     return {
-        alignItems: 'center',
         background:
             `linear-gradient(135deg, ${palette.m3.primary} 0%, ` +
             `${palette.m3.primaryGradientEnd} 100%)`,
         borderRadius: kCardBorderRadiusPx,
         color: palette.m3.onPrimary,
-        display: 'flex',
-        gap: theme.spacing(1.5),
         height: '100%',
-        justifyContent: 'space-between',
         minHeight: 68,
         padding: theme.spacing(1.5, 5.5, 1.5, 1.75),
         textAlign: 'left',
@@ -328,17 +343,11 @@ const SecondaryTileButton = styled(ButtonBase, {
     const tone = (theme.vars || theme).palette.m3[accent];
 
     return {
-        alignItems: 'flex-start',
         backgroundColor: tone.background,
         borderRadius: kCardBorderRadiusPx,
         color: tone.text,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: theme.spacing(1.25),
         height: '100%',
-        justifyContent: 'space-between',
         minHeight: 78,
-        minWidth: 0,
         padding: theme.spacing(1.5),
         textAlign: 'left',
         textDecoration: 'none',

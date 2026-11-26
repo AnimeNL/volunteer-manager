@@ -6,6 +6,7 @@ import { Suspense } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Skeleton from '@mui/material/Skeleton';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { formatDate } from '@lib/Temporal';
@@ -83,7 +84,7 @@ async function EventBannerImage(props: EventBannerProps) {
                 pointerEvents: 'none',
                 position: 'absolute',
             }} />
-            <Box sx={{
+            <Stack spacing={0.25} sx={{
                 bottom: 0,
                 left: 0,
                 pointerEvents: 'none',
@@ -107,12 +108,11 @@ async function EventBannerImage(props: EventBannerProps) {
                         color: 'rgba(255, 255, 255, 0.82)',
                         fontSize: isWidescreen ? '0.8rem' : '0.72rem',
                         lineHeight: 1.3,
-                        mt: 0.25,
                         textShadow: '0 1px 3px rgba(0, 0, 0, 0.75)',
                     }}>
                         {subtitle}
                     </Typography> }
-            </Box>
+            </Stack>
         </>
     );
 }
