@@ -32,16 +32,49 @@ import { type OverviewActionTileId, dismissOverviewActionTile } from './Overview
 type TileAccentKey = 'tileAccentA' | 'tileAccentB' | 'tileAccentC';
 
 /**
- * Definition of an actionable overview tile.
+ * Static metadata describing each actionable overview tile.
  */
-interface ActionTileDefinition {
+interface ActionTileMetadata {
     accent: TileAccentKey;
     heroSubtitle: string;
     icon: React.ReactNode;
-    id: OverviewActionTileId;
     label: string;
     segment: string;
 }
+
+/**
+ * Registry of overview action tile definitions indexed by tile ID.
+ */
+const kActionTiles: Record<OverviewActionTileId, ActionTileMetadata> = {
+    feedback: {
+        accent: 'tileAccentC',
+        heroSubtitle: 'Share your thoughts',
+        icon: <FeedbackOutlinedIcon fontSize="small" />,
+        label: 'Feedback',
+        segment: '/feedback',
+    },
+    hotel: {
+        accent: 'tileAccentA',
+        heroSubtitle: 'Your hotel room',
+        icon: <HotelOutlinedIcon fontSize="small" />,
+        label: 'Hotel',
+        segment: '/hotel',
+    },
+    schedule: {
+        accent: 'tileAccentB',
+        heroSubtitle: 'Your upcoming shifts',
+        icon: <AccessTimeIcon fontSize="small" />,
+        label: 'Schedule',
+        segment: '/shifts',
+    },
+    ticket: {
+        accent: 'tileAccentA',
+        heroSubtitle: 'Your entry to the festival',
+        icon: <ConfirmationNumberOutlinedIcon fontSize="small" />,
+        label: 'Ticket',
+        segment: '/ticket',
+    },
+};
 
 /**
  * Props accepted by the <OverviewActionTiles> component.
@@ -53,24 +86,9 @@ interface OverviewActionTilesProps {
     eventSlug: string;
 
     /**
-     * Whether the Feedback action tile should be displayed.
+     * Ordered list of eligible, non-dismissed action tile IDs to display.
      */
-    showFeedback: boolean;
-
-    /**
-     * Whether the Hotel action tile should be displayed.
-     */
-    showHotel: boolean;
-
-    /**
-     * Whether the Schedule action tile should be displayed.
-     */
-    showSchedule: boolean;
-
-    /**
-     * Whether the Ticket action tile should be displayed.
-     */
-    showTicket: boolean;
+    tiles: OverviewActionTileId[];
 }
 
 /**
@@ -79,7 +97,7 @@ interface OverviewActionTilesProps {
  * tonal tiles.
  */
 export function OverviewActionTiles(props: OverviewActionTilesProps) {
-    const { eventSlug, showFeedback, showHotel, showSchedule, showTicket } = props;
+    const { eventSlug } = props;
     const [ dismissed, setDismissed ] = useState<ReadonlySet<OverviewActionTileId>>(
         () => new Set());
 
@@ -96,62 +114,26 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
         }
     }
 
-    const candidates: (ActionTileDefinition | false)[] = [
-        showTicket && {
-            accent: 'tileAccentA',
-            heroSubtitle: 'Your entry to the festival',
-            icon: <ConfirmationNumberOutlinedIcon fontSize="small" />,
-            id: 'ticket',
-            label: 'Ticket',
-            segment: '/ticket',
-        },
-        showHotel && {
-            accent: 'tileAccentA',
-            heroSubtitle: 'Your hotel room',
-            icon: <HotelOutlinedIcon fontSize="small" />,
-            id: 'hotel',
-            label: 'Hotel',
-            segment: '/hotel',
-        },
-        showSchedule && {
-            accent: 'tileAccentB',
-            heroSubtitle: 'Your upcoming shifts',
-            icon: <AccessTimeIcon fontSize="small" />,
-            id: 'schedule',
-            label: 'Schedule',
-            segment: '/shifts',
-        },
-        showFeedback && {
-            accent: 'tileAccentC',
-            heroSubtitle: 'Share your thoughts',
-            icon: <FeedbackOutlinedIcon fontSize="small" />,
-            id: 'feedback',
-            label: 'Feedback',
-            segment: '/feedback',
-        },
-    ];
-
-    const tiles = candidates.filter(
-        (tile): tile is ActionTileDefinition => !!tile && !dismissed.has(tile.id));
-
-    if (!tiles.length)
+    const visibleIds = props.tiles.filter(id => !dismissed.has(id));
+    if (!visibleIds.length)
         return null;
 
-    const [ hero, ...secondary ] = tiles;
+    const [ heroId, ...secondaryIds ] = visibleIds;
+    const hero = kActionTiles[heroId];
 
     return (
         <Grid container spacing={1.25}>
-            <Grid size={{ xs: 12, md: secondary.length > 0 ? 5 : 12 }}>
+            <Grid size={{ xs: 12, md: secondaryIds.length > 0 ? 5 : 12 }}>
                 <Box sx={{ height: '100%', position: 'relative' }}>
-                    <HeroTileButton
+                    <ActionTileButton
                         component={Link}
                         href={getSchedulePath(eventSlug, hero.segment)}
                         transitionTypes={getNavigationTransitionTypes('', hero.segment)}>
                         <Stack direction="row" spacing={1.5}
                                sx={{ alignItems: 'center', minWidth: 0, width: '100%' }}>
-                            <HeroIconBadge>
+                            <TileIconBadge>
                                 {hero.icon}
-                            </HeroIconBadge>
+                            </TileIconBadge>
                             <Box sx={{ minWidth: 0 }}>
                                 <Typography variant="subtitle1" noWrap
                                             sx={{ fontWeight: 600, lineHeight: 1.2 }}>
@@ -163,73 +145,147 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
                                 </Typography>
                             </Box>
                         </Stack>
-                    </HeroTileButton>
+                    </ActionTileButton>
                     <DismissButton
                         aria-label={`Dismiss ${hero.label}`}
-                        onClick={() => handleDismiss(hero.id)}
-                        size="small"
-                        tone="primary">
+                        onClick={() => handleDismiss(heroId)}
+                        size="small">
                         <CloseIcon fontSize="small" />
                     </DismissButton>
                 </Box>
             </Grid>
 
-            { secondary.length > 0 &&
+            { secondaryIds.length > 0 &&
                 <Grid container spacing={1.25} size={{ xs: 12, md: 7 }}>
-                    { secondary.map(tile => (
-                        <Grid key={tile.id} size="grow">
-                            <Box sx={{ height: '100%', position: 'relative' }}>
-                                <SecondaryTileButton
-                                    accent={tile.accent}
-                                    component={Link}
-                                    href={getSchedulePath(eventSlug, tile.segment)}
-                                    transitionTypes={getNavigationTransitionTypes('', tile.segment)}>
-                                    <Stack spacing={1.25} sx={{
-                                        alignItems: 'flex-start',
-                                        height: '100%',
-                                        justifyContent: 'space-between',
-                                        minWidth: 0,
-                                        width: '100%',
-                                    }}>
-                                        <SecondaryIconBadge accent={tile.accent}>
-                                            {tile.icon}
-                                        </SecondaryIconBadge>
-                                        <Typography variant="subtitle2" noWrap
-                                                    sx={{
-                                                        fontWeight: 600,
-                                                        lineHeight: 1.2,
-                                                        maxWidth: '100%',
-                                                    }}>
-                                            {tile.label}
-                                        </Typography>
-                                    </Stack>
-                                </SecondaryTileButton>
-                                <DismissButton
-                                    accent={tile.accent}
-                                    aria-label={`Dismiss ${tile.label}`}
-                                    onClick={() => handleDismiss(tile.id)}
-                                    size="small"
-                                    tone="secondary">
-                                    <CloseIcon fontSize="small" />
-                                </DismissButton>
-                            </Box>
-                        </Grid>
-                    )) }
+                    { secondaryIds.map(tileId => {
+                        const tile = kActionTiles[tileId];
+                        return (
+                            <Grid key={tileId} size="grow">
+                                <Box sx={{ height: '100%', position: 'relative' }}>
+                                    <ActionTileButton
+                                        accent={tile.accent}
+                                        component={Link}
+                                        href={getSchedulePath(eventSlug, tile.segment)}
+                                        transitionTypes={
+                                            getNavigationTransitionTypes('', tile.segment)
+                                        }>
+                                        <Stack spacing={1.25} sx={{
+                                            alignItems: 'flex-start',
+                                            height: '100%',
+                                            justifyContent: 'space-between',
+                                            minWidth: 0,
+                                            width: '100%',
+                                        }}>
+                                            <TileIconBadge accent={tile.accent}>
+                                                {tile.icon}
+                                            </TileIconBadge>
+                                            <Typography variant="subtitle2" noWrap sx={{
+                                                fontWeight: 600,
+                                                lineHeight: 1.2,
+                                                maxWidth: '100%',
+                                            }}>
+                                                {tile.label}
+                                            </Typography>
+                                        </Stack>
+                                    </ActionTileButton>
+                                    <DismissButton
+                                        accent={tile.accent}
+                                        aria-label={`Dismiss ${tile.label}`}
+                                        onClick={() => handleDismiss(tileId)}
+                                        size="small">
+                                        <CloseIcon fontSize="small" />
+                                    </DismissButton>
+                                </Box>
+                            </Grid>
+                        );
+                    }) }
                 </Grid> }
         </Grid>
     );
 }
 
 /**
- * Subtle corner close button overlaid on each action tile without nesting buttons inside links.
+ * Interactive overview tile surface. Renders the primary-gradient hero treatment when `accent` is
+ * omitted, or the corresponding analogous tonal surface when `accent` is provided.
+ */
+const ActionTileButton = styled(ButtonBase, {
+    shouldForwardProp: prop => prop !== 'accent',
+})<{ accent?: TileAccentKey }>(({ accent, theme }) => {
+    const palette = (theme.vars || theme).palette;
+    const tone = accent ? palette.m3[accent] : undefined;
+
+    return {
+        background: tone
+            ? tone.background
+            : `linear-gradient(135deg, ${palette.m3.primary} 0%, ` +
+              `${palette.m3.primaryGradientEnd} 100%)`,
+        borderRadius: kCardBorderRadiusPx,
+        color: tone ? tone.text : palette.m3.onPrimary,
+        height: '100%',
+        minHeight: 80,
+        overflow: 'hidden',
+        padding: tone ? theme.spacing(1.5) : theme.spacing(1.5, 5.5, 1.5, 1.5),
+        position: 'relative',
+        textAlign: 'left',
+        textDecoration: 'none',
+        width: '100%',
+
+        '&::after': {
+            backgroundColor: 'transparent',
+            content: '""',
+            inset: 0,
+            pointerEvents: 'none',
+            position: 'absolute',
+            transition: theme.transitions.create('background-color', {
+                duration: theme.transitions.duration.shorter,
+            }),
+        },
+
+        '&:hover::after': {
+            backgroundColor: 'rgba(0, 0, 0, 0.08)',
+
+            ...theme.applyStyles('dark', {
+                backgroundColor: 'rgba(255, 255, 255, 0.10)',
+            }),
+        },
+    };
+}) as ExtendButtonBase<ButtonBaseTypeMap<{ accent?: TileAccentKey }>>;
+
+/**
+ * Rounded icon badge for an overview tile, sized at 36px for the hero tile and 32px for secondary
+ * analogous tiles.
+ */
+const TileIconBadge = styled(Box, {
+    shouldForwardProp: prop => prop !== 'accent',
+})<{ accent?: TileAccentKey }>(({ accent, theme }) => {
+    const palette = (theme.vars || theme).palette;
+    const tone = accent ? palette.m3[accent] : undefined;
+    const size = tone ? 32 : 36;
+
+    return {
+        alignItems: 'center',
+        backgroundColor: tone
+            ? tone.iconBackground
+            : `color-mix(in srgb, ${palette.m3.onPrimary} 18%, transparent)`,
+        borderRadius: 10,
+        color: tone ? tone.icon : palette.m3.onPrimary,
+        display: 'flex',
+        flexShrink: 0,
+        height: size,
+        justifyContent: 'center',
+        width: size,
+    };
+});
+
+/**
+ * Subtle close button overlaid on each action tile without nesting buttons inside links. Vertically
+ * centered on the hero tile (`accent` omitted) and anchored top-right on secondary tiles.
  */
 const DismissButton = styled(IconButton, {
-    shouldForwardProp: prop => prop !== 'accent' && prop !== 'tone',
-})<{ accent?: TileAccentKey; tone: 'primary' | 'secondary' }>(({ accent, theme, tone }) => {
+    shouldForwardProp: prop => prop !== 'accent',
+})<{ accent?: TileAccentKey }>(({ accent, theme }) => {
     const palette = (theme.vars || theme).palette;
-    const color = tone === 'primary'
-        ? palette.m3.onPrimary
-        : palette.m3[accent ?? 'tileAccentA'].text;
+    const color = accent ? palette.m3[accent].text : palette.m3.onPrimary;
 
     return {
         color,
@@ -237,7 +293,8 @@ const DismissButton = styled(IconButton, {
         padding: theme.spacing(0.5),
         position: 'absolute',
         right: theme.spacing(1),
-        top: theme.spacing(1),
+        top: accent ? theme.spacing(1) : '50%',
+        transform: accent ? undefined : 'translateY(-50%)',
         transition: theme.transitions.create([ 'background-color', 'opacity' ], {
             duration: theme.transitions.duration.shorter,
         }),
@@ -247,119 +304,5 @@ const DismissButton = styled(IconButton, {
             backgroundColor: `color-mix(in srgb, ${color} 14%, transparent)`,
             opacity: 1,
         },
-
-        variants: [
-            {
-                props: { tone: 'primary' },
-                style: {
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                },
-            },
-        ],
-    };
-});
-
-/**
- * Shared interactive surface styles for overview action tiles, using a translucent M3 state-layer
- * overlay on hover without shifting the tile position.
- */
-const ActionTileBase = styled(ButtonBase)(({ theme }) => ({
-    borderRadius: kCardBorderRadiusPx,
-    height: '100%',
-    minHeight: 80,
-    overflow: 'hidden',
-    position: 'relative',
-    textAlign: 'left',
-    textDecoration: 'none',
-    width: '100%',
-
-    '&::after': {
-        backgroundColor: 'transparent',
-        content: '""',
-        inset: 0,
-        pointerEvents: 'none',
-        position: 'absolute',
-        transition: theme.transitions.create('background-color', {
-            duration: theme.transitions.duration.shorter,
-        }),
-    },
-
-    '&:hover::after': {
-        backgroundColor: 'rgba(0, 0, 0, 0.08)',
-
-        ...theme.applyStyles('dark', {
-            backgroundColor: 'rgba(255, 255, 255, 0.10)',
-        }),
-    },
-})) as ExtendButtonBase<ButtonBaseTypeMap>;
-
-/**
- * Expressive primary-gradient hero CTA button for the overview page.
- */
-const HeroTileButton = styled(ActionTileBase)(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
-
-    return {
-        background:
-            `linear-gradient(135deg, ${palette.m3.primary} 0%, ` +
-            `${palette.m3.primaryGradientEnd} 100%)`,
-        color: palette.m3.onPrimary,
-        padding: theme.spacing(1.5, 5.5, 1.5, 1.5),
-    };
-}) as ExtendButtonBase<ButtonBaseTypeMap>;
-
-/**
- * Translucent rounded icon badge anchored on the hero tile's primary fill.
- */
-const HeroIconBadge = styled(Box)(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
-
-    return {
-        alignItems: 'center',
-        backgroundColor: `color-mix(in srgb, ${palette.m3.onPrimary} 18%, transparent)`,
-        borderRadius: 10,
-        color: palette.m3.onPrimary,
-        display: 'flex',
-        flexShrink: 0,
-        height: 36,
-        justifyContent: 'center',
-        width: 36,
-    };
-});
-
-/**
- * Compact analogous-tone secondary CTA tile with an icon badge and single-word label.
- */
-const SecondaryTileButton = styled(ActionTileBase, {
-    shouldForwardProp: prop => prop !== 'accent',
-})<{ accent: TileAccentKey }>(({ accent, theme }) => {
-    const tone = (theme.vars || theme).palette.m3[accent];
-
-    return {
-        backgroundColor: tone.background,
-        color: tone.text,
-        padding: theme.spacing(1.5),
-    };
-}) as ExtendButtonBase<ButtonBaseTypeMap<{ accent: TileAccentKey }>>;
-
-/**
- * Rounded icon badge tinted with the secondary tile's analogous accent colour.
- */
-const SecondaryIconBadge = styled(Box, {
-    shouldForwardProp: prop => prop !== 'accent',
-})<{ accent: TileAccentKey }>(({ accent, theme }) => {
-    const tone = (theme.vars || theme).palette.m3[accent];
-
-    return {
-        alignItems: 'center',
-        backgroundColor: tone.iconBackground,
-        borderRadius: 10,
-        color: tone.icon,
-        display: 'flex',
-        flexShrink: 0,
-        height: 32,
-        justifyContent: 'center',
-        width: 32,
     };
 });

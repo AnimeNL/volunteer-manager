@@ -7,6 +7,7 @@ import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 
+import type { OverviewActionTileId } from './components/OverviewActions';
 import { EventBanner } from './components/EventBanner';
 import { OverviewActionTiles } from './components/OverviewActionTiles';
 import { Page, SuspenseReveal } from './components/Page';
@@ -34,14 +35,17 @@ async function OverviewActions(props: { params: Promise<{ event: string }> }) {
         ], /* disableFallback= */ true),
     ]);
 
-    return (
-        <OverviewActionTiles
-            eventSlug={event.slug}
-            showFeedback={!userSettings['user-schedule-hide-feedback-tile']}
-            showHotel={hotelBookings.length > 0 && !userSettings['user-schedule-hide-hotel-tile']}
-            showSchedule={!userSettings['user-schedule-hide-schedule-tile']}
-            showTicket={!!ticket && !userSettings['user-schedule-hide-ticket-tile']} />
-    );
+    const tiles: OverviewActionTileId[] = [];
+    if (!!ticket && !userSettings['user-schedule-hide-ticket-tile'])
+        tiles.push('ticket');
+    if (hotelBookings.length > 0 && !userSettings['user-schedule-hide-hotel-tile'])
+        tiles.push('hotel');
+    if (!userSettings['user-schedule-hide-schedule-tile'])
+        tiles.push('schedule');
+    if (!userSettings['user-schedule-hide-feedback-tile'])
+        tiles.push('feedback');
+
+    return <OverviewActionTiles eventSlug={event.slug} tiles={tiles} />;
 }
 
 /**
