@@ -42,6 +42,11 @@ const kVendorMetadata: Record<VendorTeam, { icon: React.ReactNode; title: string
  */
 export interface OverviewVendorEntry {
     /**
+     * Whether this row links through to the vendor team's full schedule.
+     */
+    clickable: boolean;
+
+    /**
      * Alphabetically sorted first names of personnel currently on site (empty when nobody is).
      */
     names: string[];
@@ -57,27 +62,23 @@ export interface OverviewVendorEntry {
  */
 interface OverviewVendorCardProps {
     /**
-     * Whether the signed-in volunteer can click through to each team's full schedule.
-     */
-    clickable: boolean;
-
-    /**
      * Ordered list of vendor teams to display in the unified card.
      */
     entries: OverviewVendorEntry[];
 
     /**
-     * Slug of the active event used to build destination URLs when `clickable` is true.
+     * Slug of the active event used to build destination URLs for clickable entries.
      */
     eventSlug: string;
 }
 
 /**
  * Displays a unified neutral card listing on-site First Aid and/or Security personnel. Rows are
- * plain text for most volunteers and become navigable links for volunteers with vendor-team access.
+ * plain text for most volunteers and become navigable links for volunteers with vendor-team access
+ * when shifts are scheduled for that team.
  */
 export function OverviewVendorCard(props: OverviewVendorCardProps) {
-    const { clickable, entries, eventSlug } = props;
+    const { entries, eventSlug } = props;
 
     // Remount <VendorRowButton> when Next.js hides this route via <Activity mode="hidden"> so
     // in-flight MUI <TouchRipple> elements are not stranded and replayed on back navigation.
@@ -110,7 +111,7 @@ export function OverviewVendorCard(props: OverviewVendorCardProps) {
                                 { isEmpty ? 'Nobody is currently on site' : entry.names.join(', ') }
                             </Typography>
                         </Box>
-                        { clickable &&
+                        { entry.clickable &&
                             <ChevronRightIcon fontSize="small"
                                               sx={{ color: 'text.disabled', flexShrink: 0 }} /> }
                     </Stack>
@@ -119,7 +120,7 @@ export function OverviewVendorCard(props: OverviewVendorCardProps) {
                 return (
                     <Fragment key={entry.team}>
                         { index > 0 && <Divider /> }
-                        { clickable ? (
+                        { entry.clickable ? (
                             <VendorRowButton
                                 key={rippleKey}
                                 component={Link}

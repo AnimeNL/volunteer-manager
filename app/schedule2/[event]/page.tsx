@@ -14,7 +14,7 @@ import { EventBanner } from './components/EventBanner';
 import { OverviewActionTiles } from './components/OverviewActionTiles';
 import { OverviewVendorCard } from './components/OverviewVendorCard';
 import { Page, SuspenseReveal } from './components/Page';
-import { getActiveVendors } from './lib/data/vendorData';
+import { getActiveVendors, hasVendorSchedule } from './lib/data/vendorData';
 import { getVolunteerHotelBookings } from './lib/data/hotelData';
 import { getVolunteerTicket } from './lib/data/ticketData';
 import { readSettings } from '@lib/Settings';
@@ -104,21 +104,35 @@ async function OverviewVendors(props: { params: Promise<{ event: string }> }) {
     if (!showFirstAid && !showSecurity)
         return null;
 
-    const [ firstAidNames, securityNames ] = await Promise.all([
-        showFirstAid ? getActiveVendors(event, kVendorTeam.FirstAid, currentTime) : undefined,
-        showSecurity ? getActiveVendors(event, kVendorTeam.Security, currentTime) : undefined,
-    ]);
+    const [ firstAidNames, firstAidScheduled, securityNames, securityScheduled ] =
+        await Promise.all([
+            showFirstAid ? getActiveVendors(event, kVendorTeam.FirstAid, currentTime) : undefined,
+            showFirstAid && fullVendorAccess
+                ? hasVendorSchedule(event, kVendorTeam.FirstAid)
+                : false,
+            showSecurity ? getActiveVendors(event, kVendorTeam.Security, currentTime) : undefined,
+            showSecurity && fullVendorAccess
+                ? hasVendorSchedule(event, kVendorTeam.Security)
+                : false,
+        ]);
 
     const entries: OverviewVendorEntry[] = [];
-    if (firstAidNames !== undefined)
-        entries.push({ names: firstAidNames, team: kVendorTeam.FirstAid });
-    if (securityNames !== undefined)
-        entries.push({ names: securityNames, team: kVendorTeam.Security });
+    if (firstAidNames !== undefined) {
+        entries.push({
+            clickable: firstAidScheduled,
+            names: firstAidNames,
+            team: kVendorTeam.FirstAid,
+        });
+    }
+    if (securityNames !== undefined) {
+        entries.push({
+            clickable: securityScheduled,
+            names: securityNames,
+            team: kVendorTeam.Security,
+        });
+    }
 
-    return (
-        <OverviewVendorCard clickable={fullVendorAccess} entries={entries}
-                            eventSlug={event.slug} />
-    );
+    return <OverviewVendorCard entries={entries} eventSlug={event.slug} />;
 }
 
 /**
