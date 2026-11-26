@@ -284,7 +284,7 @@ const HeroTileButton = styled(ButtonBase)(({ theme }) => {
         width: '100%',
 
         [theme.breakpoints.up('md')]: {
-            minHeight: 96,
+            minHeight: 80,
         },
 
         '&:hover': {
@@ -338,7 +338,7 @@ const SecondaryTileButton = styled(ButtonBase, {
         width: '100%',
 
         [theme.breakpoints.up('md')]: {
-            minHeight: 96,
+            minHeight: 80,
         },
 
         '&:hover': {
