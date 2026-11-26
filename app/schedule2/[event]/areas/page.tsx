@@ -1,16 +1,21 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
 import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
 import Skeleton from '@mui/material/Skeleton';
+import Typography from '@mui/material/Typography';
 
 import { Header } from '../components/Header';
 import { Page, SuspenseReveal } from '../components/Page';
 import { ScheduleList, ScheduleListRow } from '../components/ScheduleList';
 import { getSchedulePath } from '../lib/navigationTypes';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
+import db, { tActivities, tActivitiesAreas, tActivitiesLocations,
+    tActivitiesTimeslots } from '@lib/database';
 
-import { kMockProgramAreas } from '../lib/data/mockProgramData';
+import { kActivityType } from '@lib/database/Types';
 
 /**
  * Authenticates the request behind `<Suspense>` and renders the segmented list of program areas.
@@ -18,18 +23,72 @@ import { kMockProgramAreas } from '../lib/data/mockProgramData';
 async function AreasListContent(props: { params: Promise<{ event: string }> }) {
     const { event: eventSlug } = await props.params;
     const { event } = await requireScheduleAccess(eventSlug);
+    const festivalId = event.integrations?.anPlanFestivalId;
+
+    const rows = festivalId ? await db.selectFrom(tActivities)
+        .innerJoin(tActivitiesTimeslots)
+            .on(tActivitiesTimeslots.activityId.equals(tActivities.activityId))
+                .and(tActivitiesTimeslots.timeslotDeleted.isNull())
+        .innerJoin(tActivitiesLocations)
+            .on(tActivitiesLocations.locationId.equals(tActivitiesTimeslots.timeslotLocationId))
+                .and(tActivitiesLocations.locationDeleted.isNull())
+        .innerJoin(tActivitiesAreas)
+            .on(tActivitiesAreas.areaId.equals(tActivitiesLocations.locationAreaId))
+                .and(tActivitiesAreas.areaDeleted.isNull())
+        .where(tActivities.activityFestivalId.equals(festivalId))
+            .and(tActivities.activityType.equals(kActivityType.Program))
+            .and(tActivities.activityDeleted.isNull())
+        .select({
+            areaId: tActivitiesAreas.areaId,
+            areaName: tActivitiesAreas.areaDisplayName.valueWhenNull(tActivitiesAreas.areaName),
+            locationName: tActivitiesLocations.locationDisplayName.valueWhenNull(
+                tActivitiesLocations.locationName),
+        })
+        .groupBy(tActivitiesAreas.areaId, tActivitiesLocations.locationId)
+        .executeSelectMany() : [];
+
+    const areaMap = new Map<number, { id: number; locations: string[]; name: string }>();
+    for (const row of rows) {
+        let area = areaMap.get(row.areaId);
+        if (!area) {
+            area = { id: row.areaId, locations: [], name: row.areaName };
+            areaMap.set(row.areaId, area);
+        }
+
+        area.locations.push(row.locationName);
+    }
+
+    const areas = [ ...areaMap.values() ].sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
+    if (!areas.length) {
+        return (
+            <Card>
+                <CardContent>
+                    <Typography variant="body2" color="textSecondary">
+                        No program areas have been announced for {event.shortName} yet.
+                    </Typography>
+                </CardContent>
+            </Card>
+        );
+    }
 
     return (
         <ScheduleList variant="segmented">
-            { kMockProgramAreas.map(area =>
-                <ScheduleListRow
-                    key={area.id}
-                    chevron
-                    href={getSchedulePath(event.slug, `/areas/${area.id}`)}
-                    subtitle={area.locationsSummary}
-                    title={area.name}
-                    trailing={`${area.locationsCount} locations`}
-                    transitionTypes={[ 'nav-forward' ]} /> ) }
+            { areas.map(area => {
+                const locations = area.locations.sort((lhs, rhs) => lhs.localeCompare(rhs));
+                const subtitle = locations.length > 2
+                    ? `${locations.slice(0, 2).join(', ')}, and ${locations.length - 2} more`
+                    : locations.join(', ');
+
+                return (
+                    <ScheduleListRow
+                        key={area.id}
+                        chevron
+                        href={getSchedulePath(event.slug, `/areas/${area.id}`)}
+                        subtitle={subtitle}
+                        title={area.name}
+                        transitionTypes={[ 'nav-forward' ]} />
+                );
+            }) }
         </ScheduleList>
     );
 }
@@ -50,9 +109,9 @@ function AreasListSkeleton() {
             { rows.map(({ subtitleWidth, titleWidth }, index) =>
                 <ScheduleListRow
                     key={index}
+                    chevron
                     subtitle={ <Skeleton variant="text" width={subtitleWidth} /> }
-                    title={ <Skeleton variant="text" width={titleWidth} /> }
-                    trailing={ <Skeleton variant="text" width={64} /> } /> ) }
+                    title={ <Skeleton variant="text" width={titleWidth} /> } /> ) }
         </ScheduleList>
     );
 }
