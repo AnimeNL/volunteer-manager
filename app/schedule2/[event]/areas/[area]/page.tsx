@@ -46,7 +46,7 @@ async function AreaLocationsContent(props: { params: Promise<{ area: string; eve
             { areaDetail.locations.map(location =>
                 <Stack key={location.id} spacing={0.75} useFlexGap>
                     <SectionHeader
-                        actionLabel="Schedule"
+                        actionLabel="Full schedule"
                         href={getSchedulePath(event.slug, `/locations/${location.id}`)}
                         title={location.name}
                         transitionTypes={[ 'nav-forward' ]} />
