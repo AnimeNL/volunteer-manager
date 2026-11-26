@@ -75,6 +75,9 @@ React View Transitions.
   for colour-scheme styling—never branch on `theme.palette.mode`.
 * Always use direct MUI subpath imports (e.g. `import Box from '@mui/material/Box'`) rather than
   barrel imports from `@mui/material`.
+* When targeting MUI component slots or states in CSS selectors (`styled()` or `sx`), import the
+  component's exported `*Classes` object (e.g. `listItemIconClasses.root`,
+  `inputBaseClasses.input`) rather than hardcoding `.Mui*` class name strings.
 * Prefer composing (nested) MUI layout primitives (`<Grid>`, `<Stack>`, `<Box>`) and MUI spacing
   and padding tokens (`spacing`, `p`/`px`/`py`, `theme.spacing(...)`) over reinventing flex/grid
   layouts or hardcoding pixel margins and padding in custom `styled()` wrappers.
