@@ -10,7 +10,6 @@ import type { SchedulerEvent, SchedulerEventColor, SchedulerResource }
 import Box from '@mui/material/Box';
 import { StandaloneCompactThreeDayViewPremium }
     from '@mui/x-scheduler-premium/compact-three-day-view-premium';
-import { styled } from '@mui/material/styles';
 
 import type { VendorScheduleMember, VendorScheduleShift } from '../../lib/data/vendorData';
 
@@ -20,6 +19,12 @@ import type { VendorScheduleMember, VendorScheduleShift } from '../../lib/data/v
 const kResourceColors: readonly SchedulerEventColor[] = [
     'blue', 'teal', 'purple', 'orange', 'green', 'indigo', 'pink', 'amber', 'red', 'lime',
 ];
+
+/**
+ * Full 24-hour natural height (89px day header + 24 * 46px hour rows, plus buffer) so the three-day
+ * grid renders without an internal scrollbar and scrolls with the page.
+ */
+const kFullDayGridHeightPx = 1225;
 
 /**
  * Props accepted by the <VendorScheduleCalendar> component.
@@ -80,7 +85,7 @@ export function VendorScheduleCalendar(props: VendorScheduleCalendarProps) {
     }, [ shifts, startDate, vendors ]);
 
     return (
-        <CalendarContainer>
+        <Box sx={{ height: kFullDayGridHeightPx, width: '100%' }}>
             <StandaloneCompactThreeDayViewPremium
                 dateLocale="en-GB"
                 displayTimezone={timeZone}
@@ -88,25 +93,8 @@ export function VendorScheduleCalendar(props: VendorScheduleCalendarProps) {
                 readOnly
                 resources={resources}
                 showCurrentTimeIndicator
+                sx={{ border: 'none' }}
                 visibleDate={visibleDate} />
-        </CalendarContainer>
+        </Box>
     );
 }
-
-/**
- * Full-height viewport-aware container giving `<StandaloneCompactThreeDayViewPremium>` an explicit
- * height so its internal time grid scrolls smoothly within the schedule sheet.
- */
-const CalendarContainer = styled(Box)(({ theme }) => ({
-    height: 'calc(100dvh - 230px)',
-    minHeight: 540,
-    width: '100%',
-
-    '& .MuiEventCalendar-dayTimeGridContainer': {
-        border: 'none',
-    },
-
-    [theme.breakpoints.up('md')]: {
-        height: 'calc(100dvh - 180px)',
-    },
-}));

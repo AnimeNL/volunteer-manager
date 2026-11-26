@@ -106,11 +106,7 @@ async function VendorScheduleContent(
  */
 function VendorScheduleSkeleton() {
     return (
-        <Stack spacing={1.5} sx={{
-            height: { xs: 'calc(100dvh - 230px)', md: 'calc(100dvh - 180px)' },
-            minHeight: 540,
-            p: 1.5,
-        }}>
+        <Stack spacing={1.5} sx={{ height: 1225, p: 1.5 }}>
             <Stack direction="row" spacing={1.5} sx={{ pl: 6 }}>
                 <Skeleton variant="rounded" height={44} sx={{ flex: '1 1 0' }} />
                 <Skeleton variant="rounded" height={44} sx={{ flex: '1 1 0' }} />
