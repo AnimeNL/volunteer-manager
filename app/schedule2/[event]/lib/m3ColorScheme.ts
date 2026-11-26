@@ -43,6 +43,11 @@ export interface M3TonalPalette {
     primary: string;
 
     /**
+     * Secondary gradient stop paired with `primary` on expressive hero action tiles.
+     */
+    primaryGradientEnd: string;
+
+    /**
      * High-contrast text/icon colour on `primary`.
      */
     onPrimary: string;
@@ -138,6 +143,7 @@ export function computeM3ColorScheme(seedColor: string): M3ColorScheme {
         card: hclToHex(hue, neutralChroma, 17),
         floatingNav: hclToHex(hue, neutralChroma, 16.5),
         primary: hclToHex(hue, primaryChroma * 0.78, 80),
+        primaryGradientEnd: hclToHex(hue, primaryChroma * 0.84, 72),
         onPrimary: hclToHex(hue, primaryChroma * 0.65, 19),
         secondaryContainer: hclToHex(hue, secondaryChroma * 1.05, 32),
         onSecondaryContainer: hclToHex(hue, secondaryChroma * 0.85, 90),
@@ -157,6 +163,7 @@ export function computeM3ColorScheme(seedColor: string): M3ColorScheme {
         card: hclToHex(hue, neutralChroma * 1.15, 95.5),
         floatingNav: hclToHex(hue, neutralChroma * 1.25, 93),
         primary: hclToHex(hue, primaryChroma * 0.85, 42),
+        primaryGradientEnd: hclToHex(hue, primaryChroma * 0.92, 51),
         onPrimary: '#ffffff',
         secondaryContainer: hclToHex(hue, secondaryChroma * 1.1, 84),
         onSecondaryContainer: hclToHex(hue, secondaryChroma * 0.9, 21),
