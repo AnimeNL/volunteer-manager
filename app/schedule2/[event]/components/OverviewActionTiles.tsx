@@ -6,16 +6,38 @@
 import Link from 'next/link';
 
 import type { ButtonBaseTypeMap, ExtendButtonBase } from '@mui/material/ButtonBase';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
+import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
+import Grid from '@mui/material/Grid';
+import HotelOutlinedIcon from '@mui/icons-material/HotelOutlined';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
 import { getNavigationTransitionTypes, getSchedulePath } from '../lib/navigationTypes';
 
 import { kCardBorderRadiusPx } from '../Constants';
+
+/**
+ * Accent slot key identifying which analogous palette tone a secondary tile uses.
+ */
+type TileAccentKey = 'tileAccentA' | 'tileAccentB' | 'tileAccentC';
+
+/**
+ * Definition of an actionable overview tile.
+ */
+interface ActionTileDefinition {
+    accent: TileAccentKey;
+    heroSubtitle: string;
+    icon: React.ReactNode;
+    id: 'ticket' | 'hotel' | 'schedule' | 'feedback';
+    label: string;
+    segment: string;
+}
 
 /**
  * Props accepted by the <OverviewActionTiles> component.
@@ -27,41 +49,123 @@ interface OverviewActionTilesProps {
     eventSlug: string;
 
     /**
+     * Whether the signed-in volunteer has a confirmed hotel room booking for this event.
+     */
+    hasHotelRoom: boolean;
+
+    /**
+     * Whether the signed-in user has a personal shift or favourite schedule for this event.
+     */
+    hasSchedule: boolean;
+
+    /**
      * Whether the signed-in volunteer has an assigned festival ticket for this event.
      */
     hasTicket: boolean;
 }
 
 /**
- * Renders the actionable CTA tiles on the schedule overview page.
+ * Renders the Bento grid of actionable CTA tiles on the schedule overview page. The first visible
+ * tile occupies the primary-gradient hero slot, while remaining tiles render as compact analogous
+ * tonal tiles.
  */
 export function OverviewActionTiles(props: OverviewActionTilesProps) {
-    const { eventSlug, hasTicket } = props;
-    if (!hasTicket)
-        return null;
+    const { eventSlug, hasHotelRoom, hasSchedule, hasTicket } = props;
+
+    const tiles: ActionTileDefinition[] = [];
+    if (hasTicket) {
+        tiles.push({
+            accent: 'tileAccentA',
+            heroSubtitle: 'Your entry to the festival',
+            icon: <ConfirmationNumberOutlinedIcon fontSize="small" />,
+            id: 'ticket',
+            label: 'Ticket',
+            segment: '/ticket',
+        });
+    }
+
+    if (hasHotelRoom) {
+        tiles.push({
+            accent: 'tileAccentA',
+            heroSubtitle: 'Your hotel room',
+            icon: <HotelOutlinedIcon fontSize="small" />,
+            id: 'hotel',
+            label: 'Hotel',
+            segment: '/hotel',
+        });
+    }
+
+    if (hasSchedule) {
+        tiles.push({
+            accent: 'tileAccentB',
+            heroSubtitle: 'Your upcoming shifts',
+            icon: <AccessTimeIcon fontSize="small" />,
+            id: 'schedule',
+            label: 'Schedule',
+            segment: '/shifts',
+        });
+    }
+
+    tiles.push({
+        accent: 'tileAccentC',
+        heroSubtitle: 'Share your thoughts',
+        icon: <FeedbackOutlinedIcon fontSize="small" />,
+        id: 'feedback',
+        label: 'Feedback',
+        segment: '/feedback',
+    });
+
+    const [ hero, ...secondary ] = tiles;
 
     return (
-        <HeroTileButton
-            component={Link}
-            href={getSchedulePath(eventSlug, '/ticket')}
-            transitionTypes={getNavigationTransitionTypes('', '/ticket')}>
-            <HeroContent>
-                <HeroIconBadge>
-                    <ConfirmationNumberOutlinedIcon fontSize="small" />
-                </HeroIconBadge>
-                <Box sx={{ minWidth: 0 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                        Ticket
-                    </Typography>
-                    <Typography variant="caption" sx={{ display: 'block', opacity: 0.82 }}>
-                        Your entry to the festival
-                    </Typography>
-                </Box>
-            </HeroContent>
-            <HeroArrowBadge>
-                <ArrowForwardIcon fontSize="small" />
-            </HeroArrowBadge>
-        </HeroTileButton>
+        <Grid container spacing={1.25}>
+            <Grid size={{ xs: 12, md: secondary.length > 0 ? 5 : 12 }}>
+                <HeroTileButton
+                    component={Link}
+                    href={getSchedulePath(eventSlug, hero.segment)}
+                    transitionTypes={getNavigationTransitionTypes('', hero.segment)}>
+                    <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', minWidth: 0 }}>
+                        <HeroIconBadge>
+                            {hero.icon}
+                        </HeroIconBadge>
+                        <Box sx={{ minWidth: 0 }}>
+                            <Typography variant="subtitle1" noWrap
+                                        sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                                {hero.label}
+                            </Typography>
+                            <Typography variant="caption" noWrap
+                                        sx={{ display: 'block', opacity: 0.82 }}>
+                                {hero.heroSubtitle}
+                            </Typography>
+                        </Box>
+                    </Stack>
+                    <HeroArrowBadge>
+                        <ArrowForwardIcon fontSize="small" />
+                    </HeroArrowBadge>
+                </HeroTileButton>
+            </Grid>
+
+            { secondary.length > 0 &&
+                <Grid container spacing={1.25} size={{ xs: 12, md: 7 }}>
+                    { secondary.map(tile => (
+                        <Grid key={tile.id} size="grow">
+                            <SecondaryTileButton
+                                accent={tile.accent}
+                                component={Link}
+                                href={getSchedulePath(eventSlug, tile.segment)}
+                                transitionTypes={getNavigationTransitionTypes('', tile.segment)}>
+                                <SecondaryIconBadge accent={tile.accent}>
+                                    {tile.icon}
+                                </SecondaryIconBadge>
+                                <Typography variant="subtitle2" noWrap
+                                            sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                                    {tile.label}
+                                </Typography>
+                            </SecondaryTileButton>
+                        </Grid>
+                    )) }
+                </Grid> }
+        </Grid>
     );
 }
 
@@ -80,6 +184,7 @@ const HeroTileButton = styled(ButtonBase)(({ theme }) => {
         color: palette.m3.onPrimary,
         display: 'flex',
         gap: theme.spacing(1.5),
+        height: '100%',
         justifyContent: 'space-between',
         minHeight: 68,
         padding: theme.spacing(1.5, 1.75),
@@ -90,6 +195,10 @@ const HeroTileButton = styled(ButtonBase)(({ theme }) => {
         }),
         width: '100%',
 
+        [theme.breakpoints.up('md')]: {
+            minHeight: 96,
+        },
+
         '&:hover': {
             filter: 'brightness(0.96)',
         },
@@ -98,16 +207,6 @@ const HeroTileButton = styled(ButtonBase)(({ theme }) => {
         },
     };
 }) as ExtendButtonBase<ButtonBaseTypeMap>;
-
-/**
- * Leading icon badge and label group inside the hero tile.
- */
-const HeroContent = styled(Box)(({ theme }) => ({
-    alignItems: 'center',
-    display: 'flex',
-    gap: theme.spacing(1.5),
-    minWidth: 0,
-}));
 
 /**
  * Translucent rounded icon badge anchored on the hero tile's primary fill.
@@ -144,5 +243,67 @@ const HeroArrowBadge = styled(Box)(({ theme }) => {
         height: 30,
         justifyContent: 'center',
         width: 30,
+    };
+});
+
+/**
+ * Compact analogous-tone secondary CTA tile with an icon badge and single-word label.
+ */
+const SecondaryTileButton = styled(ButtonBase, {
+    shouldForwardProp: prop => prop !== 'accent',
+})<{ accent: TileAccentKey }>(({ accent, theme }) => {
+    const tone = (theme.vars || theme).palette.m3[accent];
+
+    return {
+        alignItems: 'flex-start',
+        backgroundColor: tone.background,
+        borderRadius: kCardBorderRadiusPx,
+        color: tone.text,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: theme.spacing(1.25),
+        height: '100%',
+        justifyContent: 'space-between',
+        minHeight: 78,
+        minWidth: 0,
+        padding: theme.spacing(1.5),
+        textAlign: 'left',
+        textDecoration: 'none',
+        transition: theme.transitions.create([ 'filter', 'transform' ], {
+            duration: theme.transitions.duration.shorter,
+        }),
+        width: '100%',
+
+        [theme.breakpoints.up('md')]: {
+            minHeight: 96,
+        },
+
+        '&:hover': {
+            filter: 'brightness(0.96)',
+        },
+        '&:active': {
+            transform: 'scale(0.98)',
+        },
+    };
+}) as ExtendButtonBase<ButtonBaseTypeMap<{ accent: TileAccentKey }>>;
+
+/**
+ * Rounded icon badge tinted with the secondary tile's analogous accent colour.
+ */
+const SecondaryIconBadge = styled(Box, {
+    shouldForwardProp: prop => prop !== 'accent',
+})<{ accent: TileAccentKey }>(({ accent, theme }) => {
+    const tone = (theme.vars || theme).palette.m3[accent];
+
+    return {
+        alignItems: 'center',
+        backgroundColor: tone.iconBackground,
+        borderRadius: 10,
+        color: tone.icon,
+        display: 'flex',
+        flexShrink: 0,
+        height: 32,
+        justifyContent: 'center',
+        width: 32,
     };
 });

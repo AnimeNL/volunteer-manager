@@ -4,6 +4,16 @@
 import { hcl } from 'd3-color';
 
 /**
+ * Tonal surface and foreground tokens for an analogous overview action tile.
+ */
+interface M3ActionTileTone {
+    background: string;
+    icon: string;
+    iconBackground: string;
+    text: string;
+}
+
+/**
  * Material Design 3 tonal surface and container tokens derived from a single seed colour.
  */
 export interface M3TonalPalette {
@@ -91,6 +101,14 @@ export interface M3TonalPalette {
      * Mid-fade stop for the top-of-viewport ambient gradient.
      */
     ambientGlowSoft: string;
+
+    /**
+     * Analogous tonal palettes shifted in HCL hue space from the seed colour for overview action
+     * tiles (seafoam, sage, and warm honey when seeded with green).
+     */
+    tileAccentA: M3ActionTileTone;
+    tileAccentB: M3ActionTileTone;
+    tileAccentC: M3ActionTileTone;
 }
 
 /**
@@ -117,6 +135,29 @@ function hclToRgba(hue: number, chroma: number, luminance: number, alpha: number
 }
 
 /**
+ * Computes a light or dark analogous action tile tone by rotating the seed `hue` in HCL space.
+ */
+function computeTileTone(
+    hue: number, chroma: number, dark: boolean): M3ActionTileTone
+{
+    if (dark) {
+        return {
+            background: hclToHex(hue, chroma * 0.9, 27),
+            icon: hclToHex(hue, chroma * 1.1, 86),
+            iconBackground: hclToHex(hue, chroma * 1.05, 36),
+            text: hclToHex(hue, chroma * 0.7, 92),
+        };
+    }
+
+    return {
+        background: hclToHex(hue, chroma * 0.95, 86),
+        icon: hclToHex(hue, chroma * 1.3, 32),
+        iconBackground: hclToHex(hue, chroma * 1.15, 77),
+        text: hclToHex(hue, chroma * 1.0, 20),
+    };
+}
+
+/**
  * Computes cohesive Light and Dark Material Design 3 tonal palettes from a single hex seed colour
  * (for example `#689f38`). Uses perceptual HCL space to generate tinted neutrals, secondary
  * navigation pills, and expressive primary containers without external color-utility bloat.
@@ -134,6 +175,7 @@ export function computeM3ColorScheme(seedColor: string): M3ColorScheme {
     const neutralVariantChroma = isAchromatic ? 0 : Math.min(baseChroma * 0.22, 11);
     const secondaryChroma = isAchromatic ? 0 : Math.min(baseChroma * 0.38, 22);
     const primaryChroma = isAchromatic ? 0 : Math.min(Math.max(baseChroma * 0.9, 36), 60);
+    const tileChroma = isAchromatic ? 0 : Math.min(Math.max(baseChroma * 0.65, 30), 42);
 
     const dark: M3TonalPalette = {
         shell: hclToHex(hue, neutralChroma, 12.5),
@@ -153,6 +195,9 @@ export function computeM3ColorScheme(seedColor: string): M3ColorScheme {
         outlineVariant: hclToHex(hue, neutralVariantChroma, 28),
         ambientGlow: hclToRgba(hue, secondaryChroma * 0.85, 48, 0.2),
         ambientGlowSoft: hclToRgba(hue, secondaryChroma * 0.65, 34, 0.08),
+        tileAccentA: computeTileTone(hue + 50, tileChroma, /* dark= */ true),
+        tileAccentB: computeTileTone(hue - 18, tileChroma, /* dark= */ true),
+        tileAccentC: computeTileTone(hue - 55, tileChroma, /* dark= */ true),
     };
 
     const light: M3TonalPalette = {
@@ -173,6 +218,9 @@ export function computeM3ColorScheme(seedColor: string): M3ColorScheme {
         outlineVariant: hclToHex(hue, neutralVariantChroma, 84),
         ambientGlow: hclToRgba(hue, secondaryChroma * 0.85, 58, 0.14),
         ambientGlowSoft: hclToRgba(hue, secondaryChroma * 0.65, 70, 0.06),
+        tileAccentA: computeTileTone(hue + 50, tileChroma, /* dark= */ false),
+        tileAccentB: computeTileTone(hue - 18, tileChroma, /* dark= */ false),
+        tileAccentC: computeTileTone(hue - 55, tileChroma, /* dark= */ false),
     };
 
     return { dark, light };

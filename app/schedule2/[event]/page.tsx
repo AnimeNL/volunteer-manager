@@ -3,12 +3,15 @@
 
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
+import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 
 import { EventBanner } from './components/EventBanner';
 import { OverviewActionTiles } from './components/OverviewActionTiles';
 import { Page, SuspenseReveal } from './components/Page';
+import { getNavigationData } from './lib/scheduleData';
+import { getVolunteerHotelBookings } from './lib/data/hotelData';
 import { getVolunteerTicket } from './lib/data/ticketData';
 import { requireScheduleAccess } from './lib/getScheduleAccess';
 
@@ -19,9 +22,44 @@ import { requireScheduleAccess } from './lib/getScheduleAccess';
 async function OverviewActions(props: { params: Promise<{ event: string }> }) {
     const { event: eventSlug } = await props.params;
     const { event, user } = await requireScheduleAccess(eventSlug);
-    const ticket = await getVolunteerTicket(event, user.id);
 
-    return <OverviewActionTiles eventSlug={event.slug} hasTicket={!!ticket} />;
+    const [ hotelBookings, navigation, ticket ] = await Promise.all([
+        getVolunteerHotelBookings(event, user.id),
+        getNavigationData(event.slug),
+        getVolunteerTicket(event, user.id),
+    ]);
+
+    return (
+        <OverviewActionTiles
+            eventSlug={event.slug}
+            hasHotelRoom={hotelBookings.length > 0}
+            hasSchedule={navigation?.hasSchedule ?? false}
+            hasTicket={!!ticket} />
+    );
+}
+
+/**
+ * Skeleton placeholder matching the responsive Bento action tile layout while data streams.
+ */
+function OverviewActionsSkeleton() {
+    return (
+        <Grid container spacing={1.25}>
+            <Grid size={{ xs: 12, md: 5 }}>
+                <Skeleton variant="rounded" sx={{ height: { xs: 68, md: 96 } }} />
+            </Grid>
+            <Grid container spacing={1.25} size={{ xs: 12, md: 7 }}>
+                <Grid size="grow">
+                    <Skeleton variant="rounded" sx={{ height: { xs: 78, md: 96 } }} />
+                </Grid>
+                <Grid size="grow">
+                    <Skeleton variant="rounded" sx={{ height: { xs: 78, md: 96 } }} />
+                </Grid>
+                <Grid size="grow">
+                    <Skeleton variant="rounded" sx={{ height: { xs: 78, md: 96 } }} />
+                </Grid>
+            </Grid>
+        </Grid>
+    );
 }
 
 /**
@@ -52,7 +90,7 @@ export default function ScheduleLandingPage(props: PageProps<'/schedule2/[event]
     return (
         <Page>
             <EventBanner params={props.params} variant="widescreen" />
-            <SuspenseReveal fallback={ <Skeleton variant="rounded" height={68} /> }>
+            <SuspenseReveal fallback={ <OverviewActionsSkeleton /> }>
                 <OverviewActions params={props.params} />
             </SuspenseReveal>
             <SuspenseReveal
