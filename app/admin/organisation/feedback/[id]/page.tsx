@@ -2,7 +2,6 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { notFound } from 'next/navigation';
-import { z } from 'zod/v4';
 
 import { SelectElement, TextareaAutosizeElement } from '@components/proxy/react-hook-form-mui';
 
@@ -12,54 +11,15 @@ import Typography from '@mui/material/Typography';
 
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
-import { LogBuilder } from '@lib/log';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '../../../lib/generatePageMetadata';
-import { executeServerAction } from '@lib/serverAction';
 import { requireAuthentication } from '@lib/auth';
 import db, { tFeedback, tUsers } from '@lib/database';
 
 import { kFeedbackResponse, type FeedbackResponse } from '@lib/database/Types';
 
-/**
- * Zod type that describes the data required when recording the response to a piece of feedback.
- */
-const kRecordResponseData = z.object({
-    response: z.enum(kFeedbackResponse),
-    responseText: z.string(),
-});
-
-/**
- * Server action that can be used to record our response to a piece of feedback.
- */
-async function recordResponse(feedbackId: number, feedbackUserId?: number, formData?: unknown) {
-    'use server';
-    return executeServerAction(formData, kRecordResponseData, async (data, props) => {
-        await requireAuthentication('organisation.feedback');
-
-        const dbInstance = db;
-        const affectedRows = await dbInstance.update(tFeedback)
-            .set({
-                feedbackResponse: data.response,
-                feedbackResponseDate: dbInstance.currentZonedDateTime(),
-                feedbackResponseText: data.responseText,
-                feedbackResponseUserId: props.user.id,
-            })
-            .where(tFeedback.feedbackId.equals(feedbackId))
-            .executeUpdate();
-
-        if (!affectedRows)
-            return { success: false, error: 'Unable to store the response in the database…' };
-
-        LogBuilder.for('RespondToFeedback')
-            .withInitiatorUser(props.user)
-            .withAffectedUser(feedbackUserId)
-            .record({ action: data.response });
-
-        return { success: true, refresh: true };
-    });
-}
+import { recordResponse } from './FeedbackActions';
 
 /**
  * Options that may be selected for our response to a piece of feedback.
