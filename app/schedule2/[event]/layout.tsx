@@ -11,6 +11,7 @@ import { AccountMenuButton } from './components/AccountMenuButton';
 import { ApplicationBar } from './components/ApplicationBar';
 import { DesktopNavigation } from './components/DesktopNavigation';
 import { MobileNavigation } from './components/MobileNavigation';
+import { MuiLicense } from '@components/MuiLicense';
 import { ScheduleAutoRefresh } from './components/ScheduleAutoRefresh';
 import { ScheduleTheme } from './ScheduleTheme';
 import { getAuthenticationContext } from '@lib/auth';
@@ -77,6 +78,7 @@ export default async function ScheduleLayout(props: LayoutProps<'/schedule2/[eve
 
     return (
         <ScheduleTheme themeColor={themeColor}>
+            <MuiLicense />
             <ScheduleAutoRefresh intervalSeconds={configuredCheckInRateSeconds} />
             <Stack direction="row" sx={{
                 flex: '1 1 auto',

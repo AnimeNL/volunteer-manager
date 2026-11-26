@@ -102,6 +102,10 @@ const CalendarContainer = styled(Box)(({ theme }) => ({
     minHeight: 540,
     width: '100%',
 
+    '& .MuiEventCalendar-dayTimeGridContainer': {
+        border: 'none',
+    },
+
     [theme.breakpoints.up('md')]: {
         height: 'calc(100dvh - 180px)',
     },
