@@ -50,11 +50,16 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     }
 
     return {
+        id: '/',
         name: event?.name || 'AnimeCon',
         short_name: event?.name || 'AnimeCon',
         description: `Volunteer Portal for ${event?.fullName || 'AnimeCon events'}`,
         start_url: '/?app',
+        scope: '/',
         display: 'standalone',
+        launch_handler: {
+            client_mode: [ 'focus-existing', 'auto' ],
+        },
         background_color: '#ffffff',
         theme_color: environment.colours.light || '#303f9f',
         icons: [
@@ -89,16 +94,19 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
                 src: '/images/screenshot-1.png',
                 sizes: '586x1041',
                 type: 'image/png',
+                form_factor: 'narrow',
             },
             {
                 src: '/images/screenshot-2.png',
                 sizes: '586x1041',
                 type: 'image/png',
+                form_factor: 'narrow',
             },
             {
                 src: '/images/screenshot-3.png',
                 sizes: '586x1041',
                 type: 'image/png',
+                form_factor: 'narrow',
             },
         ],
         shortcuts: [

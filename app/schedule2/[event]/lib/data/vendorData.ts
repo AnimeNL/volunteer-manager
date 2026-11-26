@@ -10,6 +10,32 @@ import { Cache } from '@lib/cache';
 import db, { tVendors, tVendorsSchedule } from '@lib/database';
 
 /**
+ * Serializable representation of a scheduled vendor team member for calendar display.
+ */
+interface VendorScheduleMember {
+    id: number;
+    name: string;
+}
+
+/**
+ * Serializable representation of a single scheduled vendor shift for calendar display.
+ */
+interface VendorScheduleShift {
+    end: string;
+    id: string;
+    start: string;
+    vendorId: number;
+}
+
+/**
+ * Full schedule for a vendor team, containing its scheduled members and their shifts.
+ */
+interface VendorScheduleData {
+    shifts: VendorScheduleShift[];
+    vendors: VendorScheduleMember[];
+}
+
+/**
  * Loads all scheduled shifts for visible vendors in `eventId`, backed by the permanent
  * `VolunteerPortal` cache and deduplicated per request with React's `cache()`.
  */
@@ -60,4 +86,54 @@ export async function getActiveVendors(
     }
 
     return [ ...activeByVendorId.values() ].sort((lhs, rhs) => lhs.localeCompare(rhs));
+}
+
+/**
+ * Returns whether `team` has at least one scheduled shift in `event`.
+ */
+export async function hasVendorSchedule(
+    event: Pick<CachedEvent, 'id'>,
+    team: VendorTeam): Promise<boolean>
+{
+    const shifts = await loadVendorShifts(event.id);
+    return shifts.some(shift => shift.type === team);
+}
+
+/**
+ * Returns the full serializable schedule for `team` in `event`, including all scheduled vendors
+ * (with full names, sorted alphabetically) and their shifts (sorted chronologically as ISO instant
+ * strings).
+ */
+export async function getVendorSchedule(
+    event: Pick<CachedEvent, 'id'>,
+    team: VendorTeam): Promise<VendorScheduleData>
+{
+    const allShifts = await loadVendorShifts(event.id);
+    const teamShifts = allShifts.filter(shift => shift.type === team);
+    if (!teamShifts.length)
+        return { shifts: [], vendors: [] };
+
+    const vendorsById = new Map<number, string>();
+    for (const shift of teamShifts) {
+        if (!vendorsById.has(shift.vendorId))
+            vendorsById.set(shift.vendorId, `${shift.firstName} ${shift.lastName}`.trim());
+    }
+
+    const vendors: VendorScheduleMember[] = [ ...vendorsById.entries() ]
+        .map(([ id, name ]) => ({ id, name }))
+        .sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
+
+    const sortedShifts = [ ...teamShifts ].sort((lhs, rhs) =>
+        Temporal.ZonedDateTime.compare(lhs.start, rhs.start) ||
+        Temporal.ZonedDateTime.compare(lhs.end, rhs.end) ||
+        lhs.vendorId - rhs.vendorId);
+
+    const shifts: VendorScheduleShift[] = sortedShifts.map((shift, index) => ({
+        end: shift.end.toInstant().toString(),
+        id: `${shift.vendorId}:${shift.start.epochMilliseconds}:${index}`,
+        start: shift.start.toInstant().toString(),
+        vendorId: shift.vendorId,
+    }));
+
+    return { shifts, vendors };
 }

@@ -14,6 +14,11 @@ import { readCachedSetting } from '@lib/Settings';
  * will be swapped out in the <head> section of the <RootLayout /> component.
  */
 export const metadata: Metadata = {
+    appleWebApp: {
+        capable: true,
+        statusBarStyle: 'default',
+        title: 'AnimeCon',
+    },
     description: 'Volunteer portal for the AnimeCon conventions',
     icons: [
         {
