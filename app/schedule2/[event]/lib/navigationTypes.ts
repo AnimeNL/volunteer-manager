@@ -36,7 +36,7 @@ export interface NavigationData {
     expandEvents: boolean;
     hasHelpRequests: boolean;
     hasKnowledgeBase: boolean;
-    hasShifts: boolean;
+    hasSchedule: boolean;
 }
 
 /**

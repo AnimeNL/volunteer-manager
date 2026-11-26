@@ -9,7 +9,8 @@ import type { NavigationArea, NavigationData } from './navigationTypes';
 import { getScheduleAccess } from './getScheduleAccess';
 import { readUserSettings } from '@lib/UserSettings';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots, tContent,
-    tContentCategories, tEventsTeams, tSchedule, tShifts, tTeams, tUsersEvents } from '@lib/database';
+    tContentCategories, tEventsTeams, tTeams, tUsersEvents, tUsersEventsFavourites }
+    from '@lib/database';
 
 import { kActivityType, kRegistrationStatus } from '@lib/database/Types';
 
@@ -45,9 +46,11 @@ export const getNavigationData = cache(
         const festivalId = event.integrations?.anPlanFestivalId;
         const memberTeams = events.get(event.slug);
 
-        const [ hasShifts, areas, dutyBookTeams, knowledgeCategories, userSettings ] =
+        const isVolunteer = !!memberTeams?.size;
+
+        const [ hasSchedule, areas, dutyBookTeams, knowledgeCategories, userSettings ] =
             await Promise.all([
-                hasUserEventShifts(event.id, user.id),
+                isVolunteer ? Promise.resolve(true) : hasUserEventSchedule(event.id, user.id),
                 festivalId ? getProgramAreas(festivalId) : Promise.resolve([]),
                 getEventDutyBookTeams(event.id),
                 getEventKnowledgeCategories(event.id),
@@ -77,29 +80,36 @@ export const getNavigationData = cache(
             expandEvents: userSettings['user-schedule-expand-events'] ?? true,
             hasHelpRequests,
             hasKnowledgeBase,
-            hasShifts,
+            hasSchedule,
         };
     });
 
 /**
- * Returns whether `userId` has at least one scheduled shift in `eventId`.
+ * Returns whether `userId` is an accepted volunteer or has at least one favourited activity in
+ * `eventId`.
  */
-async function hasUserEventShifts(eventId: number, userId: number): Promise<boolean> {
+async function hasUserEventSchedule(eventId: number, userId: number): Promise<boolean> {
     'use cache';
     cacheLife('minutes');
-    cacheTag('schedule-shifts', `schedule-shifts:${eventId}:${userId}`);
+    cacheTag(
+        'schedule-favourites', `schedule-favourites:${eventId}:${userId}`,
+        'schedule-volunteers', `schedule-volunteers:${eventId}:${userId}`);
 
-    const count = await db.selectFrom(tSchedule)
-        .innerJoin(tShifts)
-            .on(tShifts.shiftId.equals(tSchedule.shiftId))
-                .and(tShifts.shiftDeleted.isNull())
-        .where(tSchedule.eventId.equals(eventId))
-            .and(tSchedule.userId.equals(userId))
-            .and(tSchedule.scheduleDeleted.isNull())
-        .selectCountAll()
-        .executeSelectOne();
+    const [ volunteerCount, favouriteCount ] = await Promise.all([
+        db.selectFrom(tUsersEvents)
+            .where(tUsersEvents.eventId.equals(eventId))
+                .and(tUsersEvents.userId.equals(userId))
+                .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
+            .selectCountAll()
+            .executeSelectOne(),
+        db.selectFrom(tUsersEventsFavourites)
+            .where(tUsersEventsFavourites.eventId.equals(eventId))
+                .and(tUsersEventsFavourites.userId.equals(userId))
+            .selectCountAll()
+            .executeSelectOne(),
+    ]);
 
-    return count > 0;
+    return volunteerCount > 0 || favouriteCount > 0;
 }
 
 /**

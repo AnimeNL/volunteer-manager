@@ -38,7 +38,7 @@ export function DesktopNavigationList(props: React.PropsWithChildren) {
  * Renders volunteer-specific desktop sidebar entries streamed in behind `<Suspense>`.
  */
 export function VolunteerNavigationItems(props: { data: NavigationData }) {
-    const { areas, eventSlug, expandEvents, hasShifts } = props.data;
+    const { areas, eventSlug, expandEvents, hasSchedule } = props.data;
 
     const pathname = usePathname();
     const relativePathname = getRelativeNavigationPath(pathname, eventSlug);
@@ -49,7 +49,7 @@ export function VolunteerNavigationItems(props: { data: NavigationData }) {
 
     return (
         <>
-            { hasShifts &&
+            { hasSchedule &&
                 <NavigationLink
                     href={getSchedulePath(eventSlug, '/shifts')}
                     icon={ <AccessTimeIcon fontSize="small" /> }

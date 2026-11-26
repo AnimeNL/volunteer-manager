@@ -55,7 +55,7 @@ export function MobileNavigationBar(props: MobileNavigationBarProps) {
                 eventSlug={slug}
                 onOpenMore={() => setMoreOpen(true)}
                 relativePathname={relativePathname}
-                showShifts={data?.hasShifts ?? false} />
+                showSchedule={data?.hasSchedule ?? false} />
 
             <MobileMoreSheet
                 data={data}
@@ -74,7 +74,7 @@ interface MobileFloatingPillProps {
     eventSlug?: string;
     onOpenMore?: () => void;
     relativePathname?: string;
-    showShifts?: boolean;
+    showSchedule?: boolean;
 }
 
 /**
@@ -82,7 +82,7 @@ interface MobileFloatingPillProps {
  * `<Suspense>` fallback and the route-aware live bar to prevent layout shift.
  */
 export function MobileFloatingPill(props: MobileFloatingPillProps) {
-    const { activeTab, eventSlug, onOpenMore, relativePathname, showShifts = false } = props;
+    const { activeTab, eventSlug, onOpenMore, relativePathname, showSchedule = false } = props;
 
     const tabs: {
         ariaLabel?: string;
@@ -107,7 +107,7 @@ export function MobileFloatingPill(props: MobileFloatingPillProps) {
             ariaLabel: 'Your schedule',
             segment: '/shifts',
             icon: <AccessTimeIcon fontSize="small" />,
-            visible: showShifts,
+            visible: showSchedule,
         },
         {
             id: 'areas',
