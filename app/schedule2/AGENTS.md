@@ -75,3 +75,9 @@ React View Transitions.
   for colour-scheme styling—never branch on `theme.palette.mode`.
 * Always use direct MUI subpath imports (e.g. `import Box from '@mui/material/Box'`) rather than
   barrel imports from `@mui/material`.
+* Prefer composing (nested) MUI layout primitives (`<Grid>`, `<Stack>`, `<Box>`) and MUI spacing
+  and padding tokens (`spacing`, `p`/`px`/`py`, `theme.spacing(...)`) over reinventing flex/grid
+  layouts or hardcoding pixel margins and padding in custom `styled()` wrappers.
+* Use standard MUI `<Typography variant="...">` and icon `fontSize` presets (`small`, `medium`,
+  `large`) rather than hardcoded custom `fontSize` values so the type scale stays consistent across
+  the portal.
