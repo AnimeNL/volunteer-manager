@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 
 import { SelectElement, TextareaAutosizeElement } from '@components/proxy/react-hook-form-mui';
 
+import AssignmentIndOutlinedIcon from '@mui/icons-material/AssignmentIndOutlined';
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
@@ -14,12 +15,13 @@ import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '../../../lib/generatePageMetadata';
+import { queryUsersWithPermission } from '@app/admin/lib/queryUsersWithPermission';
 import { requireAuthentication } from '@lib/auth';
 import db, { tFeedback, tUsers } from '@lib/database';
 
 import { kFeedbackResponse, type FeedbackResponse } from '@lib/database/Types';
 
-import { recordResponse } from './FeedbackActions';
+import { assignFeedback, recordResponse } from './FeedbackActions';
 
 /**
  * Options that may be selected for our response to a piece of feedback.
@@ -47,43 +49,72 @@ export default async function FeedbackDetailPage(
         notFound();
 
     const usersJoin = tUsers.forUseInLeftJoinAs('uj');
+    const usersAssignedJoin = tUsers.forUseInLeftJoinAs('uaj');
     const usersResponseJoin = tUsers.forUseInLeftJoinAs('urj');
 
     const dbInstance = db;
-    const feedback = await dbInstance.selectFrom(tFeedback)
-        .leftJoin(usersJoin)
-            .on(usersJoin.userId.equals(tFeedback.userId))
-        .leftJoin(usersResponseJoin)
-            .on(usersResponseJoin.userId.equals(tFeedback.feedbackResponseUserId))
-        .where(tFeedback.feedbackId.equals(feedbackId))
-        .select({
-            id: tFeedback.feedbackId,
-            date: dbInstance.dateTimeAsString(tFeedback.feedbackDate),
-            name: tFeedback.feedbackName,
-            user: {
-                id: usersJoin.userId,
-                firstName: usersJoin.displayName.valueWhenNull(usersJoin.firstName),
-                name: usersJoin.name,
-            },
-            feedback: tFeedback.feedbackText,
+    const [ feedback, eligibleUsers ] = await Promise.all([
+        dbInstance.selectFrom(tFeedback)
+            .leftJoin(usersJoin)
+                .on(usersJoin.userId.equals(tFeedback.userId))
+            .leftJoin(usersAssignedJoin)
+                .on(usersAssignedJoin.userId.equals(tFeedback.feedbackAssignedUserId))
+            .leftJoin(usersResponseJoin)
+                .on(usersResponseJoin.userId.equals(tFeedback.feedbackResponseUserId))
+            .where(tFeedback.feedbackId.equals(feedbackId))
+            .select({
+                id: tFeedback.feedbackId,
+                date: dbInstance.dateTimeAsString(tFeedback.feedbackDate),
+                name: tFeedback.feedbackName,
+                user: {
+                    id: usersJoin.userId,
+                    firstName: usersJoin.displayName.valueWhenNull(usersJoin.firstName),
+                    name: usersJoin.name,
+                },
+                feedback: tFeedback.feedbackText,
 
-            response: tFeedback.feedbackResponse,
-            responseDate: dbInstance.dateTimeAsString(tFeedback.feedbackResponseDate),
-            responseText: tFeedback.feedbackResponseText,
-            responseUser: {
-                id: usersResponseJoin.userId,
-                name: usersResponseJoin.name,
-            },
-        })
-        .executeSelectNoneOrOne();
+                assignedUser: {
+                    id: usersAssignedJoin.userId,
+                    name: usersAssignedJoin.name,
+                },
+
+                response: tFeedback.feedbackResponse,
+                responseDate: dbInstance.dateTimeAsString(tFeedback.feedbackResponseDate),
+                responseText: tFeedback.feedbackResponseText,
+                responseUser: {
+                    id: usersResponseJoin.userId,
+                    name: usersResponseJoin.name,
+                },
+            })
+            .executeSelectNoneOrOne(),
+        queryUsersWithPermission('organisation.feedback'),
+    ]);
 
     if (!feedback)
         notFound();
 
-    const action = recordResponse.bind(null, feedback.id, feedback.user?.id);
+    const assignAction = assignFeedback.bind(null, feedback.id);
+    const responseAction = recordResponse.bind(null, feedback.id, feedback.user?.id);
     const author = feedback.name || feedback.user?.firstName;
 
-    const defaultValues = {
+    const assigneeOptions = [
+        ...eligibleUsers.map(user => ({ id: user.id, label: user.name })),
+    ];
+    if (feedback.assignedUser?.id &&
+            !assigneeOptions.some(option => option.id === feedback.assignedUser?.id)) {
+        assigneeOptions.push({
+            id: feedback.assignedUser.id,
+            label: feedback.assignedUser.name,
+        });
+    }
+    assigneeOptions.sort((lhs, rhs) => lhs.label.localeCompare(rhs.label));
+    assigneeOptions.unshift({ id: 0, label: 'Unassigned' });
+
+    const assignDefaultValues = {
+        assignedUserId: feedback.assignedUser?.id ?? 0,
+    };
+
+    const responseDefaultValues = {
         response: feedback.response,
         responseText: feedback.responseText,
     };
@@ -124,7 +155,29 @@ export default async function FeedbackDetailPage(
                     {feedback.feedback}
                 </Typography>
             </Section>
-            <FormGridSection action={action} defaultValues={defaultValues}
+            <FormGridSection action={assignAction} defaultValues={assignDefaultValues}
+                             icon={ <AssignmentIndOutlinedIcon /> } title="Assign feedback">
+                <Grid size={{ xs: 12 }}>
+                    <SectionIntroduction>
+                        Assign this feedback to a volunteer to follow up on. Assigned feedback
+                        without a recorded response will be highlighted on their dashboard.
+                    </SectionIntroduction>
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                    <KeyValueList items={[
+                        {
+                            keyAlign: 'center',
+                            key: 'Assigned to',
+                            value: (
+                                <SelectElement name="assignedUserId" fullWidth size="small"
+                                               options={assigneeOptions} />
+                            ),
+                            valueTemplate: 'component',
+                        },
+                    ]} />
+                </Grid>
+            </FormGridSection>
+            <FormGridSection action={responseAction} defaultValues={responseDefaultValues}
                              title="Record our response">
                 <Grid size={{ xs: 12 }}>
                     <SectionIntroduction>
