@@ -59,6 +59,11 @@ interface EventsContentProps {
      * Whether to redirect the user to an active schedule when one exists.
      */
     redirectToActiveSchedule: boolean;
+
+    /**
+     * Base path prefix for Volunteer Portal links (`/schedule` or `/schedule2`).
+     */
+    scheduleBasePath: string;
 }
 
 /**
@@ -91,7 +96,7 @@ export function EventsContent(props: EventsContentProps) {
 
             buttons.push(
                 <Button key={`${event.slug}-schedule`} component={Link}
-                        href={`/schedule/${event.slug}`}
+                        href={`${props.scheduleBasePath}/${event.slug}`}
                         color={ event.publishPortal === 'active' ? 'primary' : 'hidden' }
                         variant={ portalHighlight ? 'contained' : 'outlined' }>
                     {event.shortName} Volunteer Portal

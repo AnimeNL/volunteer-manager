@@ -58,6 +58,8 @@ export async function LandingPage(props: LandingPageProps) {
         team: kAnyTeam,
     });
 
+    const scheduleBasePath = context.access.can('root') ? '/schedule2' : '/schedule';
+
     return (
         <RegistrationLayout environment={props.environment}>
             <RegistrationContentContainer title={props.environment.title} user={context.user}>
@@ -69,7 +71,8 @@ export async function LandingPage(props: LandingPageProps) {
 
                 { !!context.events.length &&
                     <EventsContent environment={props.environment} events={primaryEvents}
-                                   redirectToActiveSchedule={redirectToActiveSchedule} /> }
+                                   redirectToActiveSchedule={redirectToActiveSchedule}
+                                   scheduleBasePath={scheduleBasePath} /> }
 
             </RegistrationContentContainer>
             <Grid container spacing={2} sx={{ mt: 2 }}>
@@ -86,7 +89,7 @@ export async function LandingPage(props: LandingPageProps) {
 
                 { secondaryEvents.map(event =>
                     <Grid key={event.slug} size={{ xs: 12, md: 4 }}>
-                        <AdditionalEventCard event={event} />
+                        <AdditionalEventCard event={event} scheduleBasePath={scheduleBasePath} />
                     </Grid> )}
 
             </Grid>

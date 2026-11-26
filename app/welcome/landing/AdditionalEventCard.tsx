@@ -22,6 +22,11 @@ interface AdditionalEventCardProps {
      * The event for which this card should be displayed.
      */
     event: EnvironmentContextEventAccess;
+
+    /**
+     * Base path prefix for Volunteer Portal links (`/schedule` or `/schedule2`).
+     */
+    scheduleBasePath: string;
 }
 
 /**
@@ -30,7 +35,7 @@ interface AdditionalEventCardProps {
  * reference. Inclusion is determined by the SSR app.
  */
 export function AdditionalEventCard(props: AdditionalEventCardProps) {
-    const { event } = props;
+    const { event, scheduleBasePath } = props;
 
     const enableContent = event.publishContent === 'active' || event.publishContent === 'override';
     const enablePortal = event.publishPortal === 'active' || event.publishPortal === 'override';
@@ -52,7 +57,7 @@ export function AdditionalEventCard(props: AdditionalEventCardProps) {
                         </Button> }
                     { !!enablePortal &&
                         <Button LinkComponent={Link} size="small" startIcon={ <EventNoteIcon /> }
-                                href={`/schedule/${event.slug}`}
+                                href={`${scheduleBasePath}/${event.slug}`}
                                 sx={{ justifyContent: 'flex-start', pl: 1 }}>
                             Volunteer Portal
                         </Button> }
