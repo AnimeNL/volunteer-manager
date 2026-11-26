@@ -13,6 +13,7 @@ import { Page, SuspenseReveal } from './components/Page';
 import { getNavigationData } from './lib/scheduleData';
 import { getVolunteerHotelBookings } from './lib/data/hotelData';
 import { getVolunteerTicket } from './lib/data/ticketData';
+import { readUserSettings } from '@lib/UserSettings';
 import { requireScheduleAccess } from './lib/getScheduleAccess';
 
 /**
@@ -23,18 +24,28 @@ async function OverviewActions(props: { params: Promise<{ event: string }> }) {
     const { event: eventSlug } = await props.params;
     const { event, user } = await requireScheduleAccess(eventSlug);
 
-    const [ hotelBookings, navigation, ticket ] = await Promise.all([
+    const [ hotelBookings, navigation, ticket, userSettings ] = await Promise.all([
         getVolunteerHotelBookings(event, user.id),
         getNavigationData(event.slug),
         getVolunteerTicket(event, user.id),
+        readUserSettings(user.id, [
+            'user-schedule-hide-feedback-tile',
+            'user-schedule-hide-hotel-tile',
+            'user-schedule-hide-schedule-tile',
+            'user-schedule-hide-ticket-tile',
+        ], /* disableFallback= */ true),
     ]);
 
     return (
         <OverviewActionTiles
             eventSlug={event.slug}
-            hasHotelRoom={hotelBookings.length > 0}
-            hasSchedule={navigation?.hasSchedule ?? false}
-            hasTicket={!!ticket} />
+            showFeedback={!userSettings['user-schedule-hide-feedback-tile']}
+            showHotel={hotelBookings.length > 0 && !userSettings['user-schedule-hide-hotel-tile']}
+            showSchedule={
+                (navigation?.hasSchedule ?? false) &&
+                !userSettings['user-schedule-hide-schedule-tile']
+            }
+            showTicket={!!ticket && !userSettings['user-schedule-hide-ticket-tile']} />
     );
 }
 

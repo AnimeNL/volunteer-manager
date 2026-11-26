@@ -4,16 +4,19 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 
 import type { ButtonBaseTypeMap, ExtendButtonBase } from '@mui/material/ButtonBase';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
+import CloseIcon from '@mui/icons-material/Close';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
 import Grid from '@mui/material/Grid';
 import HotelOutlinedIcon from '@mui/icons-material/HotelOutlined';
+import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
@@ -21,6 +24,8 @@ import { styled } from '@mui/material/styles';
 import { getNavigationTransitionTypes, getSchedulePath } from '../lib/navigationTypes';
 
 import { kCardBorderRadiusPx } from '../Constants';
+
+import { type OverviewActionTileId, dismissOverviewActionTile } from './OverviewActions';
 
 /**
  * Accent slot key identifying which analogous palette tone a secondary tile uses.
@@ -34,7 +39,7 @@ interface ActionTileDefinition {
     accent: TileAccentKey;
     heroSubtitle: string;
     icon: React.ReactNode;
-    id: 'ticket' | 'hotel' | 'schedule' | 'feedback';
+    id: OverviewActionTileId;
     label: string;
     segment: string;
 }
@@ -49,125 +54,193 @@ interface OverviewActionTilesProps {
     eventSlug: string;
 
     /**
-     * Whether the signed-in volunteer has a confirmed hotel room booking for this event.
+     * Whether the Feedback action tile should be displayed.
      */
-    hasHotelRoom: boolean;
+    showFeedback: boolean;
 
     /**
-     * Whether the signed-in user has a personal shift or favourite schedule for this event.
+     * Whether the Hotel action tile should be displayed.
      */
-    hasSchedule: boolean;
+    showHotel: boolean;
 
     /**
-     * Whether the signed-in volunteer has an assigned festival ticket for this event.
+     * Whether the Schedule action tile should be displayed.
      */
-    hasTicket: boolean;
+    showSchedule: boolean;
+
+    /**
+     * Whether the Ticket action tile should be displayed.
+     */
+    showTicket: boolean;
 }
 
 /**
- * Renders the Bento grid of actionable CTA tiles on the schedule overview page. The first visible
+ * Renders the Bento grid of dismissible CTA tiles on the schedule overview page. The first visible
  * tile occupies the primary-gradient hero slot, while remaining tiles render as compact analogous
  * tonal tiles.
  */
 export function OverviewActionTiles(props: OverviewActionTilesProps) {
-    const { eventSlug, hasHotelRoom, hasSchedule, hasTicket } = props;
+    const { eventSlug, showFeedback, showHotel, showSchedule, showTicket } = props;
+    const [ dismissed, setDismissed ] = useState<ReadonlySet<OverviewActionTileId>>(
+        () => new Set());
 
-    const tiles: ActionTileDefinition[] = [];
-    if (hasTicket) {
-        tiles.push({
+    async function handleDismiss(tileId: OverviewActionTileId) {
+        setDismissed(current => new Set([ ...current, tileId ]));
+
+        const response = await dismissOverviewActionTile(tileId);
+        if (!response.success) {
+            setDismissed(current => {
+                const next = new Set(current);
+                next.delete(tileId);
+                return next;
+            });
+        }
+    }
+
+    const candidates: (ActionTileDefinition | false)[] = [
+        showTicket && {
             accent: 'tileAccentA',
             heroSubtitle: 'Your entry to the festival',
             icon: <ConfirmationNumberOutlinedIcon fontSize="small" />,
             id: 'ticket',
             label: 'Ticket',
             segment: '/ticket',
-        });
-    }
-
-    if (hasHotelRoom) {
-        tiles.push({
+        },
+        showHotel && {
             accent: 'tileAccentA',
             heroSubtitle: 'Your hotel room',
             icon: <HotelOutlinedIcon fontSize="small" />,
             id: 'hotel',
             label: 'Hotel',
             segment: '/hotel',
-        });
-    }
-
-    if (hasSchedule) {
-        tiles.push({
+        },
+        showSchedule && {
             accent: 'tileAccentB',
             heroSubtitle: 'Your upcoming shifts',
             icon: <AccessTimeIcon fontSize="small" />,
             id: 'schedule',
             label: 'Schedule',
             segment: '/shifts',
-        });
-    }
+        },
+        showFeedback && {
+            accent: 'tileAccentC',
+            heroSubtitle: 'Share your thoughts',
+            icon: <FeedbackOutlinedIcon fontSize="small" />,
+            id: 'feedback',
+            label: 'Feedback',
+            segment: '/feedback',
+        },
+    ];
 
-    tiles.push({
-        accent: 'tileAccentC',
-        heroSubtitle: 'Share your thoughts',
-        icon: <FeedbackOutlinedIcon fontSize="small" />,
-        id: 'feedback',
-        label: 'Feedback',
-        segment: '/feedback',
-    });
+    const tiles = candidates.filter(
+        (tile): tile is ActionTileDefinition => !!tile && !dismissed.has(tile.id));
+
+    if (!tiles.length)
+        return null;
 
     const [ hero, ...secondary ] = tiles;
 
     return (
         <Grid container spacing={1.25}>
             <Grid size={{ xs: 12, md: secondary.length > 0 ? 5 : 12 }}>
-                <HeroTileButton
-                    component={Link}
-                    href={getSchedulePath(eventSlug, hero.segment)}
-                    transitionTypes={getNavigationTransitionTypes('', hero.segment)}>
-                    <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', minWidth: 0 }}>
-                        <HeroIconBadge>
-                            {hero.icon}
-                        </HeroIconBadge>
-                        <Box sx={{ minWidth: 0 }}>
-                            <Typography variant="subtitle1" noWrap
-                                        sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                                {hero.label}
-                            </Typography>
-                            <Typography variant="caption" noWrap
-                                        sx={{ display: 'block', opacity: 0.82 }}>
-                                {hero.heroSubtitle}
-                            </Typography>
-                        </Box>
-                    </Stack>
-                    <HeroArrowBadge>
-                        <ArrowForwardIcon fontSize="small" />
-                    </HeroArrowBadge>
-                </HeroTileButton>
+                <Box sx={{ height: '100%', position: 'relative' }}>
+                    <HeroTileButton
+                        component={Link}
+                        href={getSchedulePath(eventSlug, hero.segment)}
+                        transitionTypes={getNavigationTransitionTypes('', hero.segment)}>
+                        <Stack direction="row" spacing={1.5}
+                               sx={{ alignItems: 'center', minWidth: 0 }}>
+                            <HeroIconBadge>
+                                {hero.icon}
+                            </HeroIconBadge>
+                            <Box sx={{ minWidth: 0 }}>
+                                <Typography variant="subtitle1" noWrap
+                                            sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                                    {hero.label}
+                                </Typography>
+                                <Typography variant="caption" noWrap
+                                            sx={{ display: 'block', opacity: 0.82 }}>
+                                    {hero.heroSubtitle}
+                                </Typography>
+                            </Box>
+                        </Stack>
+                        <HeroArrowBadge>
+                            <ArrowForwardIcon fontSize="small" />
+                        </HeroArrowBadge>
+                    </HeroTileButton>
+                    <DismissButton
+                        aria-label={`Dismiss ${hero.label}`}
+                        onClick={() => handleDismiss(hero.id)}
+                        size="small"
+                        tone="primary">
+                        <CloseIcon fontSize="small" />
+                    </DismissButton>
+                </Box>
             </Grid>
 
             { secondary.length > 0 &&
                 <Grid container spacing={1.25} size={{ xs: 12, md: 7 }}>
                     { secondary.map(tile => (
                         <Grid key={tile.id} size="grow">
-                            <SecondaryTileButton
-                                accent={tile.accent}
-                                component={Link}
-                                href={getSchedulePath(eventSlug, tile.segment)}
-                                transitionTypes={getNavigationTransitionTypes('', tile.segment)}>
-                                <SecondaryIconBadge accent={tile.accent}>
-                                    {tile.icon}
-                                </SecondaryIconBadge>
-                                <Typography variant="subtitle2" noWrap
-                                            sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                                    {tile.label}
-                                </Typography>
-                            </SecondaryTileButton>
+                            <Box sx={{ height: '100%', position: 'relative' }}>
+                                <SecondaryTileButton
+                                    accent={tile.accent}
+                                    component={Link}
+                                    href={getSchedulePath(eventSlug, tile.segment)}
+                                    transitionTypes={getNavigationTransitionTypes('', tile.segment)}>
+                                    <SecondaryIconBadge accent={tile.accent}>
+                                        {tile.icon}
+                                    </SecondaryIconBadge>
+                                    <Typography variant="subtitle2" noWrap
+                                                sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                                        {tile.label}
+                                    </Typography>
+                                </SecondaryTileButton>
+                                <DismissButton
+                                    accent={tile.accent}
+                                    aria-label={`Dismiss ${tile.label}`}
+                                    onClick={() => handleDismiss(tile.id)}
+                                    size="small"
+                                    tone="secondary">
+                                    <CloseIcon fontSize="small" />
+                                </DismissButton>
+                            </Box>
                         </Grid>
                     )) }
                 </Grid> }
         </Grid>
     );
 }
+
+/**
+ * Subtle corner close button overlaid on each action tile without nesting buttons inside links.
+ */
+const DismissButton = styled(IconButton, {
+    shouldForwardProp: prop => prop !== 'accent' && prop !== 'tone',
+})<{ accent?: TileAccentKey; tone: 'primary' | 'secondary' }>(({ accent, theme, tone }) => {
+    const palette = (theme.vars || theme).palette;
+    const color = tone === 'primary'
+        ? palette.m3.onPrimary
+        : palette.m3[accent ?? 'tileAccentA'].text;
+
+    return {
+        color,
+        opacity: 0.65,
+        padding: theme.spacing(0.5),
+        position: 'absolute',
+        right: theme.spacing(0.75),
+        top: theme.spacing(0.75),
+        transition: theme.transitions.create([ 'background-color', 'opacity' ], {
+            duration: theme.transitions.duration.shorter,
+        }),
+        zIndex: 1,
+
+        '&:hover': {
+            backgroundColor: `color-mix(in srgb, ${color} 14%, transparent)`,
+            opacity: 1,
+        },
+    };
+});
 
 /**
  * Expressive primary-gradient hero CTA button for the overview page.
@@ -187,7 +260,7 @@ const HeroTileButton = styled(ButtonBase)(({ theme }) => {
         height: '100%',
         justifyContent: 'space-between',
         minHeight: 68,
-        padding: theme.spacing(1.5, 1.75),
+        padding: theme.spacing(1.5, 5.5, 1.5, 1.75),
         textAlign: 'left',
         textDecoration: 'none',
         transition: theme.transitions.create([ 'filter', 'transform' ], {
