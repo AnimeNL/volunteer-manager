@@ -101,6 +101,17 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
     }
 
     const initials = userName ? getInitials(userName) : '';
+    const installSection = canInstall ? (
+        <>
+            <MenuItem onClick={handleInstall}>
+                <ListItemIcon>
+                    <InstallMobileIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="Install app…" />
+            </MenuItem>
+            <Divider sx={{ my: 1 }} />
+        </>
+    ) : null;
 
     return (
         <>
@@ -138,20 +149,15 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                     </ToggleButtonGroup>
                 </Box>
                 <Divider sx={{ my: 1 }} />
-                { !!eventSlug &&
+                { !!eventSlug ? (
                     <EventAccountMenuItems
                         eventSlug={eventSlug}
                         hasDevelopment={hasDevelopment}
                         hasHotelRoom={hasHotelRoom}
                         hasTicket={hasTicket}
-                        onClose={() => setAnchorEl(null)} /> }
-                { canInstall &&
-                    <MenuItem onClick={handleInstall}>
-                        <ListItemIcon>
-                            <InstallMobileIcon fontSize="small" />
-                        </ListItemIcon>
-                        <ListItemText primary="Install app…" />
-                    </MenuItem> }
+                        installSection={installSection}
+                        onClose={() => setAnchorEl(null)} />
+                ) : installSection }
                 <MenuItem onClick={handleSignOut}>
                     <ListItemIcon>
                         <LogoutIcon fontSize="small" />
@@ -172,9 +178,10 @@ function EventAccountMenuItems(props: {
     hasDevelopment?: boolean;
     hasHotelRoom?: boolean;
     hasTicket?: boolean;
+    installSection?: React.ReactNode;
     onClose: () => void;
 }) {
-    const { eventSlug, hasDevelopment, hasHotelRoom, hasTicket, onClose } = props;
+    const { eventSlug, hasDevelopment, hasHotelRoom, hasTicket, installSection, onClose } = props;
     const pathname = usePathname();
     const relativePathname = getRelativeNavigationPath(pathname, eventSlug);
 
@@ -226,6 +233,7 @@ function EventAccountMenuItems(props: {
                     <Divider sx={{ my: 1 }} />
                 </>
             ) }
+            { installSection }
             { portalItems.map(renderMenuItem) }
         </>
     );
