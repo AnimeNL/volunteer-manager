@@ -21,7 +21,6 @@ import Typography from '@mui/material/Typography';
 import { Header } from '../components/Header';
 import { Page, SuspenseReveal } from '../components/Page';
 import { formatDate } from '@lib/Temporal';
-import { getEvent } from '@lib/cache';
 import { getVolunteerHotelBookings } from '../lib/data/hotelData';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
 
@@ -29,16 +28,6 @@ import { requireScheduleAccess } from '../lib/getScheduleAccess';
  * Type describing a single confirmed hotel room booking.
  */
 type HotelBooking = Awaited<ReturnType<typeof getVolunteerHotelBookings>>[number];
-
-/**
- * Streams the event-specific description into the `<Header>` behind `<Suspense>`.
- */
-async function HotelDescription(props: { params: Promise<{ event: string }> }) {
-    const { event: eventSlug } = await props.params;
-    const event = await getEvent(eventSlug);
-
-    return `Catching some sleep during ${event?.shortName}`;
-}
 
 /**
  * Renders the interior details of a single confirmed hotel booking card.
@@ -201,11 +190,7 @@ export default function ScheduleHotelPage(props: PageProps<'/schedule2/[event]/h
         <Page
             header={
                 <Header
-                    description={
-                        <Suspense fallback={ <Skeleton variant="text" width={200} /> }>
-                            <HotelDescription params={props.params} />
-                        </Suspense>
-                    }
+                    description="Catching some sleep during the festival"
                     icon={ <HotelOutlinedIcon /> }
                     title="Your hotel room" />
             }>

@@ -1,8 +1,6 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { Suspense } from 'react';
-
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -14,19 +12,8 @@ import Typography from '@mui/material/Typography';
 import { Header } from '../components/Header';
 import { Page, SuspenseReveal } from '../components/Page';
 import { QrCode } from '@components/QrCode';
-import { getEvent } from '@lib/cache';
 import { getVolunteerTicket } from '../lib/data/ticketData';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
-
-/**
- * Streams the event-specific welcome description into the `<Header>` behind `<Suspense>`.
- */
-async function TicketDescription(props: { params: Promise<{ event: string }> }) {
-    const { event: eventSlug } = await props.params;
-    const event = await getEvent(eventSlug);
-
-    return `Welcoming you to ${event?.shortName}`;
-}
 
 /**
  * Authenticates the request behind `<Suspense>` and renders the volunteer's ticket QR code.
@@ -111,11 +98,7 @@ export default function ScheduleTicketPage(props: PageProps<'/schedule2/[event]/
         <Page
             header={
                 <Header
-                    description={
-                        <Suspense fallback={ <Skeleton variant="text" width={200} /> }>
-                            <TicketDescription params={props.params} />
-                        </Suspense>
-                    }
+                    description="Welcoming you to the festival"
                     icon={ <QrCode2Icon /> }
                     title="Your ticket" />
             }>
