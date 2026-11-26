@@ -12,6 +12,8 @@ import Typography from '@mui/material/Typography';
 import { formatDate } from '@lib/Temporal';
 import { getEvent } from '@lib/cache';
 
+import { kSheetBorderRadiusPx } from '../Constants';
+
 /**
  * Props accepted by the <EventBanner> component.
  */
@@ -77,12 +79,22 @@ async function EventBannerImage(props: EventBannerProps) {
             <Box component="img" alt={title} src={imageUrl}
                  sx={{ display: 'block', height: '100%', objectFit: 'cover', width: '100%' }} />
             <Box aria-hidden="true" sx={{
-                background:
-                    'linear-gradient(180deg, transparent 25%, ' +
-                    'rgba(0, 0, 0, 0.52) 65%, rgba(0, 0, 0, 0.88) 100%)',
+                background: isWidescreen
+                    ? 'linear-gradient(180deg, transparent 30%, ' +
+                      'rgba(0, 0, 0, 0.52) 72%, rgba(0, 0, 0, 0.82) 100%)'
+                    : 'linear-gradient(180deg, transparent 25%, ' +
+                      'rgba(0, 0, 0, 0.52) 65%, rgba(0, 0, 0, 0.88) 100%)',
                 inset: 0,
                 pointerEvents: 'none',
                 position: 'absolute',
+                ...(isWidescreen && {
+                    '.dark &': {
+                        background:
+                            'linear-gradient(180deg, transparent 20%, ' +
+                            'color-mix(in srgb, var(--mui-palette-m3-sheet) 58%, transparent) ' +
+                            '66%, var(--mui-palette-m3-sheet) 100%)',
+                    },
+                }),
             }} />
             <Stack spacing={0.25} sx={{
                 bottom: 0,
@@ -95,8 +107,8 @@ async function EventBannerImage(props: EventBannerProps) {
             }}>
                 <Typography noWrap sx={{
                     color: '#ffffff',
-                    fontSize: isWidescreen ? '1.05rem' : '0.875rem',
-                    fontWeight: 600,
+                    fontSize: isWidescreen ? '1.2rem' : '0.875rem',
+                    fontWeight: isWidescreen ? 700 : 600,
                     letterSpacing: '-0.01em',
                     lineHeight: 1.25,
                     textShadow: '0 1px 3px rgba(0, 0, 0, 0.85), 0 0 8px rgba(0, 0, 0, 0.45)',
@@ -124,7 +136,14 @@ async function EventBannerImage(props: EventBannerProps) {
 export function EventBanner(props: EventBannerProps) {
     return (
         <Card sx={props.variant === 'widescreen'
-            ? { aspectRatio: '26 / 9', display: { xs: 'block', md: 'none' }, position: 'relative' }
+            ? {
+                aspectRatio: '22 / 9',
+                borderRadius: `${kSheetBorderRadiusPx}px ${kSheetBorderRadiusPx}px 0 0`,
+                display: { xs: 'block', md: 'none' },
+                mt: -1.5,
+                mx: -1.5,
+                position: 'relative',
+            }
             : { height: 112, position: 'relative' }}>
             <Suspense
                 fallback={ <Skeleton variant="rectangular" width="100%" height="100%" /> }>
