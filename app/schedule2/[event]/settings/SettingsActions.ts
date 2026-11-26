@@ -28,7 +28,7 @@ export async function updateScheduleTimeOffset(event: string, dateTime: string |
             props.authenticationContext, data.event, 'event.settings');
 
         if (data.dateTime === null) {
-            await writeUserSetting(props.user.id, 'schedule-time-offset-seconds', undefined);
+            await writeUserSetting(props.user.id, 'user-schedule-time-offset-seconds', undefined);
             return { success: true };
         }
 
@@ -37,7 +37,7 @@ export async function updateScheduleTimeOffset(event: string, dateTime: string |
         const offsetSeconds = Math.round(
             (targetTime.epochMilliseconds - Temporal.Now.instant().epochMilliseconds) / 1000);
 
-        await writeUserSetting(props.user.id, 'schedule-time-offset-seconds', offsetSeconds);
+        await writeUserSetting(props.user.id, 'user-schedule-time-offset-seconds', offsetSeconds);
         return { success: true };
     });
 }

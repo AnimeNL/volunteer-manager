@@ -27,9 +27,9 @@ async function SettingsContent(props: { params: Promise<{ event: string }> }) {
         forbidden();
 
     const userSettings = await readUserSettings(
-        user.id, [ 'schedule-time-offset-seconds' ], /* disableFallback= */ true);
+        user.id, [ 'user-schedule-time-offset-seconds' ], /* disableFallback= */ true);
 
-    const hasOverride = typeof userSettings['schedule-time-offset-seconds'] === 'number';
+    const hasOverride = typeof userSettings['user-schedule-time-offset-seconds'] === 'number';
     const initialDateTime = formatDate(currentTime, 'YYYY-MM-DD[T]HH:mm');
 
     return (

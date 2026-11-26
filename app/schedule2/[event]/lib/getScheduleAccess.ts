@@ -10,8 +10,7 @@ import type { UserAuthenticationContext } from '@lib/auth';
 import { getAuthenticationContext } from '@lib/auth';
 import { getEvent } from '@lib/cache';
 import { isAfter } from '@lib/Temporal';
-import { readSetting } from '@lib/Settings';
-import { readUserSetting } from '@lib/UserSettings';
+import { readUserSettings } from '@lib/UserSettings';
 import db, { tEnvironmentsEvents, tEventsTeams, tTeams, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -97,9 +96,11 @@ const resolveScheduleAccess = cache(
                 return { status: 'forbidden' };
         }
 
-        const timeOffsetSeconds = (access.can('event.settings', { event: event.slug })
-            ? await readUserSetting(user.id, 'schedule-time-offset-seconds')
-            : await readSetting('schedule-time-offset-seconds')) ?? 0;
+        const timeOffsetSeconds = access.can('event.settings', { event: event.slug })
+            ? (await readUserSettings(
+                user.id, [ 'user-schedule-time-offset-seconds' ], /* disableFallback= */ true))
+                ['user-schedule-time-offset-seconds'] ?? 0
+            : 0;
         const effectiveInstant = timeOffsetSeconds
             ? wallClockNow.toInstant().add({ seconds: timeOffsetSeconds })
             : wallClockNow.toInstant();

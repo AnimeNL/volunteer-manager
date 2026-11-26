@@ -186,7 +186,6 @@ export type Settings = {
     'schedule-search-result-limit': number;
     'schedule-sort-past-days-last': boolean;
     'schedule-sort-past-events-last': boolean;
-    'schedule-time-offset-seconds': number;
 
     // ---------------------------------------------------------------------------------------------
     // UserSettings defaults

@@ -14,6 +14,7 @@ import { getBlobUrl } from '@lib/database/BlobStore';
 import { getEvent } from '@lib/cache';
 import { isAfter, isBefore } from '@lib/Temporal';
 import { readSettings } from '@lib/Settings';
+import { readUserSettings } from '@lib/UserSettings';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots, tContent,
     tContentCategories, tDisplaysRequests, tDutyBook, tDutyBookViewers, tEventsSales,
     tEventsSalesConfiguration, tEventsTeams, tNardo, tRoles, tSchedule, tShifts, tStorage, tTeams,
@@ -1038,10 +1039,14 @@ export async function getSchedule(
         'schedule-search-result-limit',
         'schedule-sort-past-days-last',
         'schedule-sort-past-events-last',
-        'schedule-time-offset-seconds',
         'schedule-vendor-first-aid-card',
         'schedule-vendor-security-card',
     ]);
+
+    const userSettings = access.can('event.settings', { event: event.slug })
+        ? await readUserSettings(
+            user.id, [ 'user-schedule-time-offset-seconds' ], /* disableFallback= */ true)
+        : undefined;
 
     const schedule: PublicSchedule = {
         event: event.shortName,
@@ -1058,7 +1063,7 @@ export async function getSchedule(
             searchResultMinimumScore: settings['schedule-search-candidate-minimum-score'] ?? 0.37,
             sortPastDaysLast: settings['schedule-sort-past-days-last'] ?? true,
             sortPastEventsLast: settings['schedule-sort-past-events-last'] ?? true,
-            timeOffset: settings['schedule-time-offset-seconds'] || undefined,
+            timeOffset: userSettings?.['user-schedule-time-offset-seconds'] || undefined,
             timezone: event.timeZone,
             updateFrequencyMs: (settings['schedule-check-in-rate-seconds'] ?? (5 * 60)) * 1000,
         },

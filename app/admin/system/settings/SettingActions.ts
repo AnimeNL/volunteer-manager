@@ -32,7 +32,6 @@ const kNumberSettings = new Set([
     'schedule-search-candidate-fuzziness',
     'schedule-search-candidate-minimum-score',
     'schedule-search-result-limit',
-    'schedule-time-offset-seconds',
     'schedule-time-step-minutes',
     'session-cleanup-interval-days',
     'system-role-account-user-id',
@@ -78,7 +77,6 @@ export async function updateSettings(formData: unknown) {
 
         const roundToZeroSettings = [
             'display-time-offset-seconds',
-            'schedule-time-offset-seconds',
         ];
 
         for (const setting of roundToZeroSettings) {

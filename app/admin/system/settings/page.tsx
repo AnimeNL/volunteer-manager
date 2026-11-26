@@ -421,16 +421,6 @@ export default async function SettingsPage() {
                         'Whether past events should be sorted to the bottom of the list',
                 },
                 {
-                    setting: 'schedule-time-offset-seconds',
-                    type: 'number',
-                    defaultValue: 0,
-
-                    label: 'Time offset (seconds)',
-                    description:
-                        'Number of seconds to offset time with, to emulate the schedule at ' +
-                        'another point in time',
-                },
-                {
                     setting: 'schedule-vendor-first-aid-card',
                     type: 'boolean',
                     defaultValue: false,
