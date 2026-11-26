@@ -157,10 +157,11 @@ describe('AccountActions - security & destructive operations', () => {
             teams: null,
         }));
 
-        // 2. Transaction: beginTransaction -> 2 updates -> 6 deletes -> commit:
+        // 2. Transaction: beginTransaction -> 3 updates -> 6 deletes -> commit:
         mockConnection.expect('beginTransaction');
         mockConnection.expect('update', () => 1);  // tUsers
         mockConnection.expect('update', () => 2);  // tOutboxEmail
+        mockConnection.expect('update', () => 0);  // tFeedback (assigned)
         mockConnection.expect('delete', () => 0);  // tFeedback
         mockConnection.expect('delete', () => 0);  // tNardoPersonalised
         mockConnection.expect('delete', () => 1);  // tStorage

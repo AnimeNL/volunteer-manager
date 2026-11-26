@@ -21,6 +21,7 @@ export class FeedbackTable extends Table<DBConnection, 'FeedbackTable'> {
     feedbackName = this.optionalColumnWithDefaultValue('feedback_name', 'string');
     feedbackDate = this.column<Temporal.ZonedDateTime>('feedback_date', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     feedbackText = this.column('feedback_text', 'string');
+    feedbackAssignedUserId = this.optionalColumnWithDefaultValue('feedback_assigned_user_id', 'int');
     feedbackResponse = this.optionalColumnWithDefaultValue<FeedbackResponse>('feedback_response', 'enum', 'FeedbackResponse');
     feedbackResponseDate = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('feedback_response_date', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     feedbackResponseText = this.optionalColumnWithDefaultValue('feedback_response_text', 'string');

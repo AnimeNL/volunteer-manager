@@ -157,6 +157,13 @@ export async function anonymizeAccount(userId: number, formData: unknown) {
                 .where(tOutboxEmail.outboxToUserId.equals(userId))
                 .executeUpdate();
 
+            await dbInstance.update(tFeedback)
+                .set({
+                    feedbackAssignedUserId: null,
+                })
+                .where(tFeedback.feedbackAssignedUserId.equals(userId))
+                .executeUpdate();
+
             await dbInstance.deleteFrom(tFeedback)
                 .where(tFeedback.userId.equals(userId))
                 .executeDelete();

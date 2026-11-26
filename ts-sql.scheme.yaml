@@ -2501,6 +2501,10 @@ tables:
   - name: feedback_text
     type: text
     nullable: false
+  - name: feedback_assigned_user_id
+    type: int(4) unsigned
+    nullable: true
+    default: "NULL"
   - name: feedback_response
     type: enum('Acknowledged','Archived','Declined','Resolved')
     nullable: true
@@ -2518,6 +2522,11 @@ tables:
     nullable: true
     default: "NULL"
   indexes:
+  - name: feedback_assigned_user_id
+    def: KEY feedback_assigned_user_id (feedback_assigned_user_id) USING BTREE
+    table: feedback
+    columns:
+    - feedback_assigned_user_id
   - name: PRIMARY
     def: PRIMARY KEY (feedback_id) USING BTREE
     table: feedback
@@ -2537,11 +2546,13 @@ tables:
       `feedback_name` text DEFAULT NULL,
       `feedback_date` datetime NOT NULL,
       `feedback_text` text NOT NULL,
+      `feedback_assigned_user_id` int(4) unsigned DEFAULT NULL,
       `feedback_response` enum('Acknowledged','Archived','Declined','Resolved') DEFAULT NULL,
       `feedback_response_date` datetime DEFAULT NULL,
       `feedback_response_text` text DEFAULT NULL,
       `feedback_response_user_id` int(4) unsigned DEFAULT NULL,
-      PRIMARY KEY (`feedback_id`)
+      PRIMARY KEY (`feedback_id`),
+      KEY `feedback_assigned_user_id` (`feedback_assigned_user_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: outbox_twilio
   type: BASE TABLE

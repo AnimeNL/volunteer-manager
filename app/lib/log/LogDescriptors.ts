@@ -219,6 +219,11 @@ interface LogTypeParameterMap {
     // Administration > Organisation > People & teams
     // ---------------------------------------------------------------------------------------------
 
+    AssignFeedback: {
+        assignee?: string;
+        id: number;
+    };
+
     RespondToFeedback: {
         action: string;  // Acknowledged | Archived | Declined | Resolved
     };
