@@ -8,7 +8,8 @@ import { useMemo } from 'react';
 import type { SchedulerEvent, SchedulerEventColor, SchedulerResource }
     from '@mui/x-scheduler-premium/models';
 import Box from '@mui/material/Box';
-import { EventCalendarPremium } from '@mui/x-scheduler-premium/event-calendar-premium';
+import { StandaloneCompactThreeDayViewPremium }
+    from '@mui/x-scheduler-premium/compact-three-day-view-premium';
 import { styled } from '@mui/material/styles';
 
 import type { VendorScheduleMember, VendorScheduleShift } from '../../lib/data/vendorData';
@@ -25,15 +26,14 @@ const kResourceColors: readonly SchedulerEventColor[] = [
  */
 interface VendorScheduleCalendarProps {
     /**
-     * Current effective portal time as an ISO instant string, used to focus the calendar on today
-     * while the schedule is active.
-     */
-    currentTime: string;
-
-    /**
      * Chronologically sorted vendor shifts to display on the calendar.
      */
     shifts: VendorScheduleShift[];
+
+    /**
+     * Event start time as an ISO instant string, anchoring the fixed three-day view (Fri–Sun).
+     */
+    startDate: string;
 
     /**
      * IANA timezone of the event in which shift times should be rendered.
@@ -47,36 +47,13 @@ interface VendorScheduleCalendarProps {
 }
 
 /**
- * Resolves the initial visible date for the calendar: uses `currentTime` when it falls within the
- * span of scheduled shifts, and otherwise jumps directly to the first scheduled shift.
- */
-function resolveDefaultVisibleDate(shifts: VendorScheduleShift[], currentTime: string): Date {
-    const nowMs = Date.parse(currentTime);
-    if (!shifts.length)
-        return new Date(nowMs);
-
-    const earliestStartMs = Date.parse(shifts[0].start);
-    let latestEndMs = Date.parse(shifts[0].end);
-    for (let index = 1; index < shifts.length; ++index) {
-        const endMs = Date.parse(shifts[index].end);
-        if (endMs > latestEndMs)
-            latestEndMs = endMs;
-    }
-
-    if (nowMs >= earliestStartMs && nowMs <= latestEndMs)
-        return new Date(nowMs);
-
-    return new Date(earliestStartMs);
-}
-
-/**
- * Full-size, read-only MUI `<EventCalendarPremium>` displaying all scheduled shifts for a vendor
- * team, with each vendor represented as a filterable, colour-coded resource.
+ * Full-size, read-only three-day calendar locked to the event's Friday–Sunday window, displaying
+ * all scheduled shifts for a vendor team without a sidebar or freeform date navigation.
  */
 export function VendorScheduleCalendar(props: VendorScheduleCalendarProps) {
-    const { currentTime, shifts, timeZone, vendors } = props;
+    const { shifts, startDate, timeZone, vendors } = props;
 
-    const { defaultVisibleDate, events, resources } = useMemo(() => {
+    const { events, resources, visibleDate } = useMemo(() => {
         const vendorNames = new Map<number, string>();
         const resources: SchedulerResource[] = vendors.map((vendor, index) => {
             vendorNames.set(vendor.id, vendor.name);
@@ -96,35 +73,33 @@ export function VendorScheduleCalendar(props: VendorScheduleCalendarProps) {
         }));
 
         return {
-            defaultVisibleDate: resolveDefaultVisibleDate(shifts, currentTime),
             events,
             resources,
+            visibleDate: new Date(startDate),
         };
-    }, [ currentTime, shifts, vendors ]);
+    }, [ shifts, startDate, vendors ]);
 
     return (
         <CalendarContainer>
-            <EventCalendarPremium
+            <StandaloneCompactThreeDayViewPremium
                 dateLocale="en-GB"
-                defaultView="week"
-                defaultVisibleDate={defaultVisibleDate}
                 displayTimezone={timeZone}
                 events={events}
                 readOnly
                 resources={resources}
-                showCurrentTimeIndicator />
+                showCurrentTimeIndicator
+                visibleDate={visibleDate} />
         </CalendarContainer>
     );
 }
 
 /**
- * Full-height viewport-aware container giving `<EventCalendarPremium>` an explicit height so its
- * internal time grid and side panel scroll smoothly within the schedule sheet.
+ * Full-height viewport-aware container giving `<StandaloneCompactThreeDayViewPremium>` an explicit
+ * height so its internal time grid scrolls smoothly within the schedule sheet.
  */
 const CalendarContainer = styled(Box)(({ theme }) => ({
     height: 'calc(100dvh - 230px)',
     minHeight: 540,
-    padding: theme.spacing(1.5),
     width: '100%',
 
     [theme.breakpoints.up('md')]: {

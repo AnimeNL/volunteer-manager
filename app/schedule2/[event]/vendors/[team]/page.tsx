@@ -4,7 +4,6 @@
 import { forbidden, notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
-import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import LocalHospitalOutlinedIcon from '@mui/icons-material/LocalHospitalOutlined';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
@@ -80,7 +79,7 @@ async function VendorScheduleContent(
     props: { params: Promise<{ event: string; team: string }> })
 {
     const { event: eventSlug, team: rawTeam } = await props.params;
-    const { access, currentTime, event } = await requireScheduleAccess(eventSlug);
+    const { access, event } = await requireScheduleAccess(eventSlug);
 
     const team = parseVendorTeam(rawTeam);
     if (!team)
@@ -95,16 +94,15 @@ async function VendorScheduleContent(
 
     return (
         <VendorScheduleCalendar
-            currentTime={currentTime.toInstant().toString()}
             shifts={shifts}
+            startDate={event.startTime.toInstant().toString()}
             timeZone={event.timeZone}
             vendors={vendors} />
     );
 }
 
 /**
- * Skeleton placeholder matching the full-size calendar toolbar, optional side panel, and time grid
- * while vendor shifts are streaming.
+ * Skeleton placeholder matching the fixed three-day calendar layout while vendor shifts stream.
  */
 function VendorScheduleSkeleton() {
     return (
@@ -113,18 +111,12 @@ function VendorScheduleSkeleton() {
             minHeight: 540,
             p: 1.5,
         }}>
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                <Skeleton variant="rounded" width={36} height={32} />
-                <Skeleton variant="rounded" width={72} height={32} />
-                <Skeleton variant="text" width={140} height={28} />
-                <Box sx={{ flex: '1 1 auto' }} />
-                <Skeleton variant="rounded" width={180} height={32} />
+            <Stack direction="row" spacing={1.5} sx={{ pl: 6 }}>
+                <Skeleton variant="rounded" height={44} sx={{ flex: '1 1 0' }} />
+                <Skeleton variant="rounded" height={44} sx={{ flex: '1 1 0' }} />
+                <Skeleton variant="rounded" height={44} sx={{ flex: '1 1 0' }} />
             </Stack>
-            <Stack direction="row" spacing={1.5} sx={{ flex: '1 1 auto', minHeight: 0 }}>
-                <Skeleton variant="rounded" width={250} height="100%"
-                          sx={{ display: { xs: 'none', md: 'block' }, flexShrink: 0 }} />
-                <Skeleton variant="rounded" height="100%" sx={{ flex: '1 1 auto' }} />
-            </Stack>
+            <Skeleton variant="rounded" height="100%" sx={{ flex: '1 1 auto' }} />
         </Stack>
     );
 }
