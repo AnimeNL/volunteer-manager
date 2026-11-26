@@ -1,7 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { EventTicketProvider } from '@lib/database/Types';
+import type { EventTicketProvider, VendorTeam } from '@lib/database/Types';
 
 /**
  * Information globally cached for a particular event.
@@ -238,4 +238,39 @@ export interface CachedTeam {
          */
         managesSecurity: boolean;
     },
+}
+
+/**
+ * Shift scheduled for a vendor team member, cached for the volunteer portal.
+ */
+export interface CachedVendorShift {
+    /**
+     * Unique ID of the vendor assigned to this shift.
+     */
+    vendorId: number;
+
+    /**
+     * Vendor team to which this shift belongs (e.g. First Aid or Security).
+     */
+    type: VendorTeam;
+
+    /**
+     * First name of the vendor assigned to this shift.
+     */
+    firstName: string;
+
+    /**
+     * Last name of the vendor assigned to this shift.
+     */
+    lastName: string;
+
+    /**
+     * Date and time at which the shift begins.
+     */
+    start: Temporal.ZonedDateTime;
+
+    /**
+     * Date and time at which the shift concludes.
+     */
+    end: Temporal.ZonedDateTime;
 }

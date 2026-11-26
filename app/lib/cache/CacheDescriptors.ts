@@ -3,7 +3,7 @@
 
 import type { PaletteMode } from '@mui/material/styles';
 
-import type { CachedEvent, CachedTeam } from './Types';
+import type { CachedEvent, CachedTeam, CachedVendorShift } from './Types';
 import type { EnvironmentPurpose } from '../database/Types';
 import type { UserAuthenticationContext } from '@lib/auth';
 
@@ -164,6 +164,18 @@ interface CacheDescriptorMap {
             shops?: { id: string; label: string }[];
             ticketTypes?: { id: string; label: string }[];
         };
+    };
+
+    // ---------------------------------------------------------------------------------------------
+    // Volunteer Portal
+    // ---------------------------------------------------------------------------------------------
+
+    VolunteerPortal: {
+        Parameters: {
+            eventId: number;
+            type: 'vendors';
+        };
+        Contents: CachedVendorShift[];
     };
 
     // ---------------------------------------------------------------------------------------------
@@ -417,6 +429,16 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         description: 'Options and order details retrieved from ticketing providers.',
         type: 'ttl',
         ttl: 72 * 3600,
+    },
+
+    // ---------------------------------------------------------------------------------------------
+    // Volunteer Portal
+    // ---------------------------------------------------------------------------------------------
+
+    VolunteerPortal: {
+        name: 'VolunteerPortal',
+        description: 'Event-scoped data cached for the volunteer schedule portal.',
+        type: 'permanent',
     },
 
     // ---------------------------------------------------------------------------------------------
