@@ -18,6 +18,7 @@ import Skeleton from '@mui/material/Skeleton';
 import TagOutlinedIcon from '@mui/icons-material/TagOutlined';
 import Typography from '@mui/material/Typography';
 
+import { EmptyStateCard } from '../components/EmptyStateCard';
 import { Header } from '../components/Header';
 import { Page, SuspenseReveal } from '../components/Page';
 import { createScheduleMetadataFn } from '../lib/generateScheduleMetadata';
@@ -111,15 +112,15 @@ async function PrimaryHotelBooking(props: { params: Promise<{ event: string }> }
 
     if (!bookings.length) {
         return (
-            <CardContent>
-                <Typography variant="h6" gutterBottom>
-                    No hotel room assigned
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                    No confirmed hotel booking has been assigned to your account for{' '}
-                    {event.shortName} yet.
-                </Typography>
-            </CardContent>
+            <EmptyStateCard
+                description={
+                    <>
+                        No confirmed hotel booking has been assigned to your account for{' '}
+                        {event.shortName} yet.
+                    </>
+                }
+                noCard
+                title="No hotel room assigned" />
         );
     }
 

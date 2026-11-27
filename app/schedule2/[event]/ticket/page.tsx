@@ -9,6 +9,7 @@ import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
+import { EmptyStateCard } from '../components/EmptyStateCard';
 import { Header } from '../components/Header';
 import { Page, SuspenseReveal } from '../components/Page';
 import { QrCode } from '@components/QrCode';
@@ -26,39 +27,39 @@ async function TicketContent(props: { params: Promise<{ event: string }> }) {
 
     if (!ticket) {
         return (
-            <>
-                <Typography variant="h6" gutterBottom>
-                    No ticket available
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                    No ticket has been issued to your account for {event.shortName} yet.
-                </Typography>
-            </>
+            <EmptyStateCard
+                description={
+                    `No ticket has been issued to your account for ${event.shortName} yet.`
+                }
+                noCard
+                title="No ticket available" />
         );
     }
 
     return (
-        <Stack spacing={2.5} sx={{ alignItems: 'center' }}>
-            <Typography variant="body2" sx={{ alignSelf: 'stretch' }}>
-                We can't wait to see you! Feel free to skip the queues when you arrive and head
-                straight to the Registration Desk. Just ask a Steward if you need any help.
-            </Typography>
-            <QrCode content={ticket.barcode} framed sx={{ maxWidth: 400, width: '80%' }} />
-            <Stack spacing={0.25} sx={{ alignItems: 'center' }}>
-                <Typography color="textSecondary" variant="body2" sx={{
-                    fontFamily: 'monospace',
-                    letterSpacing: 1,
-                }}>
-                    {ticket.barcode}
+        <CardContent>
+            <Stack spacing={2.5} sx={{ alignItems: 'center' }}>
+                <Typography variant="body2" sx={{ alignSelf: 'stretch' }}>
+                    We can't wait to see you! Feel free to skip the queues when you arrive and head
+                    straight to the Registration Desk. Just ask a Steward if you need any help.
                 </Typography>
-                <Typography color="textSecondary" variant="body2" sx={{
-                    fontFamily: 'monospace',
-                    letterSpacing: 1,
-                }}>
-                    Order: {ticket.orderNumber}
-                </Typography>
+                <QrCode content={ticket.barcode} framed sx={{ maxWidth: 400, width: '80%' }} />
+                <Stack spacing={0.25} sx={{ alignItems: 'center' }}>
+                    <Typography color="textSecondary" variant="body2" sx={{
+                        fontFamily: 'monospace',
+                        letterSpacing: 1,
+                    }}>
+                        {ticket.barcode}
+                    </Typography>
+                    <Typography color="textSecondary" variant="body2" sx={{
+                        fontFamily: 'monospace',
+                        letterSpacing: 1,
+                    }}>
+                        Order: {ticket.orderNumber}
+                    </Typography>
+                </Stack>
             </Stack>
-        </Stack>
+        </CardContent>
     );
 }
 
@@ -102,11 +103,14 @@ export default function ScheduleTicketPage(props: PageProps<'/schedule2/[event]/
                     title="Your ticket" />
             }>
             <Card>
-                <CardContent>
-                    <SuspenseReveal fallback={ <TicketSkeleton /> }>
-                        <TicketContent params={props.params} />
-                    </SuspenseReveal>
-                </CardContent>
+                <SuspenseReveal
+                    fallback={
+                        <CardContent>
+                            <TicketSkeleton />
+                        </CardContent>
+                    }>
+                    <TicketContent params={props.params} />
+                </SuspenseReveal>
             </Card>
         </Page>
     );

@@ -67,7 +67,7 @@ async function PlaceholderContent(
 
     const title = props.title ?? event.shortName;
 
-    return <EmptyStateCard title={title} description="Not yet implemented." />;
+    return <EmptyStateCard description="Not yet implemented." noCard title={title} />;
 }
 
 /**
@@ -80,21 +80,21 @@ export function PlaceholderPage(props: PlaceholderPageProps) {
 
     return (
         <Page header={header}>
-            <SuspenseReveal
-                fallback={
-                    <Card>
+            <Card>
+                <SuspenseReveal
+                    fallback={
                         <CardContent>
                             <Skeleton variant="text" width="35%" height={28} />
                             <Skeleton variant="text" width="50%" height={20} sx={{ mt: 1 }} />
                         </CardContent>
-                    </Card>
-                }>
-                <PlaceholderContent
-                    crudPermission={props.crudPermission}
-                    params={props.params}
-                    permission={props.permission}
-                    title={props.title} />
-            </SuspenseReveal>
+                    }>
+                    <PlaceholderContent
+                        crudPermission={props.crudPermission}
+                        params={props.params}
+                        permission={props.permission}
+                        title={props.title} />
+                </SuspenseReveal>
+            </Card>
         </Page>
     );
 }
