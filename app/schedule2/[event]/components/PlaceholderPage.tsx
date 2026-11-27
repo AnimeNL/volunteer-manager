@@ -6,9 +6,9 @@ import { forbidden } from 'next/navigation';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Skeleton from '@mui/material/Skeleton';
-import Typography from '@mui/material/Typography';
 
-import type { BooleanPermission } from '@lib/auth/access/Access';
+import type { BooleanPermission, CRUDPermission } from '@lib/auth/access/Access';
+import { EmptyStateCard } from './EmptyStateCard';
 import { Header } from './Header';
 import { Page, SuspenseReveal } from './Page';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
@@ -17,6 +17,12 @@ import { requireScheduleAccess } from '../lib/getScheduleAccess';
  * Props accepted by the <PlaceholderPage> component.
  */
 interface PlaceholderPageProps {
+    /**
+     * Optional event-scoped CRUD permission required (for `'read'`) to access this placeholder
+     * page.
+     */
+    crudPermission?: CRUDPermission;
+
     /**
      * Optional single-line description shown beneath the header title.
      */
@@ -49,27 +55,19 @@ interface PlaceholderPageProps {
  * Authenticates the request behind `<Suspense>` and renders a simple "Not yet implemented" card.
  */
 async function PlaceholderContent(
-    props: Pick<PlaceholderPageProps, 'params' | 'permission' | 'title'>)
+    props: Pick<PlaceholderPageProps, 'crudPermission' | 'params' | 'permission' | 'title'>)
 {
     const { event: eventSlug } = await props.params;
     const { access, event } = await requireScheduleAccess(eventSlug);
     if (props.permission && !access.can(props.permission, { event: event.slug }))
         forbidden();
 
+    if (props.crudPermission && !access.can(props.crudPermission, 'read', { event: event.slug }))
+        forbidden();
+
     const title = props.title ?? event.shortName;
 
-    return (
-        <Card>
-            <CardContent>
-                <Typography variant="h6" gutterBottom>
-                    {title}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                    Not yet implemented.
-                </Typography>
-            </CardContent>
-        </Card>
-    );
+    return <EmptyStateCard title={title} description="Not yet implemented." />;
 }
 
 /**
@@ -91,8 +89,11 @@ export function PlaceholderPage(props: PlaceholderPageProps) {
                         </CardContent>
                     </Card>
                 }>
-                <PlaceholderContent params={props.params} permission={props.permission}
-                                    title={props.title} />
+                <PlaceholderContent
+                    crudPermission={props.crudPermission}
+                    params={props.params}
+                    permission={props.permission}
+                    title={props.title} />
             </SuspenseReveal>
         </Page>
     );
