@@ -1,7 +1,9 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import Box from '@mui/material/Box';
 import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
+import Tooltip from '@mui/material/Tooltip';
 
 import { EmptyStateCard } from '../components/EmptyStateCard';
 import { Header } from '../components/Header';
@@ -17,7 +19,7 @@ import { requireScheduleAccess } from '../lib/getScheduleAccess';
  */
 async function AreasListContent(props: { params: Promise<{ event: string }> }) {
     const { event: eventSlug } = await props.params;
-    const { event } = await requireScheduleAccess(eventSlug);
+    const { currentTime, event } = await requireScheduleAccess(eventSlug);
     const festivalId = event.integrations?.anPlanFestivalId;
 
     const areas = festivalId ? await getProgramAreasWithLocations(festivalId) : [];
@@ -28,13 +30,25 @@ async function AreasListContent(props: { params: Promise<{ event: string }> }) {
         );
     }
 
+    const nowMs = currentTime.epochMilliseconds;
+
     return (
         <ScheduleList variant="segmented">
             { areas.map(area => {
                 const { locations } = area;
                 const subtitle = locations.length > 2
-                    ? `${locations.slice(0, 2).join(', ')}, and ${locations.length - 2} more`
+                    ? `${locations.slice(0, 2).join(', ')} and ${locations.length - 2} more…`
                     : locations.join(', ');
+
+                let activeCount = 0;
+                for (const timeslot of area.timeslots) {
+                    if (timeslot.startMs <= nowMs && timeslot.endMs > nowMs)
+                        activeCount++;
+                }
+
+                const activeLabel = activeCount === 1
+                    ? '1 active event'
+                    : `${activeCount} active events`;
 
                 return (
                     <ScheduleListRow
@@ -42,7 +56,28 @@ async function AreasListContent(props: { params: Promise<{ event: string }> }) {
                         chevron
                         href={getSchedulePath(event.slug, `/areas/${area.id}`)}
                         subtitle={subtitle}
-                        title={area.name} />
+                        title={area.name}
+                        trailing={activeCount > 0 ? (
+                            <Tooltip title={activeLabel}>
+                                <Box
+                                    component="span"
+                                    aria-label={activeLabel}
+                                    sx={{
+                                        alignItems: 'center',
+                                        bgcolor: 'secondary.main',
+                                        borderRadius: 99,
+                                        color: 'secondary.contrastText',
+                                        display: 'inline-flex',
+                                        fontWeight: 600,
+                                        height: 22,
+                                        justifyContent: 'center',
+                                        minWidth: 22,
+                                        px: 0.75,
+                                    }}>
+                                    {activeCount}
+                                </Box>
+                            </Tooltip>
+                        ) : undefined} />
                 );
             }) }
         </ScheduleList>

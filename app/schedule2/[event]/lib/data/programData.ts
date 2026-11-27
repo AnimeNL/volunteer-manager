@@ -53,12 +53,21 @@ interface CachedEventTimeslot {
 }
 
 /**
- * Program area summary with its alphabetically sorted location names.
+ * Cached epoch-millisecond bounds for a single program timeslot used to count active events.
+ */
+interface ProgramAreaTimeslotWindow {
+    endMs: number;
+    startMs: number;
+}
+
+/**
+ * Program area summary with its alphabetically sorted location names and cached timeslot bounds.
  */
 interface ProgramAreaWithLocations {
     id: number;
     locations: string[];
     name: string;
+    timeslots: ProgramAreaTimeslotWindow[];
 }
 
 /**
@@ -175,7 +184,8 @@ export async function getProgramAreas(festivalId: number): Promise<NavigationAre
 }
 
 /**
- * Loads all program areas for `festivalId` along with their alphabetically sorted location names.
+ * Loads all program areas for `festivalId` along with their alphabetically sorted location names
+ * and cached timeslot bounds for counting active events.
  */
 export async function getProgramAreasWithLocations(
     festivalId: number): Promise<ProgramAreaWithLocations[]>
@@ -188,27 +198,41 @@ export async function getProgramAreasWithLocations(
         .select({
             areaId: tActivitiesAreas.areaId,
             areaName: tActivitiesAreas.areaDisplayName.valueWhenNull(tActivitiesAreas.areaName),
+            end: tActivitiesTimeslots.timeslotEndTime,
+            locationId: tActivitiesLocations.locationId,
             locationName: tActivitiesLocations.locationDisplayName.valueWhenNull(
                 tActivitiesLocations.locationName),
+            start: tActivitiesTimeslots.timeslotStartTime,
         })
-        .groupBy(tActivitiesAreas.areaId, tActivitiesLocations.locationId)
         .executeSelectMany();
 
-    const areaMap = new Map<number, ProgramAreaWithLocations>();
+    const areaMap = new Map<number, {
+        id: number;
+        locations: Map<number, string>;
+        name: string;
+        timeslots: ProgramAreaTimeslotWindow[];
+    }>();
+
     for (const row of rows) {
         let area = areaMap.get(row.areaId);
         if (!area) {
-            area = { id: row.areaId, locations: [], name: row.areaName };
+            area = { id: row.areaId, locations: new Map(), name: row.areaName, timeslots: [] };
             areaMap.set(row.areaId, area);
         }
 
-        area.locations.push(row.locationName);
+        area.locations.set(row.locationId, row.locationName);
+        area.timeslots.push({
+            endMs: row.end.epochMilliseconds,
+            startMs: row.start.epochMilliseconds,
+        });
     }
 
     return [ ...areaMap.values() ]
         .map(area => ({
-            ...area,
-            locations: area.locations.sort((lhs, rhs) => lhs.localeCompare(rhs)),
+            id: area.id,
+            locations: [ ...area.locations.values() ].sort((lhs, rhs) => lhs.localeCompare(rhs)),
+            name: area.name,
+            timeslots: area.timeslots,
         }))
         .sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
 }
