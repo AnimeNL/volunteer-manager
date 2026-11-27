@@ -5,7 +5,6 @@ import 'server-only';
 import { cache } from 'react';
 import { cacheLife, cacheTag } from 'next/cache';
 
-import type { NavigationArea } from '../navigationTypes';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations,
     tActivitiesTimeslots, tUsersEventsFavourites } from '@lib/database';
 
@@ -29,24 +28,6 @@ interface CachedProgramTimeslot {
     start: string;
     timeslotId: number;
     title: string;
-}
-
-/**
- * Cached epoch-millisecond bounds for a single program timeslot used to count active events.
- */
-interface ProgramAreaTimeslotWindow {
-    endMs: number;
-    startMs: number;
-}
-
-/**
- * Program area summary with its alphabetically sorted location names and cached timeslot bounds.
- */
-interface ProgramAreaWithLocations {
-    id: number;
-    locations: string[];
-    name: string;
-    timeslots: ProgramAreaTimeslotWindow[];
 }
 
 /**
@@ -87,80 +68,6 @@ function selectProgramTimeslots(festivalId: number) {
         .where(tActivities.activityFestivalId.equals(festivalId))
             .and(tActivities.activityType.equals(kActivityType.Program))
             .and(tActivities.activityDeleted.isNull());
-}
-
-/**
- * Loads all program areas for `festivalId` that have at least one scheduled timeslot, sorted
- * alphabetically by display name.
- */
-export async function getProgramAreas(festivalId: number): Promise<NavigationArea[]> {
-    'use cache';
-    cacheLife('minutes');
-    cacheTag('schedule-program', `schedule-program:${festivalId}`);
-
-    const rows = await selectProgramTimeslots(festivalId)
-        .select({
-            id: tActivitiesAreas.areaId,
-            name: tActivitiesAreas.areaDisplayName.valueWhenNull(tActivitiesAreas.areaName),
-        })
-        .groupBy(tActivitiesAreas.areaId)
-        .executeSelectMany();
-
-    return rows.sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
-}
-
-/**
- * Loads all program areas for `festivalId` along with their alphabetically sorted location names
- * and cached timeslot bounds for counting active events.
- */
-export async function getProgramAreasWithLocations(
-    festivalId: number): Promise<ProgramAreaWithLocations[]>
-{
-    'use cache';
-    cacheLife('minutes');
-    cacheTag('schedule-program', `schedule-program:${festivalId}`);
-
-    const rows = await selectProgramTimeslots(festivalId)
-        .select({
-            areaId: tActivitiesAreas.areaId,
-            areaName: tActivitiesAreas.areaDisplayName.valueWhenNull(tActivitiesAreas.areaName),
-            end: tActivitiesTimeslots.timeslotEndTime,
-            locationId: tActivitiesLocations.locationId,
-            locationName: tActivitiesLocations.locationDisplayName.valueWhenNull(
-                tActivitiesLocations.locationName),
-            start: tActivitiesTimeslots.timeslotStartTime,
-        })
-        .executeSelectMany();
-
-    const areaMap = new Map<number, {
-        id: number;
-        locations: Map<number, string>;
-        name: string;
-        timeslots: ProgramAreaTimeslotWindow[];
-    }>();
-
-    for (const row of rows) {
-        let area = areaMap.get(row.areaId);
-        if (!area) {
-            area = { id: row.areaId, locations: new Map(), name: row.areaName, timeslots: [] };
-            areaMap.set(row.areaId, area);
-        }
-
-        area.locations.set(row.locationId, row.locationName);
-        area.timeslots.push({
-            endMs: row.end.epochMilliseconds,
-            startMs: row.start.epochMilliseconds,
-        });
-    }
-
-    return [ ...areaMap.values() ]
-        .map(area => ({
-            id: area.id,
-            locations: [ ...area.locations.values() ].sort((lhs, rhs) => lhs.localeCompare(rhs)),
-            name: area.name,
-            timeslots: area.timeslots,
-        }))
-        .sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
 }
 
 /**

@@ -3,24 +3,13 @@
 
 import 'server-only';
 import { cache } from 'react';
-import { cacheLife, cacheTag } from 'next/cache';
 
 import type { NavigationData } from './navigationTypes';
-import { getProgramAreas } from './data/programData';
+import { getEventState } from '@lib/event';
 import { getScheduleAccess } from './getScheduleAccess';
 import { getVolunteerTeams } from './data/volunteerData';
 import { hasKnowledgeBaseAccess } from './data/knowledgeData';
 import { readUserSettings } from '@lib/UserSettings';
-import db, { tEventsTeams, tTeams } from '@lib/database';
-
-/**
- * Serializable Duty Book-enabled team record cached per event.
- */
-interface DutyBookTeamRecord {
-    id: number;
-    name: string;
-    slug: string;
-}
 
 /**
  * Request-cached loader computing all navigation state for `eventSlug`. Shared across both desktop
@@ -33,14 +22,12 @@ export const getNavigationData = cache(
             return undefined;
 
         const { access, event, events, user } = scheduleContext;
-        const festivalId = event.integrations?.anPlanFestivalId;
         const memberTeams = events.get(event.slug);
         const hasUnrestrictedKnowledge = access.can('event.knowledge', { event: event.slug });
 
-        const [ areas, dutyBookTeams, hasKnowledgeBase, userSettings, visibleVolunteerTeams ] =
+        const [ eventState, hasKnowledgeBase, userSettings, visibleVolunteerTeams ] =
             await Promise.all([
-                festivalId ? getProgramAreas(festivalId) : Promise.resolve([]),
-                getEventDutyBookTeams(event.id),
+                getEventState(event),
                 hasKnowledgeBaseAccess(event.id, user.id, hasUnrestrictedKnowledge),
                 readUserSettings(user.id, [
                     'user-schedule-expand-duty-book',
@@ -50,10 +37,16 @@ export const getNavigationData = cache(
                 getVolunteerTeams(scheduleContext),
             ]);
 
-        const dutyBooks = dutyBookTeams
+        const areas = (eventState?.program.getAreas({ programOnly: true }) ?? []).map(area => ({
+            id: area.id,
+            name: area.name,
+        }));
+
+        const dutyBooks = (eventState?.volunteers.getTeams() ?? [])
             .filter(team =>
-                memberTeams?.has(team.slug) ||
-                access.can('event.duty-book', 'read', { event: event.slug, team: team.slug }))
+                team.enableDutyBook && (
+                    memberTeams?.has(team.slug) ||
+                    access.can('event.duty-book', 'read', { event: event.slug, team: team.slug })))
             .map(team => ({ name: team.name, team: team.slug }));
 
         const volunteerTeams = visibleVolunteerTeams.map(team => ({
@@ -75,27 +68,3 @@ export const getNavigationData = cache(
             volunteerTeams,
         };
     });
-
-/**
- * Loads all enabled Duty Book teams for `eventId`, sorted alphabetically by team name.
- */
-async function getEventDutyBookTeams(eventId: number): Promise<DutyBookTeamRecord[]> {
-    'use cache';
-    cacheLife('minutes');
-    cacheTag('schedule-duty-book-teams', `schedule-duty-book-teams:${eventId}`);
-
-    return await db.selectFrom(tEventsTeams)
-        .innerJoin(tTeams)
-            .on(tTeams.teamId.equals(tEventsTeams.teamId))
-                .and(tTeams.teamFlagEnableDutyBook.equals(/* true= */ 1))
-                .and(tTeams.teamDeleted.isNull())
-        .where(tEventsTeams.eventId.equals(eventId))
-            .and(tEventsTeams.enableTeam.equals(/* true= */ 1))
-        .select({
-            id: tTeams.teamId,
-            name: tTeams.teamName,
-            slug: tTeams.teamSlug,
-        })
-        .orderBy(tTeams.teamName, 'asc')
-        .executeSelectMany();
-}

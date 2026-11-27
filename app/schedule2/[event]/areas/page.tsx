@@ -10,7 +10,7 @@ import { PillBadge } from '../components/PillBadge';
 import { ScheduleList, ScheduleListRow } from '../components/ScheduleList';
 import { SegmentedListSkeleton } from '../components/ScheduleListSkeleton';
 import { createScheduleMetadataFn } from '../lib/generateScheduleMetadata';
-import { getProgramAreasWithLocations } from '../lib/data/programData';
+import { getEventState } from '@lib/event';
 import { getSchedulePath } from '../lib/navigationTypes';
 import { pluralize } from '../lib/format';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
@@ -21,31 +21,32 @@ import { requireScheduleAccess } from '../lib/getScheduleAccess';
 async function AreasListContent(props: { params: Promise<{ event: string }> }) {
     const { event: eventSlug } = await props.params;
     const { currentTime, event } = await requireScheduleAccess(eventSlug);
-    const festivalId = event.integrations?.anPlanFestivalId;
 
-    const areas = festivalId ? await getProgramAreasWithLocations(festivalId) : [];
-    if (!areas.length) {
+    const eventState = await getEventState(event);
+    const areas = eventState?.program.getAreas({ programOnly: true }) ?? [];
+    if (!eventState || !areas.length) {
         return (
             <EmptyStateCard
                 description={`No program areas have been announced for ${event.shortName} yet.`} />
         );
     }
 
-    const nowMs = currentTime.epochMilliseconds;
+    const snapshot = eventState.at(currentTime);
 
     return (
         <ScheduleList variant="segmented">
             { areas.map(area => {
-                const { locations } = area;
+                const locations = eventState.program
+                    .getLocations(area.id, { programOnly: true })
+                    .map(location => location.name);
                 const subtitle = locations.length > 2
                     ? `${locations.slice(0, 2).join(', ')} and ${locations.length - 2} more…`
                     : locations.join(', ');
 
-                let activeCount = 0;
-                for (const timeslot of area.timeslots) {
-                    if (timeslot.startMs <= nowMs && timeslot.endMs > nowMs)
-                        activeCount++;
-                }
+                const activeCount = snapshot.activeTimeslots({
+                    areaId: area.id,
+                    programOnly: true,
+                }).length;
 
                 const activeLabel = pluralize(activeCount, 'active event');
 
