@@ -19,3 +19,4 @@ export class TeamsVisibilityTable extends Table<DBConnection, 'TeamsVisibilityTa
 }
 
 export const tTeamsVisibility = new TeamsVisibilityTable();
+

@@ -6293,6 +6293,62 @@ tables:
       `shift_category_deleted` datetime DEFAULT NULL,
       PRIMARY KEY (`shift_category_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: teams_visibility
+  type: BASE TABLE
+  columns:
+  - name: team_id
+    type: int(4) unsigned
+    nullable: false
+  - name: visible_team_id
+    type: int(4) unsigned
+    nullable: false
+  indexes:
+  - name: teams_visibility_visible_team_id
+    def: KEY teams_visibility_visible_team_id (visible_team_id) USING BTREE
+    table: teams_visibility
+    columns:
+    - visible_team_id
+  - name: PRIMARY
+    def: PRIMARY KEY (team_id, visible_team_id) USING BTREE
+    table: teams_visibility
+    columns:
+    - team_id
+    - visible_team_id
+  constraints:
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (team_id, visible_team_id)
+    table: teams_visibility
+    columns:
+    - team_id
+    - visible_team_id
+  - name: teams_visibility_team_id
+    type: FOREIGN KEY
+    def: FOREIGN KEY (team_id) REFERENCES teams (team_id)
+    table: teams_visibility
+    referencedTable: teams
+    columns:
+    - team_id
+    referencedColumns:
+    - team_id
+  - name: teams_visibility_visible_team_id
+    type: FOREIGN KEY
+    def: FOREIGN KEY (visible_team_id) REFERENCES teams (team_id)
+    table: teams_visibility
+    referencedTable: teams
+    columns:
+    - visible_team_id
+    referencedColumns:
+    - team_id
+  def: |-
+    CREATE TABLE `teams_visibility` (
+      `team_id` int(4) unsigned NOT NULL,
+      `visible_team_id` int(4) unsigned NOT NULL,
+      PRIMARY KEY (`team_id`,`visible_team_id`),
+      KEY `teams_visibility_visible_team_id` (`visible_team_id`),
+      CONSTRAINT `teams_visibility_team_id` FOREIGN KEY (`team_id`) REFERENCES `teams` (`team_id`) ON DELETE CASCADE,
+      CONSTRAINT `teams_visibility_visible_team_id` FOREIGN KEY (`visible_team_id`) REFERENCES `teams` (`team_id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: twilio_webhook_calls
   type: BASE TABLE
   columns:
@@ -6719,6 +6775,26 @@ relations:
   - team_id
   parentCardinality: exactly_one
   def: FOREIGN KEY (team_id) REFERENCES teams (team_id)
+  virtual: false
+- table: teams_visibility
+  columns:
+  - team_id
+  cardinality: zero_or_more
+  parentTable: teams
+  parentColumns:
+  - team_id
+  parentCardinality: exactly_one
+  def: FOREIGN KEY (team_id) REFERENCES teams (team_id)
+  virtual: false
+- table: teams_visibility
+  columns:
+  - visible_team_id
+  cardinality: zero_or_more
+  parentTable: teams
+  parentColumns:
+  - team_id
+  parentCardinality: exactly_one
+  def: FOREIGN KEY (visible_team_id) REFERENCES teams (team_id)
   virtual: false
 driver:
   name: mysql
