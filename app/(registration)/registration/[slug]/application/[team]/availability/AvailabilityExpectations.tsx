@@ -9,7 +9,8 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import type { AvailabilityDayInfo, AvailabilityExpectation } from './AvailabilityExpectationsClient';
-import type { AvailabilitySegment, RequestedProgramTimeslot } from '@lib/event';
+import type { AvailabilitySegment, EventAvailabilityException, RequestedProgramTimeslot }
+    from '@lib/event';
 import type { TimeslotWithZonedDateTimes }
     from '@app/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/getAvailabilityTimeslots';
 import { AvailabilityExpectationDay, AvailabilityLegend } from './AvailabilityExpectationsClient';
@@ -62,14 +63,38 @@ interface AvailabilityExpectationsProps {
 }
 
 /**
- * Resolves the single hourly expectation rendered for `[hourStartMs, hourEndMs)` from a compiled
- * availability timeline.
+ * Returns whether any interval in `intervals` overlaps `[startMs, endMs)`.
+ */
+function hasOverlap(
+    intervals: readonly { readonly startMs: number; readonly endMs: number }[],
+    startMs: number,
+    endMs: number): boolean
+{
+    return intervals.some(interval => interval.startMs < endMs && interval.endMs > startMs);
+}
+
+/**
+ * Resolves the single hourly expectation rendered for `[hourStartMs, hourEndMs)` on the
+ * availability expectations page. On the first day of the festival, hours 10:00–12:00 default to
+ * `avoid` and hours 12:00–14:00 default to `available` regardless of timing preferences, while
+ * remaining overridable by explicit availability exceptions (and requested events for 12:00–14:00).
  */
 function resolveHourlyExpectation(
     timeline: readonly AvailabilitySegment[],
+    exceptions: readonly EventAvailabilityException[],
+    requestedTimeslots: readonly RequestedProgramTimeslot[],
+    isFirstDay: boolean,
+    hour: number,
     hourStartMs: number,
     hourEndMs: number): AvailabilityExpectation
 {
+    if (isFirstDay && !hasOverlap(exceptions, hourStartMs, hourEndMs)) {
+        if (hour === 10 || hour === 11)
+            return 'avoid';
+        if (hour === 12 || hour === 13)
+            return hasOverlap(requestedTimeslots, hourStartMs, hourEndMs) ? 'avoid' : 'available';
+    }
+
     let hasAvailable = false;
     let hasAvoid = false;
     let hasUnavailable = false;
@@ -125,6 +150,8 @@ export async function AvailabilityExpectations(props: AvailabilityExpectationsPr
         });
     }
 
+    const exceptions = parseAvailabilityExceptions(props.exceptions);
+
     const timeline = computeAvailabilityTimeline(
         {
             event: {
@@ -139,7 +166,7 @@ export async function AvailabilityExpectations(props: AvailabilityExpectationsPr
             availability: {
                 preferenceTimingStart: props.timing?.start,
                 preferenceTimingEnd: props.timing?.end,
-                exceptions: parseAvailabilityExceptions(props.exceptions),
+                exceptions,
                 requestedTimeslots,
             },
         },
@@ -158,13 +185,15 @@ export async function AvailabilityExpectations(props: AvailabilityExpectationsPr
 
     const expectations: AvailabilityDayInfo[] = [];
     for (let date = startDate; isBefore(date, endDate); date = date.add({ days: 1 })) {
+        const isFirstDay = expectations.length === 0;
         expectations.push({
             label: formatDate(date, 'dddd, MMMM D'),
             expectations: [ ...Array(/* hours= */ 24) ].map((_, hour) => {
                 const hourStart = date.add({ hours: hour });
                 const hourEnd = hourStart.add({ hours: 1 });
                 return resolveHourlyExpectation(
-                    timeline, hourStart.epochMilliseconds, hourEnd.epochMilliseconds);
+                    timeline, exceptions, requestedTimeslots, isFirstDay, hour,
+                    hourStart.epochMilliseconds, hourEnd.epochMilliseconds);
             }),
         });
     }
