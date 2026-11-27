@@ -30,10 +30,10 @@ export type OverviewTileId = DismissibleOverviewActionTileId | 'scanner' | 'sche
  */
 interface OverviewTileMetadata {
     accent?: TileAccentKey;
-    heroSubtitle: string;
     icon: SvgIconComponent;
     label: string;
     segment: string;
+    subtitle?: string;
 }
 
 /**
@@ -50,37 +50,33 @@ function isDismissibleTile(tileId: OverviewTileId): tileId is DismissibleOvervie
 const kOverviewTiles: Record<OverviewTileId, OverviewTileMetadata> = {
     feedback: {
         accent: 'tileAccentC',
-        heroSubtitle: 'Share your thoughts',
         icon: FeedbackOutlinedIcon,
         label: 'Feedback',
         segment: '/feedback',
     },
     hotel: {
         accent: 'tileAccentA',
-        heroSubtitle: 'Your hotel room',
         icon: HotelOutlinedIcon,
         label: 'Hotel',
         segment: '/hotel',
     },
     scanner: {
         accent: 'tileAccentD',
-        heroSubtitle: 'Scan QR codes',
         icon: QrCodeScannerIcon,
         label: 'Scanner',
         segment: '/scanner',
     },
     schedule: {
         accent: 'tileAccentB',
-        heroSubtitle: 'Your upcoming shifts',
         icon: AccessTimeIcon,
         label: 'Schedule',
         segment: '/shifts',
     },
     ticket: {
-        heroSubtitle: 'Welcoming you to the festival',
         icon: ConfirmationNumberOutlinedIcon,
         label: 'Your ticket',
         segment: '/ticket',
+        subtitle: 'Welcoming you to the festival',
     },
 };
 
@@ -100,8 +96,8 @@ interface OverviewTilesProps {
 }
 
 /**
- * Renders the Bento grid of CTA tiles on the schedule overview page. The first visible tile
- * occupies the horizontal hero slot, while remaining tiles render as compact supporting tiles.
+ * Renders the Bento grid of CTA tiles on the schedule overview page. When visible, the `ticket`
+ * tile occupies the horizontal hero slot while all other tiles render in the supporting grid.
  */
 export function OverviewTiles(props: OverviewTilesProps) {
     const { eventSlug } = props;
@@ -129,7 +125,8 @@ export function OverviewTiles(props: OverviewTilesProps) {
     if (!visibleIds.length)
         return null;
 
-    const [ heroId, ...supportingIds ] = visibleIds;
+    const showTicket = visibleIds.includes('ticket');
+    const supportingIds = visibleIds.filter(id => id !== 'ticket');
     const supportingGridSize = supportingIds.length > 3 ? { xs: 6, sm: 'grow' as const } : 'grow';
 
     function renderTile(tileId: OverviewTileId, hero?: boolean) {
@@ -143,19 +140,20 @@ export function OverviewTiles(props: OverviewTilesProps) {
                 label={tile.label}
                 onDismiss={isDismissibleTile(tileId) ? () => handleDismiss(tileId) : undefined}
                 rippleKey={rippleKey}
-                subtitle={tile.heroSubtitle}
+                subtitle={tile.subtitle}
                 transitionTypes={getNavigationTransitionTypes('', tile.segment)} />
         );
     }
 
     return (
         <Grid container spacing={1.25}>
-            <Grid size={{ xs: 12, md: supportingIds.length > 0 ? 5 : 12 }}>
-                {renderTile(heroId, /* hero= */ true)}
-            </Grid>
+            { showTicket &&
+                <Grid size={{ xs: 12, md: supportingIds.length > 0 ? 5 : 12 }}>
+                    {renderTile('ticket', /* hero= */ true)}
+                </Grid> }
 
             { supportingIds.length > 0 &&
-                <Grid container spacing={1.25} size={{ xs: 12, md: 7 }}>
+                <Grid container spacing={1.25} size={showTicket ? { xs: 12, md: 7 } : 12}>
                     { supportingIds.map(tileId => (
                         <Grid key={tileId} size={supportingGridSize}>
                             {renderTile(tileId)}
