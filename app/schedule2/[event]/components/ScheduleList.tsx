@@ -71,6 +71,28 @@ const ConjoinedListRoot = styled(Box, {
 
         variants: [
             {
+                props: { muted: false },
+                style: {
+                    '& > :not([data-state="past"]) + [data-state="past"]': {
+                        borderTop: `1px solid ${palette.divider}`,
+                    },
+                    '& > [data-state="past"]': {
+                        borderLeft: `1px solid ${palette.divider}`,
+                        borderRight: `1px solid ${palette.divider}`,
+                    },
+                    '& > [data-state="past"]:first-of-type': {
+                        borderTop: `1px solid ${palette.divider}`,
+                        borderTopLeftRadius: theme.shape.borderRadius,
+                        borderTopRightRadius: theme.shape.borderRadius,
+                    },
+                    '& > [data-state="past"]:last-of-type': {
+                        borderBottom: `1px solid ${palette.divider}`,
+                        borderBottomLeftRadius: theme.shape.borderRadius,
+                        borderBottomRightRadius: theme.shape.borderRadius,
+                    },
+                },
+            },
+            {
                 props: { muted: true },
                 style: {
                     backgroundColor:
