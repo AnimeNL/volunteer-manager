@@ -10,8 +10,9 @@ import { kDefaultEventBoundaryEndHours, kDefaultEventBoundaryStartHours,
     parseAvailabilityExceptions } from './AvailabilityTimeline';
 import { readSettings } from '@lib/Settings';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots,
-    tEventsTeams, tRoles, tSchedule, tShifts, tShiftsCategories, tStorage, tTeams, tUsers,
-    tUsersEvents, tUsersEventsPreferencesAvailability } from '@lib/database';
+    tEventsTeams, tRoles, tSchedule, tShifts, tShiftsCategories, tStorage, tTeams,
+    tTeamsVisibility, tUsers, tUsersEvents, tUsersEventsPreferencesAvailability }
+    from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
 
@@ -137,7 +138,7 @@ export async function loadProgramSlice(festivalId: number | undefined): Promise<
 export async function loadTeamsSlice(eventId: number): Promise<TeamsSlice> {
     const dbInstance = db;
 
-    const [ teams, roles ] = await Promise.all([
+    const [ teams, roles, visibilityRows ] = await Promise.all([
         dbInstance.selectFrom(tEventsTeams)
             .innerJoin(tTeams)
                 .on(tTeams.teamId.equals(tEventsTeams.teamId))
@@ -164,9 +165,26 @@ export async function loadTeamsSlice(eventId: number): Promise<TeamsSlice> {
                 isLeader: tRoles.rolePermissionGrant.isNotNull(),
             })
             .executeSelectMany(),
+
+        dbInstance.selectFrom(tTeamsVisibility)
+            .select({
+                teamId: tTeamsVisibility.teamId,
+                visibleTeamId: tTeamsVisibility.visibleTeamId,
+            })
+            .executeSelectMany(),
     ]);
 
-    return { teams, roles };
+    const teamVisibility = new Map<number, Set<number>>();
+    for (const row of visibilityRows) {
+        let targets = teamVisibility.get(row.teamId);
+        if (!targets) {
+            targets = new Set();
+            teamVisibility.set(row.teamId, targets);
+        }
+        targets.add(row.visibleTeamId);
+    }
+
+    return { teams, roles, teamVisibility };
 }
 
 /**

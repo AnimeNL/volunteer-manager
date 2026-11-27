@@ -6,9 +6,9 @@ import { cache } from 'react';
 import { cacheLife, cacheTag } from 'next/cache';
 
 import type { NavigationData } from './navigationTypes';
-import { getMockVolunteerTeams } from './data/volunteerData';
 import { getProgramAreas } from './data/programData';
 import { getScheduleAccess } from './getScheduleAccess';
+import { getVolunteerTeams } from './data/volunteerData';
 import { hasKnowledgeBaseAccess } from './data/knowledgeData';
 import { readUserSettings } from '@lib/UserSettings';
 import db, { tEventsTeams, tTeams } from '@lib/database';
@@ -37,7 +37,7 @@ export const getNavigationData = cache(
         const memberTeams = events.get(event.slug);
         const hasUnrestrictedKnowledge = access.can('event.knowledge', { event: event.slug });
 
-        const [ areas, dutyBookTeams, hasKnowledgeBase, userSettings, mockVolunteerTeams ] =
+        const [ areas, dutyBookTeams, hasKnowledgeBase, userSettings, visibleVolunteerTeams ] =
             await Promise.all([
                 festivalId ? getProgramAreas(festivalId) : Promise.resolve([]),
                 getEventDutyBookTeams(event.id),
@@ -47,7 +47,7 @@ export const getNavigationData = cache(
                     'user-schedule-expand-events',
                     'user-schedule-expand-volunteers',
                 ], /* disableFallback= */ true),
-                getMockVolunteerTeams(),
+                getVolunteerTeams(scheduleContext),
             ]);
 
         const dutyBooks = dutyBookTeams
@@ -56,7 +56,7 @@ export const getNavigationData = cache(
                 access.can('event.duty-book', 'read', { event: event.slug, team: team.slug }))
             .map(team => ({ name: team.name, team: team.slug }));
 
-        const volunteerTeams = mockVolunteerTeams.map(team => ({
+        const volunteerTeams = visibleVolunteerTeams.map(team => ({
             name: team.name,
             slug: team.slug,
         }));

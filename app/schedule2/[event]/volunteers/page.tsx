@@ -15,8 +15,8 @@ import { SectionHeader } from '../components/SectionHeader';
 import { SegmentedListSkeleton } from '../components/ScheduleListSkeleton';
 import { VolunteerTeamRoster } from './VolunteerTeamRoster';
 import { createScheduleMetadataFn } from '../lib/generateScheduleMetadata';
-import { getMockVolunteerTeamDetail, getMockVolunteerTeams } from '../lib/data/volunteerData';
 import { getSchedulePath } from '../lib/navigationTypes';
+import { getVolunteerTeamDetail, getVolunteerTeams } from '../lib/data/volunteerData';
 import { pluralize } from '../lib/format';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
 
@@ -84,9 +84,10 @@ function renderTeamGroup(
  */
 async function VolunteersHubContent(props: { params: Promise<{ event: string }> }) {
     const { event: eventSlug } = await props.params;
-    const { event } = await requireScheduleAccess(eventSlug);
+    const scheduleContext = await requireScheduleAccess(eventSlug);
+    const { event } = scheduleContext;
 
-    const teams = await getMockVolunteerTeams();
+    const teams = await getVolunteerTeams(scheduleContext);
     if (!teams.length) {
         return (
             <EmptyStateCard
@@ -95,7 +96,7 @@ async function VolunteersHubContent(props: { params: Promise<{ event: string }> 
     }
 
     if (teams.length === 1) {
-        const singleTeam = await getMockVolunteerTeamDetail(teams[0].slug);
+        const singleTeam = await getVolunteerTeamDetail(scheduleContext, teams[0].slug);
         if (!singleTeam) {
             return (
                 <EmptyStateCard

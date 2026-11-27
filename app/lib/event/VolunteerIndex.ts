@@ -15,6 +15,7 @@ import { computeAvailabilityTimeline, findAvailabilitySegmentIndex } from './Ava
 export interface TeamsSlice {
     readonly teams: readonly EventTeam[];
     readonly roles: readonly EventRole[];
+    readonly teamVisibility?: ReadonlyMap<number, ReadonlySet<number>>;
 }
 
 /**
@@ -74,6 +75,7 @@ export class VolunteerIndex {
     readonly #teamsById = new Map<number, EventTeam>();
     readonly #teamsBySlug = new Map<string, EventTeam>();
     readonly #allTeamsSorted: readonly EventTeam[];
+    readonly #teamVisibility: ReadonlyMap<number, ReadonlySet<number>>;
     readonly #rolesById = new Map<number, EventRole>();
 
     readonly #volunteersById = new Map<number, EventVolunteer>();
@@ -102,6 +104,7 @@ export class VolunteerIndex {
             this.#teamsBySlug.set(team.slug, team);
         }
         this.#allTeamsSorted = sortedTeams;
+        this.#teamVisibility = teamsSlice.teamVisibility ?? new Map();
 
         const volunteersByTeam = new Map<number, EventVolunteer[]>();
         const allVolunteers: EventVolunteer[] = [];
@@ -168,6 +171,10 @@ export class VolunteerIndex {
 
     getTeams(): readonly EventTeam[] {
         return this.#allTeamsSorted;
+    }
+
+    getTeamVisibility(): ReadonlyMap<number, ReadonlySet<number>> {
+        return this.#teamVisibility;
     }
 
     getRole(roleId: number): EventRole | undefined {

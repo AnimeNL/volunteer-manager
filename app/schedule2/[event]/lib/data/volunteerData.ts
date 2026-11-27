@@ -2,6 +2,14 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import 'server-only';
+import { cache } from 'react';
+
+import type { AccessControl } from '@lib/auth/access';
+import type { CachedEvent } from '@lib/cache';
+import type { EventState, EventTeam, VolunteerStateAtTime } from '@lib/event';
+import { VolunteerAccess } from '../access/VolunteerAccess';
+import { formatDate } from '@lib/Temporal';
+import { getEventState } from '@lib/event';
 
 /**
  * Individual volunteer entry displayed in a team roster.
@@ -43,8 +51,8 @@ export interface VolunteerSummary {
     roleLeader?: boolean;
 
     /**
-     * Formatted local return time (`HH:mm`), or `'indefinite'` when the volunteer is not expected
-     * to return during the event. Omitted when the volunteer is available.
+     * Formatted local return time (`HH:mm` or `ddd HH:mm`), or `'indefinite'` when the volunteer is
+     * not expected to return during the event. Omitted when the volunteer is available.
      */
     unavailableUntil?: string;
 }
@@ -64,7 +72,7 @@ export interface VolunteerTeamSummary {
     activeFirstNames: string[];
 
     /**
-     * Team accent colour (mock stand-in for the database-stored team colour).
+     * Team accent colour.
      */
     colour: string;
 
@@ -92,231 +100,239 @@ export interface VolunteerTeamSummary {
 /**
  * Full team detail including its roster of volunteers.
  */
-export interface VolunteerTeamDetail extends VolunteerTeamSummary {
+interface VolunteerTeamDetail extends VolunteerTeamSummary {
     volunteers: VolunteerSummary[];
 }
 
 /**
- * Raw mock team definition used to derive both hub summaries and team spoke rosters.
+ * Viewer and event context required to evaluate team and volunteer visibility.
  */
-interface MockTeamRecord {
-    colour: string;
-    isUserTeam: boolean;
-    name: string;
-    slug: string;
-    volunteers: VolunteerSummary[];
-}
-
-const kMockTeams: MockTeamRecord[] = [
-    {
-        slug: 'stewards',
-        name: 'Stewards',
-        colour: '#689f38',
-        isUserTeam: true,
-        volunteers: [
-            {
-                id: 101,
-                name: 'Alice Hengst',
-                role: 'Steward',
-                activeShift: 'Backup',
-                isBackup: true,
-            },
-            { id: 102, name: 'Aranka Wesseling', role: 'Senior Steward', roleLeader: true },
-            { id: 103, name: 'Ben Phillips', role: 'Steward', activeShift: 'Banzai no Ushi' },
-            { id: 104, name: 'Berber Tolboom', role: 'Steward', activeShift: 'Hentai Voice Over' },
-            {
-                id: 105,
-                name: 'Eva Janssen',
-                role: 'Steward',
-                activeShift: 'Backup',
-                isBackup: true,
-            },
-            {
-                id: 106,
-                name: 'Ferdi van der Werf',
-                role: 'Staff',
-                roleLeader: true,
-                activeShift: 'Heat Blasters',
-            },
-            {
-                id: 107,
-                name: 'Giovanni Carini',
-                role: 'Senior Steward',
-                roleLeader: true,
-                activeShift: 'Banzai no Ushi',
-            },
-            { id: 108, name: 'Hanan Tahiri', role: 'Steward', activeShift: 'Game Room' },
-            {
-                id: 109,
-                name: 'Ibrahim Chamy',
-                role: 'Steward',
-                activeShift: 'Japanese Aged Distilled Spirits Tasting 18+',
-            },
-            { id: 110, name: 'Jaleesa Vaessen', role: 'Steward' },
-            { id: 111, name: 'Jim Kaiser', role: 'Steward' },
-            { id: 112, name: 'Marco Drost', role: 'Steward', activeShift: 'Banzai no Ushi' },
-            { id: 113, name: 'Melissa Oliemeulen', role: 'Senior Steward', roleLeader: true },
-            { id: 114, name: 'Nardo de la Rie', role: 'Staff', roleLeader: true },
-            { id: 115, name: 'Sanne Bakker', role: 'Steward', unavailableUntil: 'indefinite' },
-            { id: 116, name: 'Tim Vermeer', role: 'Steward', unavailableUntil: '14:30' },
-        ],
-    },
-    {
-        slug: 'bag-room-crew',
-        name: 'Bag Room Crew',
-        colour: '#795548',
-        isUserTeam: false,
-        volunteers: [
-            { id: 201, name: 'Lars Willems', role: 'Bag Room Crew', activeShift: 'Check-in Desk' },
-            { id: 202, name: 'Vera Jacobs', role: 'Bag Room Crew' },
-        ],
-    },
-    {
-        slug: 'crew',
-        name: 'Crew',
-        colour: '#f57c00',
-        isUserTeam: false,
-        volunteers: [
-            {
-                id: 301,
-                name: 'Bram Jansen',
-                role: 'Senior Crew',
-                roleLeader: true,
-                activeShift: 'Stage Setup',
-            },
-            { id: 302, name: 'Koen Vos', role: 'Crew', activeShift: 'Logistics' },
-            { id: 303, name: 'Sophie Mulder', role: 'Crew' },
-            { id: 304, name: 'Thijs Dekker', role: 'Crew' },
-        ],
-    },
-    {
-        slug: 'crew-care',
-        name: 'Crew Care',
-        colour: '#c2185b',
-        isUserTeam: false,
-        volunteers: [
-            {
-                id: 401,
-                name: 'Eline Smit',
-                role: 'Senior Crew Care',
-                roleLeader: true,
-                activeShift: 'Crew Lounge',
-            },
-            { id: 402, name: 'Maud Peeters', role: 'Crew Care', activeShift: 'Catering' },
-            { id: 403, name: 'Yara Brouwer', role: 'Crew Care' },
-        ],
-    },
-    {
-        slug: 'events-crew',
-        name: 'Events Crew',
-        colour: '#7b1fa2',
-        isUserTeam: false,
-        volunteers: [
-            {
-                id: 501,
-                name: 'Lucas Bos',
-                role: 'Events Lead',
-                roleLeader: true,
-                activeShift: 'Main Hall',
-            },
-            { id: 502, name: 'Noa van Dijk', role: 'Events Crew', activeShift: 'Cosplay Prep' },
-            { id: 503, name: 'Stijn Kok', role: 'Events Crew' },
-        ],
-    },
-    {
-        slug: 'game-room-crew',
-        name: 'Game Room Crew',
-        colour: '#00897b',
-        isUserTeam: false,
-        volunteers: [
-            {
-                id: 601,
-                name: 'Jesse de Boer',
-                role: 'Game Room Lead',
-                roleLeader: true,
-                activeShift: 'Console Desk',
-            },
-            { id: 602, name: 'Mila Schouten', role: 'Game Room Crew' },
-        ],
-    },
-    {
-        slug: 'hosts',
-        name: 'Hosts',
-        colour: '#0288d1',
-        isUserTeam: false,
-        volunteers: [
-            {
-                id: 701,
-                name: 'Anouk Meijer',
-                role: 'Senior Host',
-                roleLeader: true,
-                activeShift: 'Info Desk',
-            },
-            { id: 702, name: 'Daan de Vries', role: 'Host', activeShift: 'Main Entrance' },
-            {
-                id: 703,
-                name: 'Lotte Visser',
-                role: 'Host',
-                activeShift: 'Backup',
-                isBackup: true,
-            },
-            { id: 704, name: 'Niels Kuiper', role: 'Host' },
-            { id: 705, name: 'Roos Hendriks', role: 'Host' },
-        ],
-    },
-];
-
-/**
- * Extracts the first name from a volunteer's display name for concise hub summaries.
- */
-function getFirstName(fullName: string): string {
-    return fullName.split(' ')[0] ?? fullName;
+interface VolunteerViewerContext {
+    access: AccessControl;
+    currentTime: Temporal.ZonedDateTime;
+    event: CachedEvent;
+    user: { id: number };
 }
 
 /**
- * Builds a `VolunteerTeamSummary` from a raw team record.
+ * Request-cached builder creating a `VolunteerAccess` policy instance from `EventState` without
+ * issuing additional database queries.
  */
-function buildTeamSummary(record: MockTeamRecord): VolunteerTeamSummary {
-    const activeVolunteers = record.volunteers
-        .filter(volunteer => !!volunteer.activeShift && !volunteer.unavailableUntil)
-        .sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
+const resolveVolunteerContext = cache(
+    async (
+        event: CachedEvent,
+        viewerUserId: number,
+        access: AccessControl): Promise<{
+            eventState: EventState;
+            volunteerAccess: VolunteerAccess;
+        } | undefined> =>
+    {
+        const eventState = await getEventState(event);
+        if (!eventState)
+            return undefined;
+
+        const teams = eventState.volunteers.getTeams().map(team => ({
+            id: team.id,
+            slug: team.slug,
+        }));
+
+        const participations: { userId: number; teamId: number; isLeader: boolean }[] = [];
+        for (const volunteer of eventState.volunteers.getVolunteers()) {
+            for (const participation of volunteer.participations) {
+                const role = eventState.volunteers.getRole(participation.roleId);
+                participations.push({
+                    userId: volunteer.id,
+                    teamId: participation.teamId,
+                    isLeader: role?.isLeader ?? false,
+                });
+            }
+        }
+
+        const shifts = eventState.shifts.getAllAssignments().map(assignment => ({
+            scheduleId: assignment.id,
+            userId: assignment.userId,
+            shiftId: assignment.shiftId,
+            shiftTeamId: assignment.teamId,
+            activityId: assignment.activityId,
+            startMs: assignment.startMs,
+            endMs: assignment.endMs,
+        }));
+
+        const volunteerAccess = new VolunteerAccess({
+            viewerUserId,
+            eventSlug: event.slug,
+            access,
+            teams,
+            teamVisibility: eventState.volunteers.getTeamVisibility(),
+            participations,
+            shifts,
+        });
+
+        return { eventState, volunteerAccess };
+    });
+
+/**
+ * Formats an unavailability return timestamp relative to `currentTime` in `timeZone`.
+ */
+function formatUnavailableUntil(
+    availableAgainAtMs: number | undefined,
+    currentTime: Temporal.ZonedDateTime,
+    timeZone: string): string
+{
+    if (availableAgainAtMs === undefined)
+        return 'indefinite';
+
+    const returnTime = Temporal.Instant.fromEpochMilliseconds(availableAgainAtMs)
+        .toZonedDateTimeISO(timeZone);
+
+    const sameDay = returnTime.year === currentTime.year &&
+        returnTime.month === currentTime.month &&
+        returnTime.day === currentTime.day;
+
+    return formatDate(returnTime, sameDay ? 'HH:mm' : 'ddd HH:mm');
+}
+
+/**
+ * Projects a volunteer's live state into a `VolunteerSummary` row for `team`, respecting
+ * `volunteerAccess.canSeeShift()` for multi-team shift isolation.
+ */
+function buildVolunteerSummary(
+    eventState: EventState,
+    volunteerAccess: VolunteerAccess,
+    team: EventTeam,
+    volunteerState: VolunteerStateAtTime,
+    currentTime: Temporal.ZonedDateTime): VolunteerSummary
+{
+    const { volunteer } = volunteerState;
+    const role = eventState.volunteers.getVolunteerRole(volunteer.id, team.id);
+
+    const visibleActiveAssignments = volunteerState.activeAssignments.filter(
+        assignment => volunteerAccess.canSeeShift(assignment.id));
+
+    let activeShift: string | undefined;
+    let isBackup: boolean | undefined;
+
+    if (visibleActiveAssignments.length > 0) {
+        const primaryShift = eventState.shifts.getShift(visibleActiveAssignments[0].shiftId);
+        activeShift = primaryShift?.name;
+        if (visibleActiveAssignments.some(
+            assignment => eventState.shifts.getShift(assignment.shiftId)?.isBackup))
+        {
+            isBackup = true;
+        }
+    }
+
+    let unavailableUntil: string | undefined;
+    if (!activeShift && volunteerState.status === 'unavailable') {
+        unavailableUntil = formatUnavailableUntil(
+            volunteerState.availableAgainAtMs, currentTime, eventState.timeZone);
+    }
 
     return {
-        activeCount: activeVolunteers.length,
-        activeFirstNames: activeVolunteers.map(volunteer => getFirstName(volunteer.name)),
-        colour: record.colour,
-        isUserTeam: record.isUserTeam,
-        name: record.name,
-        slug: record.slug,
-        totalCount: record.volunteers.length,
+        activeShift,
+        avatar: volunteer.avatar,
+        id: volunteer.id,
+        isBackup,
+        name: volunteer.name,
+        role: role?.name ?? team.title,
+        roleLeader: role?.isLeader ? true : undefined,
+        unavailableUntil,
     };
 }
 
 /**
- * Returns mock volunteer team summaries ordered alphabetically by team name.
+ * Builds a `VolunteerTeamDetail` for `team` at `currentTime`.
  */
-export async function getMockVolunteerTeams(): Promise<VolunteerTeamSummary[]> {
-    return kMockTeams
-        .map(buildTeamSummary)
-        .sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
-}
-
-/**
- * Returns mock volunteer team detail and roster for the requested team `slug`, or `undefined` if
- * no matching team exists.
- */
-export async function getMockVolunteerTeamDetail(
-    slug: string): Promise<VolunteerTeamDetail | undefined>
+function buildTeamDetail(
+    eventState: EventState,
+    volunteerAccess: VolunteerAccess,
+    team: EventTeam,
+    currentTime: Temporal.ZonedDateTime): VolunteerTeamDetail
 {
-    const record = kMockTeams.find(team => team.slug === slug);
-    if (!record)
-        return undefined;
+    const snapshot = eventState.at(currentTime);
+    const states = snapshot.volunteers({ teamId: team.id });
 
-    const volunteers = [ ...record.volunteers ]
+    const volunteers = states
+        .map(volunteerState =>
+            buildVolunteerSummary(eventState, volunteerAccess, team, volunteerState, currentTime))
         .sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
+
+    const activeFirstNames: string[] = [];
+    for (const volunteerState of states) {
+        const hasVisibleActiveShift = volunteerState.activeAssignments.some(
+            assignment => volunteerAccess.canSeeShift(assignment.id));
+        if (hasVisibleActiveShift)
+            activeFirstNames.push(volunteerState.volunteer.firstName);
+    }
+
+    activeFirstNames.sort((lhs, rhs) => lhs.localeCompare(rhs));
 
     return {
-        ...buildTeamSummary(record),
+        activeCount: activeFirstNames.length,
+        activeFirstNames,
+        colour: team.colourLight,
+        isUserTeam: volunteerAccess.isMemberTeam(team.id),
+        name: team.name,
+        slug: team.slug,
+        totalCount: volunteers.length,
         volunteers,
     };
+}
+
+/**
+ * Returns visible volunteer team summaries for the signed-in viewer, ordered alphabetically by
+ * team name. Excludes teams with no accepted volunteers.
+ */
+export async function getVolunteerTeams(
+    context: VolunteerViewerContext): Promise<VolunteerTeamSummary[]>
+{
+    const resolved = await resolveVolunteerContext(
+        context.event, context.user.id, context.access);
+    if (!resolved)
+        return [];
+
+    const { eventState, volunteerAccess } = resolved;
+    const summaries: VolunteerTeamSummary[] = [];
+
+    for (const team of eventState.volunteers.getTeams()) {
+        if (!volunteerAccess.canSeeTeam(team.id))
+            continue;
+
+        const detail = buildTeamDetail(eventState, volunteerAccess, team, context.currentTime);
+        if (detail.totalCount === 0)
+            continue;
+
+        summaries.push({
+            activeCount: detail.activeCount,
+            activeFirstNames: detail.activeFirstNames,
+            colour: detail.colour,
+            isUserTeam: detail.isUserTeam,
+            name: detail.name,
+            slug: detail.slug,
+            totalCount: detail.totalCount,
+        });
+    }
+
+    return summaries;
+}
+
+/**
+ * Returns volunteer team detail and live roster for `teamSlug` if the team exists and is visible
+ * to the signed-in viewer, or `undefined` otherwise.
+ */
+export async function getVolunteerTeamDetail(
+    context: VolunteerViewerContext,
+    teamSlug: string): Promise<VolunteerTeamDetail | undefined>
+{
+    const resolved = await resolveVolunteerContext(
+        context.event, context.user.id, context.access);
+    if (!resolved)
+        return undefined;
+
+    const { eventState, volunteerAccess } = resolved;
+    const team = eventState.volunteers.getTeam(teamSlug);
+    if (!team || !volunteerAccess.canSeeTeam(team.id))
+        return undefined;
+
+    return buildTeamDetail(eventState, volunteerAccess, team, context.currentTime);
 }

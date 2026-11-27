@@ -10,7 +10,7 @@ import { Page, SuspenseReveal } from '../../../components/Page';
 import { ScheduleListSkeleton } from '../../../components/ScheduleListSkeleton';
 import { VolunteerTeamRoster } from '../../VolunteerTeamRoster';
 import { createScheduleMetadataFn } from '../../../lib/generateScheduleMetadata';
-import { getMockVolunteerTeamDetail } from '../../../lib/data/volunteerData';
+import { getVolunteerTeamDetail } from '../../../lib/data/volunteerData';
 import { pluralize } from '../../../lib/format';
 import { requireScheduleAccess } from '../../../lib/getScheduleAccess';
 
@@ -19,8 +19,8 @@ import { requireScheduleAccess } from '../../../lib/getScheduleAccess';
  */
 async function loadTeamDetail(params: Promise<{ event: string; team: string }>) {
     const { event: eventSlug, team: teamSlug } = await params;
-    await requireScheduleAccess(eventSlug);
-    return await getMockVolunteerTeamDetail(teamSlug);
+    const scheduleContext = await requireScheduleAccess(eventSlug);
+    return await getVolunteerTeamDetail(scheduleContext, teamSlug);
 }
 
 /**
@@ -28,9 +28,10 @@ async function loadTeamDetail(params: Promise<{ event: string; team: string }>) 
  */
 async function TeamRosterContent(props: { params: Promise<{ event: string; team: string }> }) {
     const { event: eventSlug, team: teamSlug } = await props.params;
-    const { event } = await requireScheduleAccess(eventSlug);
+    const scheduleContext = await requireScheduleAccess(eventSlug);
+    const { event } = scheduleContext;
 
-    const team = await getMockVolunteerTeamDetail(teamSlug);
+    const team = await getVolunteerTeamDetail(scheduleContext, teamSlug);
     if (!team)
         notFound();
 

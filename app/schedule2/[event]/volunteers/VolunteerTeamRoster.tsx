@@ -160,12 +160,12 @@ export function VolunteerTeamRoster(props: VolunteerTeamRosterProps) {
     const unavailable: VolunteerSummary[] = [];
 
     for (const volunteer of volunteers) {
-        if (volunteer.unavailableUntil)
-            unavailable.push(volunteer);
-        else if (volunteer.activeShift && volunteer.isBackup)
+        if (volunteer.activeShift && volunteer.isBackup)
             backup.push(volunteer);
         else if (volunteer.activeShift)
             onShift.push(volunteer);
+        else if (volunteer.unavailableUntil)
+            unavailable.push(volunteer);
         else
             offShift.push(volunteer);
     }

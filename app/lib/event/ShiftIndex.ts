@@ -218,6 +218,10 @@ export class ShiftIndex {
         return this.#assignments.get(scheduleId);
     }
 
+    getAllAssignments(): readonly EventShiftAssignment[] {
+        return this.#allAssignments.all;
+    }
+
     getAssignmentsForShift(shiftId: number): readonly EventShiftAssignment[] {
         return this.#assignmentsByShift.get(shiftId)?.all ?? [];
     }
