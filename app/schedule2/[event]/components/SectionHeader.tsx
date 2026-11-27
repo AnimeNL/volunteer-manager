@@ -61,16 +61,16 @@ export function SectionHeader(props: SectionHeaderProps) {
                 {title}
             </Typography>
             { !!href &&
-                <Stack direction="row" spacing={0.25} sx={{
+                <Stack direction="row" sx={{
                     alignItems: 'center',
                     color: 'text.secondary',
                     flexShrink: 0,
                 }}>
                     { !!actionLabel &&
-                        <Typography variant="caption" color="inherit">
+                        <Typography variant="caption" color="inherit" sx={{ lineHeight: 1.5 }}>
                             {actionLabel}
                         </Typography> }
-                    <ChevronRightIcon fontSize="small" />
+                    <ChevronRightIcon fontSize="small" sx={{ ml: -0.5, mr: -0.75 }} />
                 </Stack> }
         </Stack>
     );
