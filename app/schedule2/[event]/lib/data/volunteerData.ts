@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import 'server-only';
+import { cache } from 'react';
 
 import type { AccessControl } from '@lib/auth/access';
 import type { CachedEvent } from '@lib/cache';
@@ -184,23 +185,17 @@ function buildVolunteerSummary(
 }
 
 /**
- * Builds a `VolunteerTeamDetail` for `team` at `currentTime`.
+ * Builds a `VolunteerTeamSummary` for `team` at `currentTime` without allocating full roster rows.
  */
-function buildTeamDetail(
+function buildTeamSummary(
     eventState: EventState,
     volunteerAccess: VolunteerAccess,
     team: EventTeam,
-    currentTime: Temporal.ZonedDateTime): VolunteerTeamDetail
+    currentTime: Temporal.ZonedDateTime): VolunteerTeamSummary
 {
-    const snapshot = eventState.at(currentTime);
-    const states = snapshot.volunteers({ teamId: team.id });
-
-    const volunteers = states
-        .map(volunteerState =>
-            buildVolunteerSummary(eventState, volunteerAccess, team, volunteerState, currentTime))
-        .sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
-
+    const states = eventState.at(currentTime).volunteers({ teamId: team.id });
     const activeFirstNames: string[] = [];
+
     for (const volunteerState of states) {
         const hasVisibleActiveShift = volunteerState.activeAssignments.some(
             assignment => volunteerAccess.canSeeShift(assignment.id));
@@ -217,10 +212,85 @@ function buildTeamDetail(
         isUserTeam: volunteerAccess.isMemberTeam(team.id),
         name: team.name,
         slug: team.slug,
-        totalCount: volunteers.length,
-        volunteers,
+        totalCount: states.length,
     };
 }
+
+/**
+ * Builds a `VolunteerTeamDetail` for `team` at `currentTime`.
+ */
+function buildTeamDetail(
+    eventState: EventState,
+    volunteerAccess: VolunteerAccess,
+    team: EventTeam,
+    currentTime: Temporal.ZonedDateTime): VolunteerTeamDetail
+{
+    const states = eventState.at(currentTime).volunteers({ teamId: team.id });
+    const volunteers = states
+        .map(volunteerState =>
+            buildVolunteerSummary(eventState, volunteerAccess, team, volunteerState, currentTime))
+        .sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
+
+    const summary = buildTeamSummary(eventState, volunteerAccess, team, currentTime);
+    return { ...summary, volunteers };
+}
+
+/**
+ * Request-cached hub loader deduplicating `getVolunteerTeams()` across navigation and page content.
+ */
+const resolveVolunteerTeams = cache(
+    async (
+        event: CachedEvent,
+        viewerUserId: number,
+        access: AccessControl,
+        currentTime: Temporal.ZonedDateTime): Promise<VolunteerTeamSummary[]> =>
+    {
+        const [ eventState, volunteerAccess ] = await Promise.all([
+            getEventState(event),
+            getVolunteerAccess({ access, event, user: { id: viewerUserId } }),
+        ]);
+        if (!eventState)
+            return [];
+
+        const summaries: VolunteerTeamSummary[] = [];
+
+        for (const team of eventState.volunteers.getTeams()) {
+            if (!volunteerAccess.canSeeTeam(team.id))
+                continue;
+
+            const summary = buildTeamSummary(eventState, volunteerAccess, team, currentTime);
+            if (summary.totalCount > 0)
+                summaries.push(summary);
+        }
+
+        return summaries;
+    });
+
+/**
+ * Request-cached team detail loader deduplicating `getVolunteerTeamDetail()` across `<Header>`
+ * async slots and roster body within a single render.
+ */
+const resolveVolunteerTeamDetail = cache(
+    async (
+        event: CachedEvent,
+        viewerUserId: number,
+        access: AccessControl,
+        currentTime: Temporal.ZonedDateTime,
+        teamSlug: string): Promise<VolunteerTeamDetail | undefined> =>
+    {
+        const [ eventState, volunteerAccess ] = await Promise.all([
+            getEventState(event),
+            getVolunteerAccess({ access, event, user: { id: viewerUserId } }),
+        ]);
+        if (!eventState)
+            return undefined;
+
+        const team = eventState.volunteers.getTeam(teamSlug);
+        if (!team || !volunteerAccess.canSeeTeam(team.id))
+            return undefined;
+
+        return buildTeamDetail(eventState, volunteerAccess, team, currentTime);
+    });
 
 /**
  * Returns visible volunteer team summaries for the signed-in viewer, ordered alphabetically by
@@ -229,35 +299,8 @@ function buildTeamDetail(
 export async function getVolunteerTeams(
     context: VolunteerViewerContext): Promise<VolunteerTeamSummary[]>
 {
-    const [ eventState, volunteerAccess ] = await Promise.all([
-        getEventState(context.event),
-        getVolunteerAccess(context),
-    ]);
-    if (!eventState)
-        return [];
-
-    const summaries: VolunteerTeamSummary[] = [];
-
-    for (const team of eventState.volunteers.getTeams()) {
-        if (!volunteerAccess.canSeeTeam(team.id))
-            continue;
-
-        const detail = buildTeamDetail(eventState, volunteerAccess, team, context.currentTime);
-        if (detail.totalCount === 0)
-            continue;
-
-        summaries.push({
-            activeCount: detail.activeCount,
-            activeFirstNames: detail.activeFirstNames,
-            colour: detail.colour,
-            isUserTeam: detail.isUserTeam,
-            name: detail.name,
-            slug: detail.slug,
-            totalCount: detail.totalCount,
-        });
-    }
-
-    return summaries;
+    return await resolveVolunteerTeams(
+        context.event, context.user.id, context.access, context.currentTime);
 }
 
 /**
@@ -268,16 +311,6 @@ export async function getVolunteerTeamDetail(
     context: VolunteerViewerContext,
     teamSlug: string): Promise<VolunteerTeamDetail | undefined>
 {
-    const [ eventState, volunteerAccess ] = await Promise.all([
-        getEventState(context.event),
-        getVolunteerAccess(context),
-    ]);
-    if (!eventState)
-        return undefined;
-
-    const team = eventState.volunteers.getTeam(teamSlug);
-    if (!team || !volunteerAccess.canSeeTeam(team.id))
-        return undefined;
-
-    return buildTeamDetail(eventState, volunteerAccess, team, context.currentTime);
+    return await resolveVolunteerTeamDetail(
+        context.event, context.user.id, context.access, context.currentTime, teamSlug);
 }

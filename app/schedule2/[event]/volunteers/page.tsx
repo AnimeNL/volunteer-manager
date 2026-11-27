@@ -115,10 +115,13 @@ async function VolunteersHubContent(props: { params: Promise<{ event: string }> 
     const userTeams = teams.filter(team => team.isUserTeam);
     const otherTeams = teams.filter(team => !team.isUserTeam);
 
+    const userTeamsLabel = userTeams.length === 1 ? 'Your team' : 'Your teams';
+    const otherTeamsLabel = userTeams.length > 0 ? 'Other teams' : 'Teams';
+
     return (
         <Stack spacing={2} useFlexGap>
-            {renderTeamGroup('Your team', userTeams, event.slug)}
-            {renderTeamGroup(userTeams.length > 0 ? 'Other teams' : 'Teams', otherTeams, event.slug)}
+            {renderTeamGroup(userTeamsLabel, userTeams, event.slug)}
+            {renderTeamGroup(otherTeamsLabel, otherTeams, event.slug)}
         </Stack>
     );
 }

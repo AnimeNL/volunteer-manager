@@ -60,8 +60,10 @@ export default function ScheduleVolunteerTeamPage(
                                 if (!team)
                                     return null;
 
-                                return `${team.activeCount} on shift · ` +
-                                    pluralize(team.totalCount, 'volunteer');
+                                const total = pluralize(team.totalCount, 'volunteer');
+                                return team.activeCount > 0
+                                    ? `${team.activeCount} on shift · ${total}`
+                                    : total;
                             }}
                             width={160} />
                     }

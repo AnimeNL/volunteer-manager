@@ -48,6 +48,10 @@ function renderVolunteerSubtitle(
     section: 'backup' | 'offShift' | 'onShift' | 'unavailable'): React.ReactNode
 {
     if (section === 'backup') {
+        const label = volunteer.roleLeader
+            ? 'Available to help'
+            : `${volunteer.role} · Available to help`;
+
         return (
             <Stack
                 component="span"
@@ -63,7 +67,7 @@ function renderVolunteerSubtitle(
                 <Box
                     component="span"
                     sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {volunteer.role} · Available to help
+                    {label}
                 </Box>
             </Stack>
         );
@@ -95,13 +99,14 @@ function renderVolunteerSubtitle(
     }
 
     if (section === 'unavailable') {
-        if (volunteer.unavailableUntil === 'indefinite')
-            return `${volunteer.role} · Unavailable`;
+        const availability = volunteer.unavailableUntil === 'indefinite'
+            ? 'Unavailable'
+            : `Back at ${volunteer.unavailableUntil}`;
 
-        return `${volunteer.role} · Back at ${volunteer.unavailableUntil}`;
+        return volunteer.roleLeader ? availability : `${volunteer.role} · ${availability}`;
     }
 
-    return volunteer.role;
+    return volunteer.roleLeader ? 'Off shift' : volunteer.role;
 }
 
 /**
