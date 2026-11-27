@@ -10,6 +10,7 @@ import type { Theme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import LinearProgress from '@mui/material/LinearProgress';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
@@ -86,7 +87,7 @@ interface ScheduleListRowProps {
     progress?: number;
 
     /**
-     * Colour role for `<ProgressTrack>` when `progress` is set. Defaults to `'primary'`.
+     * Colour role for `<LinearProgress>` when `progress` is set. Defaults to `'primary'`.
      */
     progressColor?: 'error' | 'primary' | 'success' | 'warning';
 
@@ -175,9 +176,16 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
                     </Stack> }
             </Stack>
             { clampedProgress !== undefined &&
-                <ProgressTrack>
-                    <ProgressFill color={progressColor} style={{ width: `${clampedProgress}%` }} />
-                </ProgressTrack> }
+                <LinearProgress
+                    color={progressColor}
+                    sx={{
+                        bgcolor:
+                            'color-mix(in srgb, var(--mui-palette-text-primary) 10%, transparent)',
+                        height: 2,
+                        mt: 0.75,
+                    }}
+                    value={clampedProgress}
+                    variant="determinate" /> }
         </Box>
     );
 
@@ -409,47 +417,3 @@ const RowTrailing = styled(Typography, {
     };
 });
 
-/**
- * Subtle 2px progress track tucked beneath active rows.
- */
-const ProgressTrack = styled(Box)(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
-
-    return {
-        backgroundColor: `color-mix(in srgb, ${palette.text.primary} 10%, transparent)`,
-        borderRadius: 999,
-        height: 2,
-        marginTop: theme.spacing(0.75),
-        overflow: 'hidden',
-        width: '100%',
-    };
-});
-
-/**
- * Filled portion of `<ProgressTrack>` coloured with the configured semantic accent.
- */
-const ProgressFill = styled(Box, {
-    shouldForwardProp: prop => prop !== 'color',
-})<{ color: 'error' | 'primary' | 'success' | 'warning' }>(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
-
-    return {
-        backgroundColor: palette.primary.main,
-        borderRadius: 999,
-        height: '100%',
-        variants: [
-            {
-                props: { color: 'error' },
-                style: { backgroundColor: palette.error.main },
-            },
-            {
-                props: { color: 'success' },
-                style: { backgroundColor: palette.success.main },
-            },
-            {
-                props: { color: 'warning' },
-                style: { backgroundColor: palette.warning.main },
-            },
-        ],
-    };
-});
