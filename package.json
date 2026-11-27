@@ -48,6 +48,7 @@
     "@mui/x-scheduler-premium": "^9.0.0-beta.16",
     "@simplewebauthn/browser": "^14.0.0",
     "@simplewebauthn/server": "^14.1.0",
+    "barcode-detector": "^3.2.5",
     "bowser": "^2.15.1",
     "cookie": "^2.0.2",
     "d3-color": "^3.1.1",
