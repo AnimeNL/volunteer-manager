@@ -45,6 +45,7 @@ export function SectionHeader(props: SectionHeaderProps) {
         <Stack direction="row" spacing={1} sx={{
             alignItems: 'center',
             justifyContent: 'space-between',
+            minHeight: '1.25rem',
             minWidth: 0,
             px: 0.5,
         }}>
