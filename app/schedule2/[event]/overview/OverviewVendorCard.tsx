@@ -71,6 +71,16 @@ interface OverviewVendorCardProps {
 }
 
 /**
+ * Formats an ordered list of on-site personnel names as prose (e.g. "A, B and C").
+ */
+function formatVendorNames(names: string[]): string {
+    if (names.length <= 1)
+        return names[0] ?? 'Nobody is currently on site';
+
+    return `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
+}
+
+/**
  * Displays a unified neutral card listing on-site First Aid and/or Security personnel. Rows are
  * plain text for most volunteers and become navigable links for volunteers with vendor-team access
  * when shifts are scheduled for that team.
@@ -105,7 +115,7 @@ export function OverviewVendorCard(props: OverviewVendorCardProps) {
                             <Typography variant="body2"
                                         color={isEmpty ? 'textDisabled' : 'textSecondary'}
                                         sx={{ lineHeight: 1.35 }}>
-                                { isEmpty ? 'Nobody is currently on site' : entry.names.join(', ') }
+                                {formatVendorNames(entry.names)}
                             </Typography>
                         </Box>
                         { entry.clickable &&
