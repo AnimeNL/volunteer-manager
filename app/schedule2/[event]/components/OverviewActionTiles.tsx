@@ -284,16 +284,10 @@ const ActionTileButton = styled(ButtonBase, {
 {
     const palette = (theme.vars || theme).palette;
     const tone = accent ? palette.m3[accent] : undefined;
-    const accentColor = tone ? tone.icon : palette.m3.onPrimary;
 
     return {
-        background: tone
-            ? tone.background
-            : `linear-gradient(135deg, ${palette.m3.primary} 0%, ` +
-              `${palette.m3.primaryGradientEnd} 100%)`,
-        border: `1px solid color-mix(in srgb, ${accentColor} 12%, transparent)`,
+        background: tone ? tone.background : palette.m3.primary,
         borderRadius: kCardBorderRadiusPx,
-        boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.14)',
         color: tone ? tone.text : palette.m3.onPrimary,
         height: '100%',
         minHeight: 80,
@@ -302,9 +296,6 @@ const ActionTileButton = styled(ButtonBase, {
         position: 'relative',
         textAlign: 'left',
         textDecoration: 'none',
-        transition: theme.transitions.create('border-color', {
-            duration: theme.transitions.duration.shorter,
-        }),
         width: '100%',
 
         '&::after': {
@@ -319,13 +310,11 @@ const ActionTileButton = styled(ButtonBase, {
         },
 
         '&:hover': {
-            borderColor: `color-mix(in srgb, ${accentColor} 38%, transparent)`,
-
             '&::after': {
                 backgroundColor: 'rgba(0, 0, 0, 0.08)',
 
                 ...theme.applyStyles('dark', {
-                    backgroundColor: 'rgba(255, 255, 255, 0.10)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
                 }),
             },
 
