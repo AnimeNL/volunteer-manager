@@ -9,6 +9,24 @@ import type { TicketConfiguration } from '@lib/tickets/Types';
 import { createTicketService, isTicketServiceConfigured } from '@lib/tickets';
 
 /**
+ * Individual ticket holder entry for a program event's ticket product.
+ */
+export interface EventTicketHolder {
+    barcode?: string;
+    id: string;
+    name: string;
+    orderNumber: string;
+}
+
+/**
+ * Resolved ticket product name and active ticket holders for a program event.
+ */
+export interface EventTicketHoldersResult {
+    holders: EventTicketHolder[];
+    productName: string;
+}
+
+/**
  * Ticket sales summary for a single product linked to a program event.
  */
 export interface EventTicketSalesEntry {
@@ -77,6 +95,60 @@ function formatProductName(productName: string, activityTitle: string): string {
     }
 
     return label || trimmedProduct;
+}
+
+/**
+ * Request-cached query loading active ticket holders for a configured event ticket product.
+ */
+const loadEventTicketHolders = cache(
+    async (
+        eventId: number, activityId: number, activityTitle: string, eventTicketId: number)
+        : Promise<EventTicketHoldersResult | undefined> =>
+    {
+        const service = await createTicketService(eventId);
+        if (!service)
+            return undefined;
+
+        const configurations = await loadTicketConfigurations(eventId);
+        const config = configurations.find(entry =>
+            entry.id === eventTicketId && entry.activityId === activityId && !!entry.name);
+        if (!config?.name)
+            return undefined;
+
+        const tickets = await service.listTicketsForType(config.ticketTypeId);
+        const holders = tickets
+            .filter(ticket => !ticket.cancelled)
+            .map(ticket => ({
+                barcode: ticket.barcode,
+                id: `${ticket.id}`,
+                name: ticket.holder?.trim() || 'Unknown holder',
+                orderNumber: service.formatPurchaseId(ticket.purchaseId),
+            }))
+            .sort((lhs, rhs) =>
+                lhs.name.localeCompare(rhs.name) ||
+                lhs.orderNumber.localeCompare(rhs.orderNumber) ||
+                lhs.id.localeCompare(rhs.id));
+
+        return {
+            holders,
+            productName: formatProductName(config.name, activityTitle),
+        };
+    });
+
+/**
+ * Returns the product name and active ticket holders for `eventTicketId` belonging to `activityId`
+ * in `event`, or `undefined` when ticketing is not configured or the product does not exist.
+ */
+export async function getEventTicketHolders(
+    event: Pick<CachedEvent, 'id' | 'integrations' | 'tickets'>,
+    activityId: number,
+    activityTitle: string,
+    eventTicketId: number): Promise<EventTicketHoldersResult | undefined>
+{
+    if (!isTicketServiceConfigured(event))
+        return undefined;
+
+    return loadEventTicketHolders(event.id, activityId, activityTitle, eventTicketId);
 }
 
 /**

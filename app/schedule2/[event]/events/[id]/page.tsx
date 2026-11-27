@@ -148,9 +148,7 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
     const sales = showSales
         ? await getEventTicketSales(event, data.activityId, data.title)
         : [];
-    const ticketsHref = access.can('event.tickets', 'read', { event: event.slug })
-        ? getSchedulePath(event.slug, `/events/${data.activityId}/tickets`)
-        : undefined;
+    const canViewTickets = access.can('event.tickets', 'read', { event: event.slug });
 
     const nowMs = currentTime.epochMilliseconds;
     const timeslots = data.timeslots
@@ -241,16 +239,21 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
                                 </>
                             );
 
+                            const href = canViewTickets
+                                ? getSchedulePath(
+                                    event.slug, `/events/${data.activityId}/tickets/${entry.id}`)
+                                : undefined;
+
                             return (
                                 <ScheduleListRow
                                     key={entry.id}
-                                    chevron={!!ticketsHref}
-                                    href={ticketsHref}
+                                    chevron={canViewTickets}
+                                    href={href}
                                     progress={progress}
                                     progressColor={progressColor}
                                     title={entry.name}
                                     trailing={trailing}
-                                    transitionTypes={ticketsHref ? [ 'nav-forward' ] : undefined} />
+                                    transitionTypes={href ? [ 'nav-forward' ] : undefined} />
                             );
                         }) }
                     </ScheduleList>
