@@ -4,6 +4,7 @@
 import { default as dayjs } from 'dayjs';
 
 import { default as customParseFormat } from 'dayjs/plugin/customParseFormat';
+import { default as localizedFormat } from 'dayjs/plugin/localizedFormat';
 import { default as relativeTime } from 'dayjs/plugin/relativeTime';
 import { default as timezone } from 'dayjs/plugin/timezone';
 import { default as updateLocale } from 'dayjs/plugin/updateLocale';
@@ -12,6 +13,7 @@ import { default as utc } from 'dayjs/plugin/utc';
 export { default as dayjs } from 'dayjs';
 
 dayjs.extend(customParseFormat);
+dayjs.extend(localizedFormat);
 dayjs.extend(relativeTime);
 dayjs.extend(timezone);
 dayjs.extend(updateLocale);
