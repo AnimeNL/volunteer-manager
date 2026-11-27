@@ -3,12 +3,9 @@
 
 'use client';
 
-import Link from 'next/link';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment } from 'react';
 
-import type { ButtonBaseTypeMap, ExtendButtonBase } from '@mui/material/ButtonBase';
 import Box from '@mui/material/Box';
-import ButtonBase from '@mui/material/ButtonBase';
 import Card from '@mui/material/Card';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import Divider from '@mui/material/Divider';
@@ -19,6 +16,7 @@ import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
 import type { VendorTeam } from '@lib/database/Types';
+import { InteractiveSurface } from './InteractiveSurface';
 import { getSchedulePath } from '../lib/navigationTypes';
 
 import { kVendorTeam } from '@lib/database/Types';
@@ -80,11 +78,6 @@ interface OverviewVendorCardProps {
 export function OverviewVendorCard(props: OverviewVendorCardProps) {
     const { entries, eventSlug } = props;
 
-    // Remount <VendorRowButton> when Next.js hides this route via <Activity mode="hidden"> so
-    // in-flight MUI <TouchRipple> elements are not stranded and replayed on back navigation.
-    const [ rippleKey, setRippleKey ] = useState<number>(0);
-    useEffect(() => () => setRippleKey(key => key + 1), []);
-
     if (!entries.length)
         return null;
 
@@ -121,12 +114,11 @@ export function OverviewVendorCard(props: OverviewVendorCardProps) {
                     <Fragment key={entry.team}>
                         { index > 0 && <Divider /> }
                         { entry.clickable ? (
-                            <VendorRowButton
-                                key={rippleKey}
-                                component={Link}
-                                href={getSchedulePath(eventSlug, `/vendors/${entry.team}`)}>
+                            <InteractiveSurface
+                                href={getSchedulePath(eventSlug, `/vendors/${entry.team}`)}
+                                sx={{ px: 2, py: 1.25 }}>
                                 {content}
-                            </VendorRowButton>
+                            </InteractiveSurface>
                         ) : (
                             <VendorRowStatic>
                                 {content}
@@ -183,25 +175,7 @@ const VendorIconBadge = styled(Box, {
 });
 
 /**
- * Interactive row surface for volunteers permitted to inspect the vendor team's full schedule.
- */
-const VendorRowButton = styled(ButtonBase)(({ theme }) => ({
-    display: 'flex',
-    padding: theme.spacing(1.25, 2),
-    textAlign: 'left',
-    textDecoration: 'none',
-    transition: theme.transitions.create('background-color', {
-        duration: theme.transitions.duration.shorter,
-    }),
-    width: '100%',
-
-    '&:hover': {
-        backgroundColor: (theme.vars || theme).palette.action.hover,
-    },
-})) as ExtendButtonBase<ButtonBaseTypeMap>;
-
-/**
- * Non-interactive row container sharing identical padding with `<VendorRowButton>`.
+ * Non-interactive row container sharing identical padding with interactive vendor rows.
  */
 const VendorRowStatic = styled(Box)(({ theme }) => ({
     display: 'flex',

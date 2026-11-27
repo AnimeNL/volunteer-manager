@@ -17,6 +17,8 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
+import { useActivityRippleKey } from './InteractiveSurface';
+
 import { kCardBorderRadiusPx } from '../Constants';
 
 /**
@@ -76,11 +78,6 @@ interface OverviewTileProps {
     onDismiss?: () => void;
 
     /**
-     * Key used to remount the underlying ripple surface after Next.js `<Activity>` reactivation.
-     */
-    rippleKey: number;
-
-    /**
      * Secondary caption displayed beneath `label` when `hero` is set.
      */
     subtitle?: string;
@@ -91,7 +88,8 @@ interface OverviewTileProps {
  * horizontal `hero` layout and the compact vertical supporting layout on a shared surface.
  */
 export function OverviewTile(props: OverviewTileProps) {
-    const { accent, hero, href, icon: Icon, label, onDismiss, rippleKey, subtitle } = props;
+    const { accent, hero, href, icon: Icon, label, onDismiss, subtitle } = props;
+    const rippleKey = useActivityRippleKey();
 
     return (
         <Box sx={{ height: '100%', position: 'relative' }}>

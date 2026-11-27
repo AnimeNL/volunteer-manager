@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import type { SvgIconComponent } from '@mui/icons-material';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
@@ -103,11 +103,6 @@ export function OverviewTiles(props: OverviewTilesProps) {
     const { eventSlug } = props;
     const [ dismissed, setDismissed ] = useState<ReadonlySet<OverviewTileId>>(() => new Set());
 
-    // Remount `<OverviewTile>` surfaces when Next.js hides this route via `<Activity mode="hidden">`
-    // so in-flight MUI `<TouchRipple>` elements are not stranded and replayed on back navigation.
-    const [ rippleKey, setRippleKey ] = useState<number>(0);
-    useEffect(() => () => setRippleKey(key => key + 1), []);
-
     async function handleDismiss(tileId: DismissibleOverviewActionTileId) {
         setDismissed(current => new Set([ ...current, tileId ]));
 
@@ -139,7 +134,6 @@ export function OverviewTiles(props: OverviewTilesProps) {
                 icon={tile.icon}
                 label={tile.label}
                 onDismiss={isDismissibleTile(tileId) ? () => handleDismiss(tileId) : undefined}
-                rippleKey={rippleKey}
                 subtitle={tile.subtitle} />
         );
     }

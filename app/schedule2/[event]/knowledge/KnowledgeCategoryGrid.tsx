@@ -3,12 +3,7 @@
 
 'use client';
 
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
-
-import type { ButtonBaseTypeMap, ExtendButtonBase } from '@mui/material/ButtonBase';
 import Box from '@mui/material/Box';
-import ButtonBase from '@mui/material/ButtonBase';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
@@ -18,10 +13,9 @@ import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
 import type { KnowledgeBaseCategorySummary } from '../lib/data/knowledgeData';
+import { InteractiveSurface } from '../components/InteractiveSurface';
 import { KnowledgeBaseIcon } from '@components/KnowledgeBaseIcon';
 import { getSchedulePath } from '../lib/navigationTypes';
-
-import { kCardBorderRadiusPx } from '../Constants';
 
 /**
  * Props accepted by the <KnowledgeCategoryGrid> component.
@@ -45,11 +39,6 @@ interface KnowledgeCategoryGridProps {
 export function KnowledgeCategoryGrid(props: KnowledgeCategoryGridProps) {
     const { categories, eventSlug } = props;
 
-    // Remount <CategoryCardButton> when Next.js hides this route via <Activity mode="hidden"> so
-    // in-flight MUI <TouchRipple> elements are not stranded and replayed on back navigation.
-    const [ rippleKey, setRippleKey ] = useState<number>(0);
-    useEffect(() => () => setRippleKey(key => key + 1), []);
-
     return (
         <Grid container spacing={1.25}>
             { categories.map(category => {
@@ -59,10 +48,10 @@ export function KnowledgeCategoryGrid(props: KnowledgeCategoryGridProps) {
 
                 return (
                     <Grid key={category.id} size={{ xs: 12, sm: 6 }}>
-                        <CategoryCardButton
-                            key={rippleKey}
-                            component={Link}
-                            href={getSchedulePath(eventSlug, `/knowledge/${category.id}`)}>
+                        <InteractiveSurface
+                            href={getSchedulePath(eventSlug, `/knowledge/${category.id}`)}
+                            surface="card"
+                            sx={{ alignItems: 'stretch', height: '100%', p: 1.75 }}>
                             <Stack spacing={1.5} sx={{
                                 height: '100%',
                                 justifyContent: 'space-between',
@@ -117,42 +106,13 @@ export function KnowledgeCategoryGrid(props: KnowledgeCategoryGridProps) {
                                     </Stack>
                                 </CategoryFooter>
                             </Stack>
-                        </CategoryCardButton>
+                        </InteractiveSurface>
                     </Grid>
                 );
             }) }
         </Grid>
     );
 }
-
-/**
- * Interactive M3 tonal Bento card button for a Knowledge Base category.
- */
-const CategoryCardButton = styled(ButtonBase)(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
-
-    return {
-        alignItems: 'stretch',
-        backgroundColor: palette.background.paper,
-        borderRadius: kCardBorderRadiusPx,
-        color: palette.text.primary,
-        display: 'flex',
-        height: '100%',
-        overflow: 'hidden',
-        padding: theme.spacing(1.75),
-        textAlign: 'left',
-        textDecoration: 'none',
-        transition: theme.transitions.create('background-color', {
-            duration: theme.transitions.duration.shorter,
-        }),
-        width: '100%',
-
-        '&:hover': {
-            backgroundColor:
-                `color-mix(in srgb, ${palette.background.paper} 94%, ${palette.text.primary})`,
-        },
-    };
-}) as ExtendButtonBase<ButtonBaseTypeMap>;
 
 /**
  * Rounded 40px tonal squircle badge displaying the category's `<KnowledgeBaseIcon>`.

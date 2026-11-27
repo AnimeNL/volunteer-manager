@@ -4,7 +4,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 
 import type { ButtonBaseTypeMap, ExtendButtonBase } from '@mui/material/ButtonBase';
 import type { Theme } from '@mui/material/styles';
@@ -16,6 +15,8 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 import { styled } from '@mui/material/styles';
+
+import { useActivityRippleKey } from './InteractiveSurface';
 
 import { kCardBorderRadiusPx } from '../Constants';
 
@@ -127,10 +128,7 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
         trailing,
     } = props;
 
-    // Remount <RowButton> when Next.js hides this route via <Activity mode="hidden"> so in-flight
-    // MUI <TouchRipple> elements are not stranded and replayed on back navigation.
-    const [ rippleKey, setRippleKey ] = useState<number>(0);
-    useEffect(() => () => setRippleKey(key => key + 1), []);
+    const rippleKey = useActivityRippleKey();
 
     const isPast = state === 'past';
     const clampedProgress =
