@@ -99,10 +99,10 @@ export function MobileFloatingPill(props: MobileFloatingPillProps) {
                 : <HomeOutlinedIcon fontSize="small" />,
         },
         {
-            id: 'shifts',
+            id: 'schedule',
             label: 'Schedule',
             ariaLabel: 'Your schedule',
-            segment: '/shifts',
+            segment: '/schedule',
             icon: <AccessTimeIcon fontSize="small" />,
         },
         {

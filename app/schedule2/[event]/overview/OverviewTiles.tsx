@@ -70,7 +70,7 @@ const kOverviewTiles: Record<OverviewTileId, OverviewTileMetadata> = {
         accent: 'tileAccentB',
         icon: AccessTimeIcon,
         label: 'Schedule',
-        segment: '/shifts',
+        segment: '/schedule',
     },
     ticket: {
         icon: ConfirmationNumberOutlinedIcon,

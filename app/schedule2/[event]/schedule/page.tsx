@@ -7,9 +7,9 @@ import { PlaceholderPage } from '../components/PlaceholderPage';
 import { createScheduleMetadataFn } from '../lib/generateScheduleMetadata';
 
 /**
- * Placeholder volunteer shifts page for the schedule portal.
+ * Placeholder volunteer schedule page for the schedule portal.
  */
-export default function ScheduleShiftsPage(props: PageProps<'/schedule2/[event]/shifts'>) {
+export default function SchedulePage(props: PageProps<'/schedule2/[event]/schedule'>) {
     return (
         <PlaceholderPage
             description="Your upcoming volunteer shifts and assignments."

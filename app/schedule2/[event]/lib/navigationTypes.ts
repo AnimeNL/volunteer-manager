@@ -62,7 +62,7 @@ export function isNavigationPathActive(relativePathname: string, targetPath: str
 /**
  * Primary tabs available in the mobile floating bottom navigation pill (maximum of four items).
  */
-export type MobileNavigationTab = 'overview' | 'shifts' | 'areas' | 'more';
+export type MobileNavigationTab = 'overview' | 'schedule' | 'areas' | 'more';
 
 /**
  * Resolves the active mobile bottom navigation tab from a relative schedule pathname.
@@ -70,8 +70,8 @@ export type MobileNavigationTab = 'overview' | 'shifts' | 'areas' | 'more';
 export function getActiveMobileTab(relativePathname: string): MobileNavigationTab {
     if (isNavigationPathActive(relativePathname, ''))
         return 'overview';
-    if (isNavigationPathActive(relativePathname, '/shifts'))
-        return 'shifts';
+    if (isNavigationPathActive(relativePathname, '/schedule'))
+        return 'schedule';
     if (isNavigationPathActive(relativePathname, '/areas'))
         return 'areas';
 

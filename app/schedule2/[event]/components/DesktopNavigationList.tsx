@@ -51,10 +51,10 @@ export function VolunteerNavigationItems(props: { data: NavigationData }) {
     return (
         <>
             <NavigationLink
-                href={getSchedulePath(eventSlug, '/shifts')}
+                href={getSchedulePath(eventSlug, '/schedule')}
                 icon={ <AccessTimeIcon fontSize="small" /> }
                 label="Your schedule"
-                selected={isNavigationPathActive(relativePathname, '/shifts')} />
+                selected={isNavigationPathActive(relativePathname, '/schedule')} />
 
             <ExpandableNavigationSection
                 activeIcon={ <EventNoteIcon fontSize="small" /> }
