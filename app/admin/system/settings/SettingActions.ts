@@ -41,6 +41,7 @@ const kNumberSettings = new Set([
  * User settings controlling dismissed tiles on the schedule overview page.
  */
 const kScheduleOverviewTileSettings: (keyof UserSettingsMap)[] = [
+    'user-schedule-hide-feedback-tile',
     'user-schedule-hide-hotel-tile',
     'user-schedule-hide-ticket-tile',
 ];

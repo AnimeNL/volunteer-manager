@@ -37,6 +37,7 @@ async function OverviewActions(props: { params: Promise<{ event: string }> }) {
         readCachedSetting('schedule-enable-scanner', false),
         getVolunteerTicket(event, user.id),
         readUserSettings(user.id, [
+            'user-schedule-hide-feedback-tile',
             'user-schedule-hide-hotel-tile',
             'user-schedule-hide-ticket-tile',
         ], /* disableFallback= */ true),
@@ -45,14 +46,14 @@ async function OverviewActions(props: { params: Promise<{ event: string }> }) {
     const tiles: OverviewTileId[] = [];
     if (!!ticket && !userSettings['user-schedule-hide-ticket-tile'])
         tiles.push('ticket');
+    if (!userSettings['user-schedule-hide-feedback-tile'])
+        tiles.push('feedback');
     if (hotelBookings.length > 0 && !userSettings['user-schedule-hide-hotel-tile'])
         tiles.push('hotel');
-
-    tiles.push('schedule');
     if (scannerEnabled)
         tiles.push('scanner');
 
-    tiles.push('feedback');
+    tiles.push('schedule');
 
     return <OverviewTiles eventSlug={event.slug} tiles={tiles} />;
 }

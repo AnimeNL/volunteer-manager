@@ -23,8 +23,7 @@ import { type DismissibleOverviewActionTileId,
 /**
  * Identifier of an actionable tile on the schedule overview page.
  */
-export type OverviewTileId =
-    DismissibleOverviewActionTileId | 'feedback' | 'scanner' | 'schedule';
+export type OverviewTileId = DismissibleOverviewActionTileId | 'scanner' | 'schedule';
 
 /**
  * Static metadata describing each actionable overview tile.
@@ -41,7 +40,7 @@ interface OverviewTileMetadata {
  * Returns whether the given `tileId` can be dismissed by the volunteer.
  */
 function isDismissibleTile(tileId: OverviewTileId): tileId is DismissibleOverviewActionTileId {
-    return tileId === 'hotel' || tileId === 'ticket';
+    return tileId === 'feedback' || tileId === 'hotel' || tileId === 'ticket';
 }
 
 /**
