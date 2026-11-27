@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { Fragment } from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 
 import Divider from '@mui/material/Divider';
 import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined';
@@ -46,6 +46,7 @@ async function LocationDescription(props: { params: Promise<{ event: string; id:
 
 /**
  * Authenticates the request behind `<Suspense>` and renders day-grouped events for the location.
+ * Redirects directly to the event page when the location only hosts a single event.
  */
 async function LocationScheduleContent(props: { params: Promise<{ event: string; id: string }> }) {
     const { event: eventSlug, id } = await props.params;
@@ -54,6 +55,10 @@ async function LocationScheduleContent(props: { params: Promise<{ event: string;
         event.integrations?.anPlanFestivalId, id, event.timeZone);
     if (!data)
         notFound();
+
+    const [ firstRow ] = data.rows;
+    if (firstRow && data.rows.every(row => row.activityId === firstRow.activityId))
+        redirect(getSchedulePath(event.slug, `/events/${firstRow.activityId}`));
 
     const nowMs = currentTime.epochMilliseconds;
     const dayMap = new Map<string, {
