@@ -4,6 +4,7 @@
 import { cache } from 'react';
 import { notFound } from 'next/navigation';
 
+import Box from '@mui/material/Box';
 import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
@@ -14,7 +15,9 @@ import { Page, SuspenseReveal } from '../../components/Page';
 import { ScheduleList, ScheduleListRow } from '../../components/ScheduleList';
 import { SectionHeader } from '../../components/SectionHeader';
 import { formatDate } from '@lib/Temporal';
+import { getEventTicketSales } from '../../lib/data/ticketData';
 import { getSchedulePath } from '../../lib/navigationTypes';
+import { readCachedSetting } from '@lib/Settings';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots,
     tUsersEventsFavourites } from '@lib/database';
@@ -119,14 +122,32 @@ async function EventFavouriteAction(props: { params: Promise<{ event: string; id
 }
 
 /**
- * Authenticates the request behind `<Suspense>` and renders scheduled timeslots for the event.
+ * Formats a ticket price given in `cents` as a compact EUR label (e.g. `€20` or `€12.50`).
+ */
+function formatPrice(cents: number): string {
+    const euros = cents / 100;
+    return Number.isInteger(euros) ? `€${euros}` : `€${euros.toFixed(2)}`;
+}
+
+/**
+ * Authenticates the request behind `<Suspense>` and renders scheduled timeslots and ticket sales
+ * for the event.
  */
 async function EventContent(props: { params: Promise<{ event: string; id: string }> }) {
     const { event: eventSlug, id } = await props.params;
     const { currentTime, event } = await requireScheduleAccess(eventSlug);
-    const data = await loadEventData(event.integrations?.anPlanFestivalId, id);
+
+    const [ data, showSales ] = await Promise.all([
+        loadEventData(event.integrations?.anPlanFestivalId, id),
+        readCachedSetting('schedule-show-sales-information', /* fallback= */ false),
+    ]);
+
     if (!data)
         notFound();
+
+    const sales = showSales
+        ? await getEventTicketSales(event, data.activityId, data.title)
+        : [];
 
     const nowMs = currentTime.epochMilliseconds;
     const timeslots = data.timeslots
@@ -157,24 +178,74 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
     const allPast = timeslots.every(timeslot => timeslot.isPast);
 
     return (
-        <Stack spacing={0.75} useFlexGap>
-            <SectionHeader muted={allPast} title="Timeslots" />
-            <ScheduleList muted={allPast}>
-                { timeslots.map(timeslot =>
-                    <ScheduleListRow
-                        key={timeslot.timeslotId}
-                        href={getSchedulePath(event.slug, `/locations/${timeslot.locationId}`)}
-                        progress={timeslot.isActive
-                            ? Math.round(((nowMs - timeslot.startMs) /
-                                (timeslot.endMs - timeslot.startMs)) * 100)
-                            : undefined}
-                        state={timeslot.isPast
-                            ? 'past'
-                            : (timeslot.isActive ? 'active' : 'default')}
-                        title={timeslot.locationName}
-                        trailing={timeslot.time}
-                        transitionTypes={[ 'nav-forward' ]} /> ) }
-            </ScheduleList>
+        <Stack spacing={2} useFlexGap>
+            <Stack spacing={0.75} useFlexGap>
+                <SectionHeader muted={allPast} title="Timeslots" />
+                <ScheduleList muted={allPast}>
+                    { timeslots.map(timeslot =>
+                        <ScheduleListRow
+                            key={timeslot.timeslotId}
+                            href={getSchedulePath(event.slug, `/locations/${timeslot.locationId}`)}
+                            progress={timeslot.isActive
+                                ? Math.round(((nowMs - timeslot.startMs) /
+                                    (timeslot.endMs - timeslot.startMs)) * 100)
+                                : undefined}
+                            state={timeslot.isPast
+                                ? 'past'
+                                : (timeslot.isActive ? 'active' : 'default')}
+                            title={timeslot.locationName}
+                            trailing={timeslot.time}
+                            transitionTypes={[ 'nav-forward' ]} /> ) }
+                </ScheduleList>
+            </Stack>
+            { sales.length > 0 &&
+                <Stack spacing={0.75} useFlexGap>
+                    <SectionHeader title="Tickets sold" />
+                    <ScheduleList>
+                        { sales.map(entry => {
+                            const isSoldOut = entry.limit !== undefined &&
+                                entry.sold >= entry.limit;
+                            const progress = entry.limit !== undefined
+                                ? Math.min(100, Math.round((entry.sold / entry.limit) * 100))
+                                : undefined;
+                            const price = entry.price !== undefined
+                                ? ` · ${formatPrice(entry.price)}`
+                                : '';
+
+                            const trailing = entry.limit !== undefined ? (
+                                <>
+                                    <Box
+                                        component="span"
+                                        sx={{
+                                            color: isSoldOut ? 'error.main' : 'text.primary',
+                                            fontWeight: isSoldOut ? 600 : 500,
+                                        }}>
+                                        {entry.sold}
+                                    </Box>
+                                    {` / ${entry.limit}${price}`}
+                                </>
+                            ) : (
+                                <>
+                                    <Box
+                                        component="span"
+                                        sx={{ color: 'text.primary', fontWeight: 500 }}>
+                                        {entry.sold}
+                                    </Box>
+                                    {` sold${price}`}
+                                </>
+                            );
+
+                            return (
+                                <ScheduleListRow
+                                    key={entry.id}
+                                    progress={progress}
+                                    progressColor={isSoldOut ? 'error' : 'warning'}
+                                    title={entry.name}
+                                    trailing={trailing} />
+                            );
+                        }) }
+                    </ScheduleList>
+                </Stack> }
         </Stack>
     );
 }

@@ -80,9 +80,14 @@ interface ScheduleListRowProps {
 
     /**
      * Optional completion percentage (`0` to `100`) rendered as a subtle 2px progress track
-     * beneath `'active'` rows.
+     * beneath non-past rows.
      */
     progress?: number;
+
+    /**
+     * Colour role for `<ProgressTrack>` when `progress` is set. Defaults to `'primary'`.
+     */
+    progressColor?: 'error' | 'primary' | 'warning';
 
     /**
      * Visual state of the row: `'default'`, `'active'` (live), or `'past'` (finished).
@@ -120,6 +125,7 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
         hidden = false,
         href,
         progress,
+        progressColor = 'primary',
         state = 'default',
         subtitle,
         title,
@@ -132,10 +138,9 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
     const [ rippleKey, setRippleKey ] = useState<number>(0);
     useEffect(() => () => setRippleKey(key => key + 1), []);
 
-    const isActive = state === 'active';
     const isPast = state === 'past';
     const clampedProgress =
-        isActive && typeof progress === 'number'
+        !isPast && typeof progress === 'number'
             ? Math.min(100, Math.max(0, progress))
             : undefined;
 
@@ -178,7 +183,7 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
             </Stack>
             { clampedProgress !== undefined &&
                 <ProgressTrack>
-                    <ProgressFill style={{ width: `${clampedProgress}%` }} />
+                    <ProgressFill color={progressColor} style={{ width: `${clampedProgress}%` }} />
                 </ProgressTrack> }
         </Box>
     );
@@ -447,10 +452,26 @@ const ProgressTrack = styled(Box)(({ theme }) => ({
 }));
 
 /**
- * Filled portion of `<ProgressTrack>` coloured with the M3 primary accent.
+ * Filled portion of `<ProgressTrack>` coloured with the configured semantic accent.
  */
-const ProgressFill = styled(Box)(({ theme }) => ({
-    backgroundColor: (theme.vars || theme).palette.m3.primary,
-    borderRadius: 999,
-    height: '100%',
-}));
+const ProgressFill = styled(Box, {
+    shouldForwardProp: prop => prop !== 'color',
+})<{ color: 'error' | 'primary' | 'warning' }>(({ theme }) => {
+    const palette = (theme.vars || theme).palette;
+
+    return {
+        backgroundColor: palette.m3.primary,
+        borderRadius: 999,
+        height: '100%',
+        variants: [
+            {
+                props: { color: 'error' },
+                style: { backgroundColor: palette.error.main },
+            },
+            {
+                props: { color: 'warning' },
+                style: { backgroundColor: palette.warning.main },
+            },
+        ],
+    };
+});
