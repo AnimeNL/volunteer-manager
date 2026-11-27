@@ -89,7 +89,7 @@ export function QrScanner(props: QrScannerProps) {
     const triggerFilePicker = () => fileInputRef.current?.click();
 
     return (
-        <Stack spacing={2}>
+        <>
             <input
                 ref={fileInputRef}
                 accept="image/*"
@@ -98,65 +98,67 @@ export function QrScanner(props: QrScannerProps) {
                 onChange={handleFileSelected}
                 type="file" />
 
-            { scanner.status === 'permission-denied' &&
-                <ScannerBlockedState
-                    description={
-                        'Camera access was declined. To scan QR codes directly, allow camera ' +
-                        'access for this site in your browser settings and try again, or scan ' +
-                        'a QR code from a photo.'
-                    }
-                    icon={ <NoPhotographyOutlinedIcon fontSize="large" /> }
-                    onPickPhoto={triggerFilePicker}
-                    onRetry={scanner.retry}
-                    title="Camera permission declined" /> }
+            <Stack spacing={2} useFlexGap>
+                { scanner.status === 'permission-denied' &&
+                    <ScannerBlockedState
+                        description={
+                            'Camera access was declined. To scan QR codes directly, allow camera ' +
+                            'access for this site in your browser settings and try again, or ' +
+                            'scan a QR code from a photo.'
+                        }
+                        icon={ <NoPhotographyOutlinedIcon fontSize="large" /> }
+                        onPickPhoto={triggerFilePicker}
+                        onRetry={scanner.retry}
+                        title="Camera permission declined" /> }
 
-            { (scanner.status === 'unavailable' || scanner.status === 'error') &&
-                <ScannerBlockedState
-                    description={
-                        scanner.errorMessage ??
-                        'Unable to access the camera on this device. You can try again or scan ' +
-                        'a QR code from a photo.'
-                    }
-                    icon={
-                        scanner.status === 'unavailable'
-                            ? <VideocamOffOutlinedIcon fontSize="large" />
-                            : <ErrorOutlinedIcon fontSize="large" />
-                    }
-                    onPickPhoto={triggerFilePicker}
-                    onRetry={scanner.retry}
-                    title={
-                        scanner.status === 'unavailable'
-                            ? 'Camera unavailable'
-                            : 'Unable to start scanner'
-                    } /> }
+                { (scanner.status === 'unavailable' || scanner.status === 'error') &&
+                    <ScannerBlockedState
+                        description={
+                            scanner.errorMessage ??
+                            'Unable to access the camera on this device. You can try again or ' +
+                            'scan a QR code from a photo.'
+                        }
+                        icon={
+                            scanner.status === 'unavailable'
+                                ? <VideocamOffOutlinedIcon fontSize="large" />
+                                : <ErrorOutlinedIcon fontSize="large" />
+                        }
+                        onPickPhoto={triggerFilePicker}
+                        onRetry={scanner.retry}
+                        title={
+                            scanner.status === 'unavailable'
+                                ? 'Camera unavailable'
+                                : 'Unable to start scanner'
+                        } /> }
 
-            { (scanner.status === 'initializing' || scanner.status === 'scanning') &&
-                <ScannerViewfinder
-                    canSwitchCamera={scanner.canSwitchCamera}
-                    flashActive={flashActive}
-                    hasTorch={scanner.hasTorch}
-                    initializing={scanner.status === 'initializing'}
-                    onPickPhoto={triggerFilePicker}
-                    onSwitchCamera={scanner.switchCamera}
-                    onToggleTorch={() => void scanner.toggleTorch()}
-                    torchEnabled={scanner.torchEnabled}
-                    videoRef={scanner.videoRef} /> }
+                { (scanner.status === 'initializing' || scanner.status === 'scanning') &&
+                    <ScannerViewfinder
+                        canSwitchCamera={scanner.canSwitchCamera}
+                        flashActive={flashActive}
+                        hasTorch={scanner.hasTorch}
+                        initializing={scanner.status === 'initializing'}
+                        onPickPhoto={triggerFilePicker}
+                        onSwitchCamera={scanner.switchCamera}
+                        onToggleTorch={() => void scanner.toggleTorch()}
+                        torchEnabled={scanner.torchEnabled}
+                        videoRef={scanner.videoRef} /> }
 
-            { feedback?.error &&
-                <Alert severity="error" onClose={() => setFeedback(undefined)}>
-                    {feedback.error}
-                </Alert> }
+                { feedback?.error &&
+                    <Alert severity="error" onClose={() => setFeedback(undefined)}>
+                        {feedback.error}
+                    </Alert> }
 
-            { feedback?.barcode && !feedback.error &&
-                <Alert severity={feedback.pending ? 'info' : 'success'}
-                       onClose={() => setFeedback(undefined)}>
-                    <Typography component="span" variant="body2">
-                        { feedback.pending ? 'Processing code: ' : 'Scanned code: ' }
-                    </Typography>
-                    <MonospaceText component="span">
-                        {feedback.barcode}
-                    </MonospaceText>
-                </Alert> }
-        </Stack>
+                { feedback?.barcode && !feedback.error &&
+                    <Alert severity={feedback.pending ? 'info' : 'success'}
+                           onClose={() => setFeedback(undefined)}>
+                        <Typography component="span" variant="body2">
+                            { feedback.pending ? 'Processing code: ' : 'Scanned code: ' }
+                        </Typography>
+                        <MonospaceText component="span">
+                            {feedback.barcode}
+                        </MonospaceText>
+                    </Alert> }
+            </Stack>
+        </>
     );
 }
