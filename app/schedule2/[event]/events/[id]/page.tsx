@@ -8,6 +8,7 @@ import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 
+import { EventFavouriteButton } from './EventFavouriteButton';
 import { Header } from '../../components/Header';
 import { Page, SuspenseReveal } from '../../components/Page';
 import { ScheduleList, ScheduleListRow } from '../../components/ScheduleList';
@@ -15,8 +16,8 @@ import { SectionHeader } from '../../components/SectionHeader';
 import { formatDate } from '@lib/Temporal';
 import { getSchedulePath } from '../../lib/navigationTypes';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
-import db, { tActivities, tActivitiesAreas, tActivitiesLocations,
-    tActivitiesTimeslots } from '@lib/database';
+import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots,
+    tUsersEventsFavourites } from '@lib/database';
 
 import { kActivityType } from '@lib/database/Types';
 
@@ -65,6 +66,7 @@ const loadEventData = cache(async (festivalId: number | undefined, activityParam
         : 'Multiple locations…';
 
     return {
+        activityId,
         location,
         timeslots: rows,
         title: rows[0].title,
@@ -91,6 +93,31 @@ async function EventDescription(props: { params: Promise<{ event: string; id: st
     const data = await loadEventData(event.integrations?.anPlanFestivalId, id);
 
     return data?.location ?? null;
+}
+
+/**
+ * Streams the volunteer's favourite toggle button into the page `<Header>` actions.
+ */
+async function EventFavouriteAction(props: { params: Promise<{ event: string; id: string }> }) {
+    const { event: eventSlug, id } = await props.params;
+    const { event, user } = await requireScheduleAccess(eventSlug);
+    const data = await loadEventData(event.integrations?.anPlanFestivalId, id);
+    if (!data)
+        return null;
+
+    const favourited = await db.selectFrom(tUsersEventsFavourites)
+        .where(tUsersEventsFavourites.userId.equals(user.id))
+            .and(tUsersEventsFavourites.eventId.equals(event.id))
+            .and(tUsersEventsFavourites.activityId.equals(data.activityId))
+        .selectCountAll()
+        .executeSelectOne() > 0;
+
+    return (
+        <EventFavouriteButton
+            activityId={data.activityId}
+            eventSlug={event.slug}
+            initialFavourited={favourited} />
+    );
 }
 
 /**
@@ -176,6 +203,12 @@ export default function ScheduleEventPage(props: PageProps<'/schedule2/[event]/e
         <Page
             header={
                 <Header
+                    actions={
+                        <SuspenseReveal
+                            fallback={ <Skeleton variant="circular" width={40} height={40} /> }>
+                            <EventFavouriteAction params={props.params} />
+                        </SuspenseReveal>
+                    }
                     description={
                         <SuspenseReveal fallback={ <Skeleton variant="text" width={112} /> }>
                             <EventDescription params={props.params} />
