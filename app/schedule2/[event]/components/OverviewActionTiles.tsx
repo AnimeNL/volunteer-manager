@@ -7,7 +7,9 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import type { ButtonBaseTypeMap, ExtendButtonBase } from '@mui/material/ButtonBase';
+import type { SvgIconComponent } from '@mui/icons-material';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
 import CloseIcon from '@mui/icons-material/Close';
@@ -31,7 +33,8 @@ import { type DismissibleOverviewActionTileId,
 /**
  * Identifier of an actionable tile on the schedule overview page.
  */
-export type OverviewActionTileId = DismissibleOverviewActionTileId | 'scanner';
+export type OverviewActionTileId =
+    DismissibleOverviewActionTileId | 'feedback' | 'scanner' | 'schedule';
 
 /**
  * Accent slot key identifying which analogous palette tone a secondary tile uses.
@@ -44,7 +47,7 @@ type TileAccentKey = 'tileAccentA' | 'tileAccentB' | 'tileAccentC' | 'tileAccent
 interface ActionTileMetadata {
     accent?: TileAccentKey;
     heroSubtitle: string;
-    icon: React.ReactNode;
+    icon: SvgIconComponent;
     label: string;
     segment: string;
 }
@@ -53,7 +56,7 @@ interface ActionTileMetadata {
  * Returns whether the given `tileId` can be dismissed by the volunteer.
  */
 function isDismissibleTile(tileId: OverviewActionTileId): tileId is DismissibleOverviewActionTileId {
-    return tileId !== 'scanner';
+    return tileId === 'hotel' || tileId === 'ticket';
 }
 
 /**
@@ -64,34 +67,34 @@ const kActionTiles: Record<OverviewActionTileId, ActionTileMetadata> = {
     feedback: {
         accent: 'tileAccentC',
         heroSubtitle: 'Share your thoughts',
-        icon: <FeedbackOutlinedIcon fontSize="small" />,
+        icon: FeedbackOutlinedIcon,
         label: 'Feedback',
         segment: '/feedback',
     },
     hotel: {
         accent: 'tileAccentA',
         heroSubtitle: 'Your hotel room',
-        icon: <HotelOutlinedIcon fontSize="small" />,
+        icon: HotelOutlinedIcon,
         label: 'Hotel',
         segment: '/hotel',
     },
     scanner: {
         accent: 'tileAccentD',
         heroSubtitle: 'Scan QR codes',
-        icon: <QrCodeScannerIcon fontSize="small" />,
+        icon: QrCodeScannerIcon,
         label: 'Scanner',
         segment: '/scanner',
     },
     schedule: {
         accent: 'tileAccentB',
         heroSubtitle: 'Your upcoming shifts',
-        icon: <AccessTimeIcon fontSize="small" />,
+        icon: AccessTimeIcon,
         label: 'Schedule',
         segment: '/shifts',
     },
     ticket: {
         heroSubtitle: 'Welcoming you to the festival',
-        icon: <ConfirmationNumberOutlinedIcon fontSize="small" />,
+        icon: ConfirmationNumberOutlinedIcon,
         label: 'Your ticket',
         segment: '/ticket',
     },
@@ -146,6 +149,7 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
 
     const [ heroId, ...secondaryIds ] = visibleIds;
     const hero = kActionTiles[heroId];
+    const HeroIcon = hero.icon;
     const heroDismissible = isDismissibleTile(heroId);
     const secondaryGridSize = secondaryIds.length > 3 ? { xs: 6, sm: 'grow' as const } : 'grow';
 
@@ -161,16 +165,29 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
                         hero
                         href={getSchedulePath(eventSlug, hero.segment)}
                         transitionTypes={getNavigationTransitionTypes('', hero.segment)}>
-                        <Stack direction="row" spacing={1.5}
-                               sx={{ alignItems: 'center', minWidth: 0, width: '100%' }}>
+                        <TileWatermark accent={hero.accent} aria-hidden className="tile-watermark"
+                                       hero>
+                            <HeroIcon sx={{ fontSize: 'inherit' }} />
+                        </TileWatermark>
+                        <Stack direction="row" spacing={1.5} sx={{
+                            alignItems: 'center',
+                            minWidth: 0,
+                            position: 'relative',
+                            width: '100%',
+                            zIndex: 1,
+                        }}>
                             <TileIconBadge accent={hero.accent} hero>
-                                {hero.icon}
+                                <HeroIcon fontSize="small" />
                             </TileIconBadge>
                             <Box sx={{ minWidth: 0 }}>
-                                <Typography variant="subtitle1" noWrap
-                                            sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                                    {hero.label}
-                                </Typography>
+                                <Stack direction="row" spacing={0.5}
+                                       sx={{ alignItems: 'center', minWidth: 0 }}>
+                                    <Typography variant="subtitle1" noWrap
+                                                sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                                        {hero.label}
+                                    </Typography>
+                                    <TileArrow className="tile-arrow" sx={{ fontSize: 16 }} />
+                                </Stack>
                                 <Typography variant="caption" noWrap
                                             sx={{ display: 'block', opacity: 0.82 }}>
                                     {hero.heroSubtitle}
@@ -194,6 +211,7 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
                 <Grid container spacing={1.25} size={{ xs: 12, md: 7 }}>
                     { secondaryIds.map(tileId => {
                         const tile = kActionTiles[tileId];
+                        const TileIcon = tile.icon;
                         const dismissible = isDismissibleTile(tileId);
                         return (
                             <Grid key={tileId} size={secondaryGridSize}>
@@ -206,23 +224,36 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
                                         transitionTypes={
                                             getNavigationTransitionTypes('', tile.segment)
                                         }>
+                                        <TileWatermark accent={tile.accent} aria-hidden
+                                                       className="tile-watermark">
+                                            <TileIcon sx={{ fontSize: 'inherit' }} />
+                                        </TileWatermark>
                                         <Stack spacing={1.25} sx={{
                                             alignItems: 'flex-start',
                                             height: '100%',
                                             justifyContent: 'space-between',
                                             minWidth: 0,
+                                            position: 'relative',
                                             width: '100%',
+                                            zIndex: 1,
                                         }}>
                                             <TileIconBadge accent={tile.accent}>
-                                                {tile.icon}
+                                                <TileIcon fontSize="small" />
                                             </TileIconBadge>
-                                            <Typography variant="subtitle2" noWrap sx={{
-                                                fontWeight: 600,
-                                                lineHeight: 1.2,
+                                            <Stack direction="row" spacing={0.5} sx={{
+                                                alignItems: 'center',
                                                 maxWidth: '100%',
+                                                minWidth: 0,
                                             }}>
-                                                {tile.label}
-                                            </Typography>
+                                                <Typography variant="subtitle2" noWrap sx={{
+                                                    fontWeight: 600,
+                                                    lineHeight: 1.2,
+                                                }}>
+                                                    {tile.label}
+                                                </Typography>
+                                                <TileArrow className="tile-arrow"
+                                                           sx={{ fontSize: 15 }} />
+                                            </Stack>
                                         </Stack>
                                     </ActionTileButton>
                                     { dismissible &&
@@ -253,13 +284,16 @@ const ActionTileButton = styled(ButtonBase, {
 {
     const palette = (theme.vars || theme).palette;
     const tone = accent ? palette.m3[accent] : undefined;
+    const accentColor = tone ? tone.icon : palette.m3.onPrimary;
 
     return {
         background: tone
             ? tone.background
             : `linear-gradient(135deg, ${palette.m3.primary} 0%, ` +
               `${palette.m3.primaryGradientEnd} 100%)`,
+        border: `1px solid color-mix(in srgb, ${accentColor} 12%, transparent)`,
         borderRadius: kCardBorderRadiusPx,
+        boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.14)',
         color: tone ? tone.text : palette.m3.onPrimary,
         height: '100%',
         minHeight: 80,
@@ -268,6 +302,9 @@ const ActionTileButton = styled(ButtonBase, {
         position: 'relative',
         textAlign: 'left',
         textDecoration: 'none',
+        transition: theme.transitions.create('border-color', {
+            duration: theme.transitions.duration.shorter,
+        }),
         width: '100%',
 
         '&::after': {
@@ -281,16 +318,77 @@ const ActionTileButton = styled(ButtonBase, {
             }),
         },
 
-        '&:hover::after': {
-            backgroundColor: 'rgba(0, 0, 0, 0.08)',
+        '&:hover': {
+            borderColor: `color-mix(in srgb, ${accentColor} 38%, transparent)`,
 
-            ...theme.applyStyles('dark', {
-                backgroundColor: 'rgba(255, 255, 255, 0.10)',
-            }),
+            '&::after': {
+                backgroundColor: 'rgba(0, 0, 0, 0.08)',
+
+                ...theme.applyStyles('dark', {
+                    backgroundColor: 'rgba(255, 255, 255, 0.10)',
+                }),
+            },
+
+            '& .tile-watermark': {
+                opacity: 0.2,
+                transform: 'rotate(-3deg) scale(1.12)',
+            },
+
+            '& .tile-arrow': {
+                opacity: 1,
+                transform: 'translateX(3px)',
+            },
+        },
+
+        '@media (prefers-reduced-motion: reduce)': {
+            '&:hover .tile-watermark': {
+                transform: 'rotate(-10deg)',
+            },
+            '&:hover .tile-arrow': {
+                transform: 'none',
+            },
         },
     };
 }) as ExtendButtonBase<
     ButtonBaseTypeMap<{ accent?: TileAccentKey; dismissible?: boolean; hero?: boolean }>>;
+
+/**
+ * Oversized low-opacity icon watermark tucked into the bottom-right corner of an action tile.
+ */
+const TileWatermark = styled(Box, {
+    shouldForwardProp: prop => prop !== 'accent' && prop !== 'hero',
+})<{ accent?: TileAccentKey; hero?: boolean }>(({ accent, hero, theme }) => {
+    const palette = (theme.vars || theme).palette;
+    const tone = accent ? palette.m3[accent] : undefined;
+
+    return {
+        bottom: -14,
+        color: tone ? tone.icon : palette.m3.onPrimary,
+        display: 'flex',
+        fontSize: hero ? 80 : 68,
+        opacity: 0.1,
+        pointerEvents: 'none',
+        position: 'absolute',
+        right: -10,
+        transform: 'rotate(-10deg)',
+        transition: theme.transitions.create([ 'opacity', 'transform' ], {
+            duration: 280,
+            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+        }),
+    };
+});
+
+/**
+ * Directional arrow affordance paired with the tile label that subtly nudges forward on hover.
+ */
+const TileArrow = styled(ArrowForwardIcon)(({ theme }) => ({
+    flexShrink: 0,
+    opacity: 0.55,
+    transition: theme.transitions.create([ 'opacity', 'transform' ], {
+        duration: theme.transitions.duration.shorter,
+        easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    }),
+}));
 
 /**
  * Rounded icon badge for an overview tile, sized at 36px in the hero slot and 32px in secondary
