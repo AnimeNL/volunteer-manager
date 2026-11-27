@@ -11,10 +11,11 @@ import Stack from '@mui/material/Stack';
 
 import { Header } from '../../components/Header';
 import { Page, SuspenseReveal } from '../../components/Page';
-import { ScheduleList, ScheduleListRow } from '../../components/ScheduleList';
+import { ScheduleListRow } from '../../components/ScheduleList';
 import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
-import { SectionHeader } from '../../components/SectionHeader';
-import { compareTimeslots, getLogicalDate, getTimeslotTiming } from '../../lib/programTime';
+import { ScheduleSection } from '../../components/ScheduleSection';
+import { compareTimeslots, formatTimeRange, getLogicalDate,
+    getTimeslotTiming } from '../../lib/programTime';
 import { createScheduleMetadataFn } from '../../lib/generateScheduleMetadata';
 import { formatDate } from '@lib/Temporal';
 import { getProgramLocationDetail } from '../../lib/data/programData';
@@ -101,7 +102,7 @@ async function LocationScheduleContent(props: { params: Promise<{ event: string;
             progress,
             startMs,
             state,
-            time: `${formatDate(row.start, 'HH:mm')}–${formatDate(row.end, 'HH:mm')}`,
+            time: formatTimeRange(row.start, row.end),
             timeslotId: row.timeslotId,
             title: row.title,
         });
@@ -122,21 +123,18 @@ async function LocationScheduleContent(props: { params: Promise<{ event: string;
             { days.map((day, index) => (
                 <Fragment key={day.dateKey}>
                     { index > 0 && day.isPast && !days[index - 1].isPast && <Divider /> }
-                    <Stack spacing={0.75} useFlexGap>
-                        <SectionHeader muted={day.isPast} title={day.label} />
-                        <ScheduleList muted={day.isPast}>
-                            { day.events.map(programEvent =>
-                                <ScheduleListRow
-                                    key={programEvent.timeslotId}
-                                    hidden={programEvent.hidden}
-                                    href={getSchedulePath(
-                                        event.slug, `/events/${programEvent.activityId}`)}
-                                    progress={programEvent.progress}
-                                    state={programEvent.state}
-                                    title={programEvent.title}
-                                    trailing={programEvent.time} /> ) }
-                        </ScheduleList>
-                    </Stack>
+                    <ScheduleSection muted={day.isPast} title={day.label}>
+                        { day.events.map(programEvent =>
+                            <ScheduleListRow
+                                key={programEvent.timeslotId}
+                                hidden={programEvent.hidden}
+                                href={getSchedulePath(
+                                    event.slug, `/events/${programEvent.activityId}`)}
+                                progress={programEvent.progress}
+                                state={programEvent.state}
+                                title={programEvent.title}
+                                trailing={programEvent.time} /> ) }
+                    </ScheduleSection>
                 </Fragment>
             )) }
         </Stack>

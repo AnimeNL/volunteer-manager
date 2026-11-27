@@ -16,6 +16,7 @@ import { InteractiveSurface } from '../components/InteractiveSurface';
 import { KnowledgeBaseIcon } from '@components/KnowledgeBaseIcon';
 import { RestrictedBadge } from '../components/RestrictedBadge';
 import { getSchedulePath } from '../lib/navigationTypes';
+import { pluralize } from '../lib/format';
 
 /**
  * Props accepted by the <KnowledgeCategoryGrid> component.
@@ -70,9 +71,7 @@ interface KnowledgeCategoryCardProps {
  */
 function KnowledgeCategoryCard(props: KnowledgeCategoryCardProps) {
     const { category, eventSlug } = props;
-    const countLabel = category.questionCount === 1
-        ? '1 question'
-        : `${category.questionCount} questions`;
+    const countLabel = pluralize(category.questionCount, 'question');
 
     return (
         <Grid size={{ xs: 12, sm: 6 }}>

@@ -5,7 +5,7 @@ import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 
 import { ScheduleList, ScheduleListRow } from './ScheduleList';
-import { SectionHeader } from './SectionHeader';
+import { ScheduleSection } from './ScheduleSection';
 
 /**
  * Configuration for a single section group rendered by `<ScheduleListSkeleton>`.
@@ -28,18 +28,15 @@ interface ScheduleListSkeletonProps {
  */
 function renderSkeletonGroup(group: ScheduleListSkeletonGroup, key?: number) {
     return (
-        <Stack key={key} spacing={0.75} useFlexGap>
-            <SectionHeader title={ <Skeleton variant="text" width={group.titleWidth} /> } />
-            <ScheduleList>
-                { group.rows.map((rowWidth, rowIndex) =>
-                    <ScheduleListRow
-                        key={rowIndex}
-                        title={ <Skeleton variant="text" width={rowWidth} /> }
-                        trailing={group.trailingWidth !== undefined
-                            ? <Skeleton variant="text" width={group.trailingWidth} />
-                            : undefined} /> ) }
-            </ScheduleList>
-        </Stack>
+        <ScheduleSection key={key} title={ <Skeleton variant="text" width={group.titleWidth} /> }>
+            { group.rows.map((rowWidth, rowIndex) =>
+                <ScheduleListRow
+                    key={rowIndex}
+                    title={ <Skeleton variant="text" width={rowWidth} /> }
+                    trailing={group.trailingWidth !== undefined
+                        ? <Skeleton variant="text" width={group.trailingWidth} />
+                        : undefined} /> ) }
+        </ScheduleSection>
     );
 }
 

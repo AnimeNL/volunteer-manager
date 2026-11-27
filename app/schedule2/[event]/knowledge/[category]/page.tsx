@@ -6,7 +6,6 @@ import { notFound } from 'next/navigation';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Skeleton from '@mui/material/Skeleton';
-import Stack from '@mui/material/Stack';
 
 import { Header } from '../../components/Header';
 import { KnowledgeBaseIcon } from '@components/KnowledgeBaseIcon';
@@ -14,11 +13,11 @@ import { KnowledgeQuestionItem } from './KnowledgeQuestionList';
 import { Markdown } from '@components/Markdown';
 import { Page, SuspenseReveal } from '../../components/Page';
 import { RestrictedBadge } from '../../components/RestrictedBadge';
-import { ScheduleList } from '../../components/ScheduleList';
 import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
-import { SectionHeader } from '../../components/SectionHeader';
+import { ScheduleSection } from '../../components/ScheduleSection';
 import { createScheduleMetadataFn } from '../../lib/generateScheduleMetadata';
 import { getKnowledgeBaseCategory } from '../../lib/data/knowledgeData';
+import { pluralize } from '../../lib/format';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
 
 /**
@@ -95,24 +94,19 @@ async function CategoryQuestionsContent(props: {
         notFound();
 
     const selectedQuestion = typeof searchParams.q === 'string' ? searchParams.q : undefined;
-    const countLabel = category.questions.length === 1
-        ? '1 question'
-        : `${category.questions.length} questions`;
+    const countLabel = pluralize(category.questions.length, 'question');
 
     return (
-        <Stack spacing={0.75} useFlexGap>
-            <SectionHeader title={countLabel} />
-            <ScheduleList>
-                { category.questions.map(({ answer, id, question }) =>
-                    <KnowledgeQuestionItem
-                        key={id}
-                        defaultExpanded={selectedQuestion === id}
-                        id={id}
-                        question={question}>
-                        <Markdown content={answer} variant="body2" />
-                    </KnowledgeQuestionItem> ) }
-            </ScheduleList>
-        </Stack>
+        <ScheduleSection title={countLabel}>
+            { category.questions.map(({ answer, id, question }) =>
+                <KnowledgeQuestionItem
+                    key={id}
+                    defaultExpanded={selectedQuestion === id}
+                    id={id}
+                    question={question}>
+                    <Markdown content={answer} variant="body2" />
+                </KnowledgeQuestionItem> ) }
+        </ScheduleSection>
     );
 }
 

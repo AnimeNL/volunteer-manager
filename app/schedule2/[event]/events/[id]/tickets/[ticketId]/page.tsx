@@ -5,17 +5,17 @@ import { forbidden, notFound } from 'next/navigation';
 
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import Skeleton from '@mui/material/Skeleton';
-import Stack from '@mui/material/Stack';
 
 import { EmptyStateCard } from '../../../../components/EmptyStateCard';
 import { Header } from '../../../../components/Header';
 import { Page, SuspenseReveal } from '../../../../components/Page';
-import { ScheduleList, ScheduleListRow } from '../../../../components/ScheduleList';
+import { ScheduleListRow } from '../../../../components/ScheduleList';
 import { ScheduleListSkeleton } from '../../../../components/ScheduleListSkeleton';
-import { SectionHeader } from '../../../../components/SectionHeader';
+import { ScheduleSection } from '../../../../components/ScheduleSection';
 import { createScheduleMetadataFn } from '../../../../lib/generateScheduleMetadata';
 import { getEventTicketHolders } from '../../../../lib/data/ticketData';
 import { getProgramEventSummary } from '../../../../lib/data/programData';
+import { pluralize } from '../../../../lib/format';
 import { requireScheduleAccess } from '../../../../lib/getScheduleAccess';
 
 /**
@@ -68,9 +68,7 @@ async function EventTicketsDescription(
     if (!data)
         return null;
 
-    const count = data.holders.length;
-    const label = count === 1 ? 'ticket' : 'tickets';
-    return `${data.productName} · ${count} ${label}`;
+    return `${data.productName} · ${pluralize(data.holders.length, 'ticket')}`;
 }
 
 /**
@@ -91,16 +89,13 @@ async function EventTicketsContent(
     }
 
     return (
-        <Stack spacing={0.75} useFlexGap>
-            <SectionHeader title="Ticket holders" />
-            <ScheduleList>
-                { data.holders.map(holder =>
-                    <ScheduleListRow
-                        key={holder.id}
-                        title={holder.name}
-                        trailing={holder.orderNumber} /> ) }
-            </ScheduleList>
-        </Stack>
+        <ScheduleSection title="Ticket holders">
+            { data.holders.map(holder =>
+                <ScheduleListRow
+                    key={holder.id}
+                    title={holder.name}
+                    trailing={holder.orderNumber} /> ) }
+        </ScheduleSection>
     );
 }
 

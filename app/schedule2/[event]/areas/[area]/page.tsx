@@ -9,14 +9,15 @@ import Stack from '@mui/material/Stack';
 
 import { Header } from '../../components/Header';
 import { Page, SuspenseReveal } from '../../components/Page';
-import { ScheduleList, ScheduleListRow } from '../../components/ScheduleList';
+import { ScheduleListRow } from '../../components/ScheduleList';
 import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
-import { SectionHeader } from '../../components/SectionHeader';
+import { ScheduleSection } from '../../components/ScheduleSection';
 import { createScheduleMetadataFn } from '../../lib/generateScheduleMetadata';
 import { formatDate } from '@lib/Temporal';
-import { getLogicalDate, getTimeslotTiming } from '../../lib/programTime';
+import { formatTimeRange, getLogicalDate, getTimeslotTiming } from '../../lib/programTime';
 import { getProgramAreaDetail } from '../../lib/data/programData';
 import { getSchedulePath } from '../../lib/navigationTypes';
+import { pluralize } from '../../lib/format';
 import { readSetting } from '@lib/Settings';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
 
@@ -43,8 +44,7 @@ async function AreaDescription(props: { params: Promise<{ area: string; event: s
     if (!data)
         return null;
 
-    const label = data.locationCount === 1 ? 'location' : 'locations';
-    return `${data.locationCount} ${label} in this area`;
+    return `${pluralize(data.locationCount, 'location')} in this area`;
 }
 
 /**
@@ -111,39 +111,36 @@ async function AreaLocationsContent(props: { params: Promise<{ area: string; eve
                 const isEmpty = !location.events.length;
 
                 return (
-                    <Stack key={location.id} spacing={0.75} useFlexGap>
-                        <SectionHeader
-                            actionLabel="Full schedule"
-                            href={getSchedulePath(event.slug, `/locations/${location.id}`)}
-                            muted={isEmpty}
-                            title={location.name} />
-                        <ScheduleList muted={isEmpty}>
-                            { isEmpty &&
-                                <ScheduleListRow title="No upcoming events" /> }
-                            { location.events.map(row => {
-                                const timing = getTimeslotTiming(
-                                    row.start.epochMilliseconds, row.end.epochMilliseconds, nowMs);
+                    <ScheduleSection
+                        key={location.id}
+                        actionLabel="Full schedule"
+                        href={getSchedulePath(event.slug, `/locations/${location.id}`)}
+                        muted={isEmpty}
+                        title={location.name}>
+                        { isEmpty &&
+                            <ScheduleListRow title="No upcoming events" /> }
+                        { location.events.map(row => {
+                            const timing = getTimeslotTiming(
+                                row.start.epochMilliseconds, row.end.epochMilliseconds, nowMs);
 
-                                const sameDay = today.equals(getLogicalDate(row.start));
-                                const trailing = timing.isActive
-                                    ? `until ${formatDate(row.end, 'HH:mm')}`
-                                    : `${formatDate(row.start, sameDay ? 'HH:mm' : 'ddd, HH:mm')}` +
-                                      `–${formatDate(row.end, 'HH:mm')}`;
+                            const sameDay = today.equals(getLogicalDate(row.start));
+                            const trailing = timing.isActive
+                                ? `until ${formatDate(row.end, 'HH:mm')}`
+                                : formatTimeRange(row.start, row.end, { includeDay: !sameDay });
 
-                                return (
-                                    <ScheduleListRow
-                                        key={row.timeslotId}
-                                        hidden={row.hidden}
-                                        href={getSchedulePath(
-                                            event.slug, `/events/${row.activityId}`)}
-                                        progress={timing.progress}
-                                        state={timing.state}
-                                        title={row.title}
-                                        trailing={trailing} />
-                                );
-                            }) }
-                        </ScheduleList>
-                    </Stack>
+                            return (
+                                <ScheduleListRow
+                                    key={row.timeslotId}
+                                    hidden={row.hidden}
+                                    href={getSchedulePath(
+                                        event.slug, `/events/${row.activityId}`)}
+                                    progress={timing.progress}
+                                    state={timing.state}
+                                    title={row.title}
+                                    trailing={trailing} />
+                            );
+                        }) }
+                    </ScheduleSection>
                 );
             }) }
         </Stack>

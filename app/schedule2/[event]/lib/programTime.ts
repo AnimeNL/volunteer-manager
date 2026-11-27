@@ -1,6 +1,8 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { formatDate } from '@lib/Temporal';
+
 /**
  * Hour of the morning at which the logical festival day rolls over.
  */
@@ -45,4 +47,16 @@ export function compareTimeslots(
     return Number(lhs.isPast) - Number(rhs.isPast) ||
         lhs.startMs - rhs.startMs ||
         lhs.endMs - rhs.endMs;
+}
+
+/**
+ * Formats a `start`–`end` time range, optionally prefixing `start` with its abbreviated weekday.
+ */
+export function formatTimeRange(
+    start: Temporal.ZonedDateTime,
+    end: Temporal.ZonedDateTime,
+    options?: { includeDay?: boolean },
+): string {
+    const startFormat = options?.includeDay ? 'ddd, HH:mm' : 'HH:mm';
+    return `${formatDate(start, startFormat)}–${formatDate(end, 'HH:mm')}`;
 }

@@ -1,7 +1,8 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { compareTimeslots, getLogicalDate, getTimeslotTiming } from './programTime';
+import { compareTimeslots, formatTimeRange, getLogicalDate,
+    getTimeslotTiming } from './programTime';
 
 describe('programTime', () => {
     describe('getLogicalDate', () => {
@@ -109,6 +110,18 @@ describe('programTime', () => {
                 upcomingLateStart,
                 pastEarly,
             ]);
+        });
+    });
+
+    describe('formatTimeRange', () => {
+        it('formats start and end times with an optional weekday prefix', () => {
+            const start = Temporal.ZonedDateTime.from(
+                '2026-06-06T14:00:00+02:00[Europe/Amsterdam]');
+            const end = Temporal.ZonedDateTime.from(
+                '2026-06-06T16:30:00+02:00[Europe/Amsterdam]');
+
+            expect(formatTimeRange(start, end)).toEqual('14:00–16:30');
+            expect(formatTimeRange(start, end, { includeDay: true })).toEqual('Sat, 14:00–16:30');
         });
     });
 });

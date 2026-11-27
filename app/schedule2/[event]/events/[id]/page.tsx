@@ -11,12 +11,11 @@ import { EventFavouriteButton } from './EventFavouriteButton';
 import { EventTicketSalesSection } from './EventTicketSalesSection';
 import { Header } from '../../components/Header';
 import { Page, SuspenseReveal } from '../../components/Page';
-import { ScheduleList, ScheduleListRow } from '../../components/ScheduleList';
+import { ScheduleListRow } from '../../components/ScheduleList';
 import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
-import { SectionHeader } from '../../components/SectionHeader';
-import { compareTimeslots, getTimeslotTiming } from '../../lib/programTime';
+import { ScheduleSection } from '../../components/ScheduleSection';
+import { compareTimeslots, formatTimeRange, getTimeslotTiming } from '../../lib/programTime';
 import { createScheduleMetadataFn } from '../../lib/generateScheduleMetadata';
-import { formatDate } from '@lib/Temporal';
 import { getEventTicketSales } from '../../lib/data/ticketData';
 import { getProgramEventDetail } from '../../lib/data/programData';
 import { getSchedulePath } from '../../lib/navigationTypes';
@@ -110,7 +109,7 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
                 progress,
                 startMs,
                 state,
-                time: `${formatDate(row.start, 'ddd, HH:mm')}–${formatDate(row.end, 'HH:mm')}`,
+                time: formatTimeRange(row.start, row.end, { includeDay: true }),
                 timeslotId: row.timeslotId,
             };
         })
@@ -122,19 +121,16 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
 
     return (
         <Stack spacing={2} useFlexGap>
-            <Stack spacing={0.75} useFlexGap>
-                <SectionHeader muted={allPast} title="Timeslots" />
-                <ScheduleList muted={allPast}>
-                    { timeslots.map(timeslot =>
-                        <ScheduleListRow
-                            key={timeslot.timeslotId}
-                            href={getSchedulePath(event.slug, `/locations/${timeslot.locationId}`)}
-                            progress={timeslot.progress}
-                            state={timeslot.state}
-                            title={timeslot.locationName}
-                            trailing={timeslot.time} /> ) }
-                </ScheduleList>
-            </Stack>
+            <ScheduleSection muted={allPast} title="Timeslots">
+                { timeslots.map(timeslot =>
+                    <ScheduleListRow
+                        key={timeslot.timeslotId}
+                        href={getSchedulePath(event.slug, `/locations/${timeslot.locationId}`)}
+                        progress={timeslot.progress}
+                        state={timeslot.state}
+                        title={timeslot.locationName}
+                        trailing={timeslot.time} /> ) }
+            </ScheduleSection>
             <EventTicketSalesSection
                 activityId={data.activityId}
                 canViewTickets={canViewTickets}

@@ -8,3 +8,12 @@ export function formatEuroPrice(cents: number): string {
     const euros = cents / 100;
     return Number.isInteger(euros) ? `€${euros}` : `€${euros.toFixed(2)}`;
 }
+
+/**
+ * Formats a count with a singular or plural noun label (e.g. `1 ticket` or `3 tickets`).
+ */
+export function pluralize(
+    count: number, singular: string, plural: string = `${singular}s`): string
+{
+    return count === 1 ? `1 ${singular}` : `${count} ${plural}`;
+}

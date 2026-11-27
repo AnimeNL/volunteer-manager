@@ -13,6 +13,7 @@ import { SegmentedListSkeleton } from '../components/ScheduleListSkeleton';
 import { createScheduleMetadataFn } from '../lib/generateScheduleMetadata';
 import { getProgramAreasWithLocations } from '../lib/data/programData';
 import { getSchedulePath } from '../lib/navigationTypes';
+import { pluralize } from '../lib/format';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
 
 /**
@@ -47,9 +48,7 @@ async function AreasListContent(props: { params: Promise<{ event: string }> }) {
                         activeCount++;
                 }
 
-                const activeLabel = activeCount === 1
-                    ? '1 active event'
-                    : `${activeCount} active events`;
+                const activeLabel = pluralize(activeCount, 'active event');
 
                 return (
                     <ScheduleListRow

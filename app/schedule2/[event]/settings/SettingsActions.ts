@@ -9,23 +9,7 @@ import { executeServerAction } from '@lib/serverAction';
 import { requireVolunteerAuthenticationWithEvent } from '@lib/auth';
 import { writeUserSetting } from '@lib/UserSettings';
 
-/**
- * Zod transformer validating that the input conforms to `Temporal.PlainDateTime` constraints,
- * matching the pattern in `app/admin/lib/ZodTransformers.ts`.
- */
-const kTemporalPlainDateTime = z.string().transform((value, context) => {
-    try {
-        return Temporal.PlainDateTime.from(value);
-    } catch (error: any) {
-        context.addIssue({
-            code: 'custom',
-            message: `Only plain date-times are accepted (YYYY-MM-DDTHH:mm), got "${value}"`,
-            _error: error,
-        });
-    }
-
-    return z.NEVER;
-});
+import { kTemporalPlainDateTime } from '@lib/ZodHelpers';
 
 /**
  * Zod schema describing the data accepted by `updateScheduleTimeOffset`.
