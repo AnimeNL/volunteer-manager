@@ -245,7 +245,8 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
             data-active={state === 'active' || undefined}
             hasSubtitle={!!subtitle}
             isHidden={hidden}
-            rowState={state}>
+            rowState={state}
+            segmented={segmented}>
             {inner}
         </RowStatic>
     );
@@ -302,6 +303,19 @@ function rowSurfaceStyles(theme: Theme) {
                 },
             },
             {
+                props: { segmented: true },
+                style: {
+                    borderRadius: 4,
+                    overflow: 'hidden',
+                },
+            },
+            {
+                props: { rowState: 'default' as ScheduleListRowState, segmented: true },
+                style: {
+                    backgroundColor: palette.background.paper,
+                },
+            },
+            {
                 props: { rowState: 'active' as ScheduleListRowState },
                 style: {
                     backgroundColor: mixColor(palette.secondary.main, 65, palette.background.paper),
@@ -342,9 +356,10 @@ const RowButton = styled(ButtonBase, {
     shouldForwardProp: isRowSurfaceProp,
 })<RowSurfaceProps>(({ theme }) => {
     const palette = (theme.vars || theme).palette;
+    const baseSurface = rowSurfaceStyles(theme);
 
     return {
-        ...rowSurfaceStyles(theme),
+        ...baseSurface,
         transition: theme.transitions.create('background-color', {
             duration: theme.transitions.duration.shorter,
         }),
@@ -354,6 +369,7 @@ const RowButton = styled(ButtonBase, {
         },
 
         variants: [
+            ...baseSurface.variants,
             {
                 props: { rowState: 'default', segmented: true },
                 style: {

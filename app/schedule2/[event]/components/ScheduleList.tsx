@@ -103,15 +103,9 @@ const ConjoinedListRoot = styled(Box, {
 });
 
 /**
- * M3 Expressive segmented stack applying 12px outer corners and 4px inner corners to child rows.
+ * M3 Expressive segmented stack applying 12px outer corners to the first and last child rows.
  */
 const SegmentedListRoot = styled(Stack)(({ theme }) => ({
-    '& > *': {
-        backgroundColor: (theme.vars || theme).palette.background.paper,
-        borderRadius: 4,
-        overflow: 'hidden',
-    },
-
     '& > :first-of-type': {
         borderTopLeftRadius: theme.shape.borderRadius,
         borderTopRightRadius: theme.shape.borderRadius,
