@@ -108,11 +108,6 @@ interface ScheduleListRowProps {
      * Optional compact right-aligned metadata (e.g. tabular time range or location count).
      */
     trailing?: React.ReactNode;
-
-    /**
-     * Optional React View Transition types applied when navigating via `href`.
-     */
-    transitionTypes?: string[];
 }
 
 /**
@@ -130,7 +125,6 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
         subtitle,
         title,
         trailing,
-        transitionTypes,
     } = props;
 
     // Remount <RowButton> when Next.js hides this route via <Activity mode="hidden"> so in-flight
@@ -200,8 +194,7 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
                 data-state={state}
                 hasSubtitle={!!subtitle}
                 href={href}
-                rowState={state}
-                transitionTypes={transitionTypes}>
+                rowState={state}>
                 {inner}
             </RowButton>
         );

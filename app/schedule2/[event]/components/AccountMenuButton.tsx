@@ -4,7 +4,6 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
 import Avatar from '@mui/material/Avatar';
@@ -29,8 +28,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
 import { useColorScheme } from '@mui/material/styles';
 
-import { getNavigationTransitionTypes, getRelativeNavigationPath,
-    getSchedulePath } from '../lib/navigationTypes';
+import { getSchedulePath } from '../lib/navigationTypes';
 import { useInstallPrompt } from '../lib/installPrompt';
 
 import { kHeaderBarHeightPx } from '../Constants';
@@ -113,6 +111,47 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
         </>
     ) : null;
 
+    const personalItems = [
+        hasHotelRoom && {
+            icon: <HotelOutlinedIcon fontSize="small" />,
+            label: 'Hotel room',
+            segment: '/hotel',
+        },
+        hasTicket && {
+            icon: <ConfirmationNumberOutlinedIcon fontSize="small" />,
+            label: 'Your ticket',
+            segment: '/ticket',
+        },
+    ].filter((item): item is Exclude<typeof item, false | undefined> => !!item);
+
+    const portalItems = [
+        hasDevelopment && {
+            icon: <CodeIcon fontSize="small" />,
+            label: 'Development',
+            segment: '/settings',
+        },
+        {
+            icon: <FeedbackOutlinedIcon fontSize="small" />,
+            label: 'Feedback',
+            segment: '/feedback',
+        },
+    ].filter((item): item is Exclude<typeof item, false | undefined> => !!item);
+
+    function renderEventMenuItem(
+        slug: string, item: { icon: React.ReactNode; label: string; segment: string })
+    {
+        return (
+            <MenuItem
+                key={item.segment}
+                component={Link}
+                href={getSchedulePath(slug, item.segment)}
+                onClick={() => setAnchorEl(null)}>
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.label} />
+            </MenuItem>
+        );
+    }
+
     return (
         <>
             <IconButton aria-label="Account menu"
@@ -150,13 +189,16 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                 </Box>
                 <Divider sx={{ my: 1 }} />
                 { !!eventSlug ? (
-                    <EventAccountMenuItems
-                        eventSlug={eventSlug}
-                        hasDevelopment={hasDevelopment}
-                        hasHotelRoom={hasHotelRoom}
-                        hasTicket={hasTicket}
-                        installSection={installSection}
-                        onClose={() => setAnchorEl(null)} />
+                    <>
+                        { personalItems.length > 0 && (
+                            <>
+                                { personalItems.map(item => renderEventMenuItem(eventSlug, item)) }
+                                <Divider sx={{ my: 1 }} />
+                            </>
+                        ) }
+                        { installSection }
+                        { portalItems.map(item => renderEventMenuItem(eventSlug, item)) }
+                    </>
                 ) : installSection }
                 <MenuItem onClick={handleSignOut}>
                     <ListItemIcon>
@@ -165,76 +207,6 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                     <ListItemText primary="Sign out" />
                 </MenuItem>
             </Menu>
-        </>
-    );
-}
-
-/**
- * Leaf client component reading `usePathname()` for event-scoped account menu links so the static
- * `<AccountMenuButton />` fallback never suspends during prerendering.
- */
-function EventAccountMenuItems(props: {
-    eventSlug: string;
-    hasDevelopment?: boolean;
-    hasHotelRoom?: boolean;
-    hasTicket?: boolean;
-    installSection?: React.ReactNode;
-    onClose: () => void;
-}) {
-    const { eventSlug, hasDevelopment, hasHotelRoom, hasTicket, installSection, onClose } = props;
-    const pathname = usePathname();
-    const relativePathname = getRelativeNavigationPath(pathname, eventSlug);
-
-    const personalItems = [
-        hasHotelRoom && {
-            icon: <HotelOutlinedIcon fontSize="small" />,
-            label: 'Hotel room',
-            segment: '/hotel',
-        },
-        hasTicket && {
-            icon: <ConfirmationNumberOutlinedIcon fontSize="small" />,
-            label: 'Your ticket',
-            segment: '/ticket',
-        },
-    ].filter((item): item is Exclude<typeof item, false | undefined> => !!item);
-
-    const portalItems = [
-        hasDevelopment && {
-            icon: <CodeIcon fontSize="small" />,
-            label: 'Development',
-            segment: '/settings',
-        },
-        {
-            icon: <FeedbackOutlinedIcon fontSize="small" />,
-            label: 'Feedback',
-            segment: '/feedback',
-        },
-    ].filter((item): item is Exclude<typeof item, false | undefined> => !!item);
-
-    function renderMenuItem(item: { icon: React.ReactNode; label: string; segment: string }) {
-        return (
-            <MenuItem
-                key={item.segment}
-                component={Link}
-                href={getSchedulePath(eventSlug, item.segment)}
-                onClick={onClose}
-                transitionTypes={getNavigationTransitionTypes(relativePathname, item.segment)}>
-                <ListItemIcon>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.label} />
-            </MenuItem>
-        );
-    }
-
-    return (
-        <>
-            { personalItems.length > 0 && (
-                <>
-                    { personalItems.map(renderMenuItem) }
-                    <Divider sx={{ my: 1 }} />
-                </>
-            ) }
-            { installSection }
-            { portalItems.map(renderMenuItem) }
         </>
     );
 }

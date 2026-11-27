@@ -2,14 +2,6 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 /**
- * Spatial order of top-level schedule navigation segments for directional view transitions.
- */
-const kNavigationSectionOrder = [
-    '', '/shifts', '/areas', '/duty-book', '/help-requests', '/knowledge', '/volunteers',
-    '/settings', '/hotel', '/ticket', '/scanner', '/feedback', '/vendors',
-];
-
-/**
  * Program area summary rendered in schedule navigation menus.
  */
 export interface NavigationArea {
@@ -65,23 +57,6 @@ export function isNavigationPathActive(relativePathname: string, targetPath: str
         return relativePathname === '';
 
     return relativePathname === targetPath || relativePathname.startsWith(`${targetPath}/`);
-}
-
-/**
- * Determines directional view-transition types (`nav-forward` / `nav-back`) between top-level
- * schedule sections based on their spatial order.
- */
-export function getNavigationTransitionTypes(
-    relativePathname: string, targetSegment: string): string[] | undefined
-{
-    const currentIndex = kNavigationSectionOrder.findIndex(segment =>
-        isNavigationPathActive(relativePathname, segment));
-    const targetIndex = kNavigationSectionOrder.indexOf(targetSegment);
-
-    if (currentIndex < 0 || targetIndex < 0 || currentIndex === targetIndex)
-        return undefined;
-
-    return targetIndex > currentIndex ? [ 'nav-forward' ] : [ 'nav-back' ];
 }
 
 /**

@@ -84,11 +84,6 @@ interface OverviewTileProps {
      * Secondary caption displayed beneath `label` when `hero` is set.
      */
     subtitle?: string;
-
-    /**
-     * Next.js view transition types applied when navigating via the tile.
-     */
-    transitionTypes?: string[];
 }
 
 /**
@@ -96,13 +91,11 @@ interface OverviewTileProps {
  * horizontal `hero` layout and the compact vertical supporting layout on a shared surface.
  */
 export function OverviewTile(props: OverviewTileProps) {
-    const { accent, hero, href, icon: Icon, label, onDismiss, rippleKey, subtitle,
-        transitionTypes } = props;
+    const { accent, hero, href, icon: Icon, label, onDismiss, rippleKey, subtitle } = props;
 
     return (
         <Box sx={{ height: '100%', position: 'relative' }}>
-            <TileSurface key={rippleKey} accent={accent} component={Link} href={href}
-                         transitionTypes={transitionTypes}>
+            <TileSurface key={rippleKey} accent={accent} component={Link} href={href}>
                 <Box aria-hidden className="tile-watermark">
                     <Icon sx={{ fontSize: 'inherit' }} />
                 </Box>

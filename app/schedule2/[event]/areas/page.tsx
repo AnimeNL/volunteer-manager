@@ -85,8 +85,7 @@ async function AreasListContent(props: { params: Promise<{ event: string }> }) {
                         chevron
                         href={getSchedulePath(event.slug, `/areas/${area.id}`)}
                         subtitle={subtitle}
-                        title={area.name}
-                        transitionTypes={[ 'nav-forward' ]} />
+                        title={area.name} />
                 );
             }) }
         </ScheduleList>

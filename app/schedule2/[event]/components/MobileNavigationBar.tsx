@@ -22,8 +22,8 @@ import { styled } from '@mui/material/styles';
 
 import type { MobileNavigationTab, NavigationData } from '../lib/navigationTypes';
 import { MobileMoreSheet } from './MobileMoreSheet';
-import { getActiveMobileTab, getNavigationTransitionTypes,
-    getRelativeNavigationPath, getSchedulePath } from '../lib/navigationTypes';
+import { getActiveMobileTab, getRelativeNavigationPath,
+    getSchedulePath } from '../lib/navigationTypes';
 
 /**
  * Props accepted by the route-aware <MobileNavigationBar> client component.
@@ -53,8 +53,7 @@ export function MobileNavigationBar(props: MobileNavigationBarProps) {
             <MobileFloatingPill
                 activeTab={moreOpen ? 'more' : activeTab}
                 eventSlug={slug}
-                onOpenMore={() => setMoreOpen(true)}
-                relativePathname={relativePathname} />
+                onOpenMore={() => setMoreOpen(true)} />
 
             <MobileMoreSheet
                 data={data}
@@ -72,7 +71,6 @@ interface MobileFloatingPillProps {
     activeTab: MobileNavigationTab;
     eventSlug?: string;
     onOpenMore?: () => void;
-    relativePathname?: string;
 }
 
 /**
@@ -80,7 +78,7 @@ interface MobileFloatingPillProps {
  * `<Suspense>` fallback and the route-aware live bar to prevent layout shift.
  */
 export function MobileFloatingPill(props: MobileFloatingPillProps) {
-    const { activeTab, eventSlug, onOpenMore, relativePathname } = props;
+    const { activeTab, eventSlug, onOpenMore } = props;
 
     const tabs: {
         ariaLabel?: string;
@@ -135,10 +133,6 @@ export function MobileFloatingPill(props: MobileFloatingPillProps) {
                     );
 
                     if (tab.segment !== undefined && eventSlug) {
-                        const transitionTypes = relativePathname !== undefined
-                            ? getNavigationTransitionTypes(relativePathname, tab.segment)
-                            : undefined;
-
                         return (
                             <NavPillButton
                                 key={tab.id}
@@ -146,8 +140,7 @@ export function MobileFloatingPill(props: MobileFloatingPillProps) {
                                 aria-current={active ? 'page' : undefined}
                                 aria-label={tab.ariaLabel ?? tab.label}
                                 component={Link}
-                                href={getSchedulePath(eventSlug, tab.segment)}
-                                transitionTypes={transitionTypes}>
+                                href={getSchedulePath(eventSlug, tab.segment)}>
                                 {content}
                             </NavPillButton>
                         );

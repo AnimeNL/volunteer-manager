@@ -31,11 +31,6 @@ interface SectionHeaderProps {
      * Primary section heading text, rendered with MUI's uppercase `overline` typography.
      */
     title: React.ReactNode;
-
-    /**
-     * Optional React View Transition types applied when navigating via `href`.
-     */
-    transitionTypes?: string[];
 }
 
 /**
@@ -43,7 +38,7 @@ interface SectionHeaderProps {
  * optionally link through to a detail page with a right-aligned action label and chevron.
  */
 export function SectionHeader(props: SectionHeaderProps) {
-    const { actionLabel, href, muted = false, title, transitionTypes } = props;
+    const { actionLabel, href, muted = false, title } = props;
 
     const content = (
         <Stack direction="row" spacing={1} sx={{
@@ -79,7 +74,7 @@ export function SectionHeader(props: SectionHeaderProps) {
         return content;
 
     return (
-        <Link href={href} transitionTypes={transitionTypes} style={{
+        <Link href={href} style={{
             WebkitTapHighlightColor: 'transparent',
             color: 'inherit',
             display: 'block',

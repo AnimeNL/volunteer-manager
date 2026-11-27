@@ -16,7 +16,7 @@ import List from '@mui/material/List';
 import type { NavigationData } from '../lib/navigationTypes';
 import { ExpandableNavigationSection, NavigationLink, SecondaryNavigationItems,
     createNavigationSubItem } from './NavigationList';
-import { getNavigationTransitionTypes, getRelativeNavigationPath, getSchedulePath,
+import { getRelativeNavigationPath, getSchedulePath,
     isNavigationPathActive } from '../lib/navigationTypes';
 
 /**
@@ -53,10 +53,7 @@ export function VolunteerNavigationItems(props: { data: NavigationData }) {
                 href={getSchedulePath(eventSlug, '/shifts')}
                 icon={ <AccessTimeIcon fontSize="small" /> }
                 label="Your schedule"
-                selected={isNavigationPathActive(relativePathname, '/shifts')}
-                transitionTypes={
-                    getNavigationTransitionTypes(relativePathname, '/shifts')
-                } />
+                selected={isNavigationPathActive(relativePathname, '/shifts')} />
 
             <ExpandableNavigationSection
                 activeIcon={ <EventNoteIcon fontSize="small" /> }
@@ -67,8 +64,7 @@ export function VolunteerNavigationItems(props: { data: NavigationData }) {
                 items={areaItems}
                 label="Events"
                 sectionId="events"
-                selected={relativePathname === '/areas'}
-                transitionTypes={getNavigationTransitionTypes(relativePathname, '/areas')} />
+                selected={relativePathname === '/areas'} />
 
             <SecondaryNavigationItems data={props.data} relativePathname={relativePathname} />
         </>
@@ -88,8 +84,9 @@ function OverviewItem(props: { eventSlug?: string; relativePathname?: string }) 
             href={eventSlug ? getSchedulePath(eventSlug) : undefined}
             icon={ <HomeOutlinedIcon fontSize="small" /> }
             label="Overview"
-            selected={relativePathname !== undefined && isNavigationPathActive(relativePathname, '')}
-            transitionTypes={relativePathname ? [ 'nav-back' ] : undefined} />
+            selected={
+                relativePathname !== undefined && isNavigationPathActive(relativePathname, '')
+            } />
     );
 }
 

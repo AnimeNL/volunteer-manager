@@ -195,8 +195,7 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
                                 ? 'past'
                                 : (timeslot.isActive ? 'active' : 'default')}
                             title={timeslot.locationName}
-                            trailing={timeslot.time}
-                            transitionTypes={[ 'nav-forward' ]} /> ) }
+                            trailing={timeslot.time} /> ) }
                 </ScheduleList>
             </Stack>
             { sales.length > 0 &&
@@ -252,8 +251,7 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
                                     progress={progress}
                                     progressColor={progressColor}
                                     title={entry.name}
-                                    trailing={trailing}
-                                    transitionTypes={href ? [ 'nav-forward' ] : undefined} />
+                                    trailing={trailing} />
                             );
                         }) }
                     </ScheduleList>

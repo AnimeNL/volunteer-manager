@@ -19,7 +19,7 @@ import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
 import type { VendorTeam } from '@lib/database/Types';
-import { getNavigationTransitionTypes, getSchedulePath } from '../lib/navigationTypes';
+import { getSchedulePath } from '../lib/navigationTypes';
 
 import { kVendorTeam } from '@lib/database/Types';
 
@@ -124,8 +124,7 @@ export function OverviewVendorCard(props: OverviewVendorCardProps) {
                             <VendorRowButton
                                 key={rippleKey}
                                 component={Link}
-                                href={getSchedulePath(eventSlug, `/vendors/${entry.team}`)}
-                                transitionTypes={getNavigationTransitionTypes('', '/vendors')}>
+                                href={getSchedulePath(eventSlug, `/vendors/${entry.team}`)}>
                                 {content}
                             </VendorRowButton>
                         ) : (

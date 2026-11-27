@@ -15,7 +15,7 @@ import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 
 import type { TileAccentKey } from './OverviewTile';
 import { OverviewTile } from './OverviewTile';
-import { getNavigationTransitionTypes, getSchedulePath } from '../lib/navigationTypes';
+import { getSchedulePath } from '../lib/navigationTypes';
 
 import { type DismissibleOverviewActionTileId,
     dismissOverviewActionTile } from './OverviewActions';
@@ -140,8 +140,7 @@ export function OverviewTiles(props: OverviewTilesProps) {
                 label={tile.label}
                 onDismiss={isDismissibleTile(tileId) ? () => handleDismiss(tileId) : undefined}
                 rippleKey={rippleKey}
-                subtitle={tile.subtitle}
-                transitionTypes={getNavigationTransitionTypes('', tile.segment)} />
+                subtitle={tile.subtitle} />
         );
     }
 

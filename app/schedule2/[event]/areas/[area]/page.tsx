@@ -166,8 +166,7 @@ async function AreaLocationsContent(props: { params: Promise<{ area: string; eve
                             actionLabel="Full schedule"
                             href={getSchedulePath(event.slug, `/locations/${location.id}`)}
                             muted={isEmpty}
-                            title={location.name}
-                            transitionTypes={[ 'nav-forward' ]} />
+                            title={location.name} />
                         <ScheduleList muted={isEmpty}>
                             { isEmpty &&
                                 <ScheduleListRow title="No upcoming events" /> }
@@ -198,8 +197,7 @@ async function AreaLocationsContent(props: { params: Promise<{ area: string; eve
                                             : undefined}
                                         state={isActive ? 'active' : 'default'}
                                         title={row.title}
-                                        trailing={trailing}
-                                        transitionTypes={[ 'nav-forward' ]} />
+                                        trailing={trailing} />
                                 );
                             }) }
                         </ScheduleList>

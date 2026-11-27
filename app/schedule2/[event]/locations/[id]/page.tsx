@@ -185,8 +185,7 @@ async function LocationScheduleContent(props: { params: Promise<{ event: string;
                                         ? 'past'
                                         : (programEvent.isActive ? 'active' : 'default')}
                                     title={programEvent.title}
-                                    trailing={programEvent.time}
-                                    transitionTypes={[ 'nav-forward' ]} /> ) }
+                                    trailing={programEvent.time} /> ) }
                         </ScheduleList>
                     </Stack>
                 </Fragment>

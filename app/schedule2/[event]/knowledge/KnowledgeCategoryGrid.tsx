@@ -62,8 +62,7 @@ export function KnowledgeCategoryGrid(props: KnowledgeCategoryGridProps) {
                         <CategoryCardButton
                             key={rippleKey}
                             component={Link}
-                            href={getSchedulePath(eventSlug, `/knowledge/${category.id}`)}
-                            transitionTypes={[ 'nav-forward' ]}>
+                            href={getSchedulePath(eventSlug, `/knowledge/${category.id}`)}>
                             <Stack spacing={1.5} sx={{
                                 height: '100%',
                                 justifyContent: 'space-between',

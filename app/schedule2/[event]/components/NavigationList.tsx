@@ -28,8 +28,7 @@ import { styled } from '@mui/material/styles';
 
 import type { ExpandableNavigationSectionId } from './NavigationActions';
 import type { NavigationData } from '../lib/navigationTypes';
-import { getNavigationTransitionTypes, getSchedulePath,
-    isNavigationPathActive } from '../lib/navigationTypes';
+import { getSchedulePath, isNavigationPathActive } from '../lib/navigationTypes';
 
 import { updateNavigationSectionExpanded } from './NavigationActions';
 
@@ -77,11 +76,6 @@ interface NavigationLinkProps {
      * targets).
      */
     sheet?: boolean;
-
-    /**
-     * Directional view-transition types passed to `<Link>`.
-     */
-    transitionTypes?: string[];
 }
 
 /**
@@ -91,7 +85,7 @@ export function NavigationLink(props: NavigationLinkProps) {
     return (
         <NavigationItem component={props.href ? Link : 'div'} hasAction={props.hasAction}
                         href={props.href} onClick={props.onClick} selected={props.selected}
-                        sheet={props.sheet} transitionTypes={props.transitionTypes}>
+                        sheet={props.sheet}>
             <ListItemIcon>
                 { props.selected && props.activeIcon ? props.activeIcon : props.icon }
             </ListItemIcon>
@@ -140,7 +134,6 @@ interface ExpandableNavigationSectionProps {
     sectionId: ExpandableNavigationSectionId;
     selected: boolean;
     sheet?: boolean;
-    transitionTypes?: string[];
 }
 
 /**
@@ -158,8 +151,7 @@ export function ExpandableNavigationSection(props: ExpandableNavigationSectionPr
                 label={props.label}
                 onClick={props.onNavigate}
                 selected={props.selected}
-                sheet={props.sheet}
-                transitionTypes={props.transitionTypes} />
+                sheet={props.sheet} />
         );
     }
 
@@ -198,8 +190,7 @@ export function ExpandableNavigationSection(props: ExpandableNavigationSectionPr
                     label={props.label}
                     onClick={props.onNavigate}
                     selected={props.selected}
-                    sheet={props.sheet}
-                    transitionTypes={props.transitionTypes} />
+                    sheet={props.sheet} />
             </ExpandableRow>
 
             <Collapse in={expanded} unmountOnExit>
@@ -207,8 +198,7 @@ export function ExpandableNavigationSection(props: ExpandableNavigationSectionPr
                     { props.items.map(item => (
                         <NavigationItem key={item.key} component={Link} href={item.href} nested
                                         onClick={props.onNavigate} selected={item.selected}
-                                        sheet={props.sheet}
-                                        transitionTypes={props.transitionTypes}>
+                                        sheet={props.sheet}>
                             <ListItemText
                                 primary={item.label}
                                 slotProps={{ primary: { noWrap: true, variant: 'body2' } }} />
@@ -290,10 +280,7 @@ export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
                     onNavigate={onNavigate}
                     sectionId="duty-book"
                     selected={isDutyBookActive}
-                    sheet={sheet}
-                    transitionTypes={
-                        getNavigationTransitionTypes(relativePathname, '/duty-book')
-                    } /> }
+                    sheet={sheet} /> }
 
             { secondaryLinks.filter(link => link.visible).map(link => (
                 <NavigationLink
@@ -304,10 +291,7 @@ export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
                     label={link.label}
                     onClick={onNavigate}
                     selected={isNavigationPathActive(relativePathname, link.segment)}
-                    sheet={sheet}
-                    transitionTypes={
-                        getNavigationTransitionTypes(relativePathname, link.segment)
-                    } />
+                    sheet={sheet} />
             )) }
         </>
     );
