@@ -1,8 +1,6 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { z } from 'zod/v4';
-
 import type { AccessControl } from '@lib/auth/access';
 import type { DBConnection } from '@lib/database/Connection';
 import type { PublicSchedule } from './PublicSchedule';
@@ -13,6 +11,7 @@ import { createTicketService } from '@lib/tickets';
 import { getBlobUrl } from '@lib/database/BlobStore';
 import { getEvent } from '@lib/cache';
 import { isAfter, isBefore } from '@lib/Temporal';
+import { parseAvailabilityExceptions } from '@lib/event';
 import { readSettings } from '@lib/Settings';
 import { readUserSettings } from '@lib/UserSettings';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots, tContent,
@@ -23,7 +22,6 @@ import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTim
 
 import { kActivityType, kEventSalesCategory, kRegistrationStatus, kVendorTeam } from '@lib/database/Types';
 import { kAnyTeam } from '@lib/auth/access';
-import { kAvailabilityException } from '@app/admin/events/[event]/[team]/schedule/fn/determineAvailability';
 
 type Response = PublicSchedule;
 
@@ -90,27 +88,16 @@ function determineVolunteerUnavailability(
     if (Temporal.ZonedDateTime.compare(event.eventAvailabilityEndTime, event.currentTime) <= 0)
         return -1;  // the event has finished
 
-    if (!!volunteer.availabilityExceptions) {
-        try {
-            const availabilityExceptionsString = JSON.parse(volunteer.availabilityExceptions);
-            const availabilityExceptions =
-                z.array(kAvailabilityException).parse(availabilityExceptionsString);
+    const currentTimeMs = event.currentTime.epochMilliseconds;
+    for (const exception of parseAvailabilityExceptions(volunteer.availabilityExceptions)) {
+        if (exception.startMs > currentTimeMs || exception.endMs <= currentTimeMs)
+            continue;
 
-            for (const exception of availabilityExceptions) {
-                if (Temporal.ZonedDateTime.compare(exception.start, event.currentTime) > 0)
-                    continue;  // the |exception| happens in the future
-                if (Temporal.ZonedDateTime.compare(exception.end, event.currentTime) <= 0)
-                    continue;  // the |exception| happened in the past
-
-                switch (exception.state) {
-                    case 'available':
-                        return undefined;  // they are explicitly marked as available
-                    case 'unavailable':
-                        return -1;  // they are explicitly marked as unavailable
-                }
-            }
-        } catch (error: any) {
-            console.warn('Invalid availability information:', error);
+        switch (exception.state) {
+            case 'available':
+                return undefined;  // they are explicitly marked as available
+            case 'unavailable':
+                return -1;  // they are explicitly marked as unavailable
         }
     }
 
