@@ -13,7 +13,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 
-import { mixColor } from '../ScheduleTheme';
+import { mixColor } from '../lib/scheduleStyles';
 
 import { kHeaderBarHeightPx, kPillBorderRadius } from '../Constants';
 

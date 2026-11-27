@@ -6,7 +6,7 @@
 import Tooltip from '@mui/material/Tooltip';
 import { styled } from '@mui/material/styles';
 
-import { mixColor } from '../ScheduleTheme';
+import { mixColor } from '../lib/scheduleStyles';
 
 import { kPillBorderRadius } from '../Constants';
 

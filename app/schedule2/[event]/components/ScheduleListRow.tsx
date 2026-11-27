@@ -17,7 +17,7 @@ import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined
 import { styled } from '@mui/material/styles';
 
 import { RestrictedBadge } from './RestrictedBadge';
-import { cardHoverSurface, mixColor, mutedRowSurface } from '../ScheduleTheme';
+import { cardHoverSurface, mixColor, mutedRowSurface } from '../lib/scheduleStyles';
 import { useActivityRippleKey } from './InteractiveSurface';
 import { useScheduleListVariant } from './ScheduleList';
 

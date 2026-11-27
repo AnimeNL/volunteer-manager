@@ -9,7 +9,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 
-import { mixColor, mutedRowSurface, subtleDividerBorder } from '../ScheduleTheme';
+import { mixColor, mutedRowSurface, subtleDividerBorder } from '../lib/scheduleStyles';
 
 export { ScheduleListRow } from './ScheduleListRow';
 

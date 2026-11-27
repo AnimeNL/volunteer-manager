@@ -18,7 +18,7 @@ import { KnowledgeBaseIcon } from '@components/KnowledgeBaseIcon';
 import { RestrictedBadge } from '../components/RestrictedBadge';
 import { getSchedulePath } from '../lib/navigationTypes';
 import { pluralize } from '../lib/format';
-import { subtleDividerBorder } from '../ScheduleTheme';
+import { subtleDividerBorder } from '../lib/scheduleStyles';
 
 /**
  * Props accepted by the <KnowledgeCategoryGrid> component.

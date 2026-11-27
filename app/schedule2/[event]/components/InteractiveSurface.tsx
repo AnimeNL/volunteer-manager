@@ -11,7 +11,7 @@ import type { SxProps, Theme } from '@mui/material/styles';
 import ButtonBase from '@mui/material/ButtonBase';
 import { styled } from '@mui/material/styles';
 
-import { cardHoverSurface } from '../ScheduleTheme';
+import { cardHoverSurface } from '../lib/scheduleStyles';
 
 /**
  * Returns a key that increments when a route is hidden via Next.js `<Activity mode="hidden">`,

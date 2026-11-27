@@ -22,7 +22,7 @@ import { styled } from '@mui/material/styles';
 
 import type { MobileNavigationTab, NavigationData } from '../lib/navigationTypes';
 import { MobileMoreSheet } from './MobileMoreSheet';
-import { floatingPillShadow } from '../ScheduleTheme';
+import { floatingPillShadow } from '../lib/scheduleStyles';
 import { getActiveMobileTab, getRelativeNavigationPath,
     getSchedulePath } from '../lib/navigationTypes';
 

@@ -7,7 +7,7 @@ import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import { styled } from '@mui/material/styles';
 
-import { floatingPillShadow } from '../ScheduleTheme';
+import { floatingPillShadow } from '../lib/scheduleStyles';
 import { usePullToRefresh } from './usePullToRefresh';
 
 import { kPillBorderRadius } from '../Constants';

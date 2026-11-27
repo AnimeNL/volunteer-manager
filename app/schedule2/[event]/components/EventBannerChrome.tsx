@@ -7,7 +7,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
-import { mixColor } from '../ScheduleTheme';
+import { mixColor } from '../lib/scheduleStyles';
 
 /**
  * Gradient scrim overlaid on event banners to keep foreground titles readable.

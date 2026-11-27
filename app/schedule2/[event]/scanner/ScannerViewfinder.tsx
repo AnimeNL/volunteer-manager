@@ -13,7 +13,7 @@ import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined';
 import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 
-import { mixColor } from '../ScheduleTheme';
+import { mixColor } from '../lib/scheduleStyles';
 
 /**
  * Props accepted by the <ScannerViewfinder> component.

@@ -20,7 +20,7 @@ import { styled } from '@mui/material/styles';
 
 import type { ExpandableNavigationSectionId } from './NavigationActions';
 import { getSchedulePath, isNavigationPathActive } from '../lib/navigationTypes';
-import { mixColor } from '../ScheduleTheme';
+import { mixColor } from '../lib/scheduleStyles';
 
 import { kPillBorderRadius } from '../Constants';
 
