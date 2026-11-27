@@ -3,9 +3,9 @@
  */
 
 :root {
-    --schedule-vt-exit: 150ms;
-    --schedule-vt-enter: 210ms;
-    --schedule-vt-move: 320ms;
+    --schedule-vt-exit: 120ms;
+    --schedule-vt-enter: 180ms;
+    --schedule-vt-move: 220ms;
 }
 
 /* Keep the live page interactive while a view transition runs. */
@@ -43,33 +43,15 @@
         var(--schedule-vt-move) ease-in both schedule-slide-y;
 }
 
-/* Directional route transitions. */
-::view-transition-old(.schedule-nav-forward) {
-    --schedule-slide-x: -48px;
-    animation:
-        var(--schedule-vt-exit) ease-in both schedule-fade reverse,
-        var(--schedule-vt-move) ease-in-out both schedule-slide-x reverse;
+/* Uniform cross-page Material Fade Through transition. */
+::view-transition-old(.schedule-page-exit) {
+    animation: var(--schedule-vt-exit) ease-in both schedule-fade reverse;
 }
 
-::view-transition-new(.schedule-nav-forward) {
-    --schedule-slide-x: 48px;
+::view-transition-new(.schedule-page-enter) {
     animation:
         var(--schedule-vt-enter) ease-out var(--schedule-vt-exit) both schedule-fade,
-        var(--schedule-vt-move) ease-in-out both schedule-slide-x;
-}
-
-::view-transition-old(.schedule-nav-back) {
-    --schedule-slide-x: 48px;
-    animation:
-        var(--schedule-vt-exit) ease-in both schedule-fade reverse,
-        var(--schedule-vt-move) ease-in-out both schedule-slide-x reverse;
-}
-
-::view-transition-new(.schedule-nav-back) {
-    --schedule-slide-x: -48px;
-    animation:
-        var(--schedule-vt-enter) ease-out var(--schedule-vt-exit) both schedule-fade,
-        var(--schedule-vt-move) ease-in-out both schedule-slide-x;
+        var(--schedule-vt-move) ease-out var(--schedule-vt-exit) both schedule-slide-y;
 }
 
 @keyframes schedule-fade {
@@ -83,19 +65,10 @@
 
 @keyframes schedule-slide-y {
     from {
-        transform: translateY(8px);
+        transform: translateY(6px);
     }
     to {
         transform: translateY(0);
-    }
-}
-
-@keyframes schedule-slide-x {
-    from {
-        translate: var(--schedule-slide-x);
-    }
-    to {
-        translate: 0;
     }
 }
 

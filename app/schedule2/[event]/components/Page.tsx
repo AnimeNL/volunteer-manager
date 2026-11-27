@@ -28,18 +28,7 @@ interface PageProps {
  */
 export function Page(props: React.PropsWithChildren<PageProps>) {
     return (
-        <ViewTransition
-            enter={{
-                'nav-forward': 'schedule-nav-forward',
-                'nav-back': 'schedule-nav-back',
-                default: 'none',
-            }}
-            exit={{
-                'nav-forward': 'schedule-nav-forward',
-                'nav-back': 'schedule-nav-back',
-                default: 'none',
-            }}
-            default="none">
+        <ViewTransition enter="schedule-page-enter" exit="schedule-page-exit" default="none">
             {props.header}
             <Stack spacing={1.5} useFlexGap sx={{
                 bgcolor: { xs: 'm3.sheet', md: 'transparent' },
