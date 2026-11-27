@@ -4,7 +4,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 
 import type { ButtonBaseTypeMap, ExtendButtonBase } from '@mui/material/ButtonBase';
 import type { SvgIconComponent } from '@mui/icons-material';

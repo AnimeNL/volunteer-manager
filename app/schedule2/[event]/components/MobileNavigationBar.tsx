@@ -3,7 +3,7 @@
 
 'use client';
 
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 import { useState } from 'react';
 import { useParams, usePathname } from 'next/navigation';
 
