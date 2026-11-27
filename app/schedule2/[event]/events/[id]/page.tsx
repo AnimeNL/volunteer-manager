@@ -53,8 +53,6 @@ const loadEventData = cache(async (festivalId: number | undefined, activityParam
             timeslotId: tActivitiesTimeslots.timeslotId,
             title: tActivities.activityTitle,
         })
-        .orderBy(tActivitiesTimeslots.timeslotStartTime, 'asc')
-        .orderBy(tActivitiesTimeslots.timeslotEndTime, 'asc')
         .executeSelectMany();
 
     if (!rows.length)
@@ -131,24 +129,30 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
         notFound();
 
     const nowMs = currentTime.epochMilliseconds;
-    const timeslots = data.timeslots.map(row => {
-        const start = row.start.withTimeZone(event.timeZone);
-        const end = row.end.withTimeZone(event.timeZone);
-        const startMs = row.start.epochMilliseconds;
-        const endMs = row.end.epochMilliseconds;
-        const isPast = endMs <= nowMs;
+    const timeslots = data.timeslots
+        .map(row => {
+            const start = row.start.withTimeZone(event.timeZone);
+            const end = row.end.withTimeZone(event.timeZone);
+            const startMs = row.start.epochMilliseconds;
+            const endMs = row.end.epochMilliseconds;
+            const isPast = endMs <= nowMs;
 
-        return {
-            endMs,
-            isActive: !isPast && startMs <= nowMs,
-            isPast,
-            locationId: row.locationId,
-            locationName: row.locationName,
-            startMs,
-            time: `${formatDate(start, 'ddd, HH:mm')}–${formatDate(end, 'HH:mm')}`,
-            timeslotId: row.timeslotId,
-        };
-    });
+            return {
+                endMs,
+                isActive: !isPast && startMs <= nowMs,
+                isPast,
+                locationId: row.locationId,
+                locationName: row.locationName,
+                startMs,
+                time: `${formatDate(start, 'ddd, HH:mm')}–${formatDate(end, 'HH:mm')}`,
+                timeslotId: row.timeslotId,
+            };
+        })
+        .sort((lhs, rhs) =>
+            Number(lhs.isPast) - Number(rhs.isPast) ||
+            lhs.startMs - rhs.startMs ||
+            lhs.endMs - rhs.endMs ||
+            lhs.locationName.localeCompare(rhs.locationName));
 
     const allPast = timeslots.every(timeslot => timeslot.isPast);
 
