@@ -117,62 +117,6 @@ async function loadCachedProgramTimeslots(
 }
 
 /**
- * Request-cached loader fetching all scheduled program timeslots for `areaParam` in `festivalId`
- * with timestamps converted to `timeZone`.
- */
-export const getProgramAreaDetail = cache(
-    async (festivalId: number | undefined, areaParam: string, timeZone: string) => {
-        const areaId = parseFestivalEntityId(festivalId, areaParam);
-        if (!areaId)
-            return undefined;
-
-        const rows = await loadCachedProgramTimeslots(festivalId!, 'area', areaId);
-        if (!rows.length)
-            return undefined;
-
-        return {
-            locationCount: new Set(rows.map(row => row.locationId)).size,
-            name: rows[0].areaName,
-            rows: rows.map(row => ({
-                activityId: row.activityId,
-                hidden: row.hidden,
-                locationId: row.locationId,
-                locationName: row.locationName,
-                timeslotId: row.timeslotId,
-                title: row.title,
-                ...toZonedTimeslotBounds(row, timeZone),
-            })),
-        };
-    });
-
-/**
- * Request-cached loader fetching all scheduled program timeslots for `locationParam` in
- * `festivalId` with timestamps converted to `timeZone`.
- */
-export const getProgramLocationDetail = cache(
-    async (festivalId: number | undefined, locationParam: string, timeZone: string) => {
-        const locationId = parseFestivalEntityId(festivalId, locationParam);
-        if (!locationId)
-            return undefined;
-
-        const rows = await loadCachedProgramTimeslots(festivalId!, 'location', locationId);
-        if (!rows.length)
-            return undefined;
-
-        return {
-            areaName: rows[0].areaName,
-            name: rows[0].locationName,
-            rows: rows.map(row => ({
-                activityId: row.activityId,
-                hidden: row.hidden,
-                timeslotId: row.timeslotId,
-                title: row.title,
-                ...toZonedTimeslotBounds(row, timeZone),
-            })),
-        };
-    });
-
-/**
  * Request-cached loader fetching program event details and scheduled timeslots for `activityParam`
  * in `festivalId` with timestamps converted to `timeZone`.
  */

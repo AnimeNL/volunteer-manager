@@ -17,19 +17,37 @@ import { compareTimeslots, formatTimeRange, getLogicalDate,
     getTimeslotTiming } from '../../lib/programTime';
 import { createScheduleMetadataFn } from '../../lib/generateScheduleMetadata';
 import { formatDate } from '@lib/Temporal';
-import { getFavouritedActivityIds, getProgramLocationDetail } from '../../lib/data/programData';
+import { getEventState } from '@lib/event';
+import { getFavouritedActivityIds } from '../../lib/data/programData';
 import { getSchedulePath } from '../../lib/navigationTypes';
 import { getTicketedActivityIds } from '../../lib/data/ticketData';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
 
 /**
- * Loads the resolved program location metadata and timeslots for the requested route parameters.
+ * Loads the resolved program location header metadata for the requested route parameters.
  */
-async function loadLocationDetail(params: Promise<{ event: string; id: string }>) {
+async function loadLocationHeader(params: Promise<{ event: string; id: string }>) {
     const { event: eventSlug, id } = await params;
+    const locationId = Number(id);
+    if (!Number.isInteger(locationId) || locationId <= 0)
+        return undefined;
+
     const { event } = await requireScheduleAccess(eventSlug);
-    return await getProgramLocationDetail(
-        event.integrations?.anPlanFestivalId, id, event.timeZone);
+    const eventState = await getEventState(event);
+    const location = eventState?.program.getLocation(locationId);
+    const area = location ? eventState?.program.getArea(location.areaId) : undefined;
+    if (!eventState || !location || !area)
+        return undefined;
+
+    const timeslots = eventState.program.getTimeslotsForLocation(
+        locationId, { programOnly: true });
+    if (!timeslots.length)
+        return undefined;
+
+    return {
+        areaName: area.name,
+        name: location.name,
+    };
 }
 
 /**
@@ -38,18 +56,27 @@ async function loadLocationDetail(params: Promise<{ event: string; id: string }>
  */
 async function LocationScheduleContent(props: { params: Promise<{ event: string; id: string }> }) {
     const { event: eventSlug, id } = await props.params;
+    const locationId = Number(id);
+    if (!Number.isInteger(locationId) || locationId <= 0)
+        notFound();
+
     const { currentTime, event, user } = await requireScheduleAccess(eventSlug);
-    const [ data, favouritedActivityIds, ticketedActivityIds ] = await Promise.all([
-        getProgramLocationDetail(event.integrations?.anPlanFestivalId, id, event.timeZone),
+    const [ eventState, favouritedActivityIds, ticketedActivityIds ] = await Promise.all([
+        getEventState(event),
         getFavouritedActivityIds(event.id, user.id),
         getTicketedActivityIds(event),
     ]);
-    if (!data)
+
+    const location = eventState?.program.getLocation(locationId);
+    const timeslots = location
+        ? eventState!.program.getTimeslotsForLocation(locationId, { programOnly: true })
+        : [];
+    if (!eventState || !location || !timeslots.length)
         notFound();
 
-    const [ firstRow ] = data.rows;
-    if (firstRow && data.rows.every(row => row.activityId === firstRow.activityId))
-        redirect(getSchedulePath(event.slug, `/events/${firstRow.activityId}`));
+    const [ firstSlot ] = timeslots;
+    if (firstSlot && timeslots.every(slot => slot.activityId === firstSlot.activityId))
+        redirect(getSchedulePath(event.slug, `/events/${firstSlot.activityId}`));
 
     const nowMs = currentTime.epochMilliseconds;
     const dayMap = new Map<string, {
@@ -69,12 +96,18 @@ async function LocationScheduleContent(props: { params: Promise<{ event: string;
         label: string;
     }>();
 
-    for (const row of data.rows) {
-        const startMs = row.start.epochMilliseconds;
-        const endMs = row.end.epochMilliseconds;
-        const { isPast, progress, state } = getTimeslotTiming(startMs, endMs, nowMs);
+    for (const slot of timeslots) {
+        const activity = eventState.program.getActivity(slot.activityId);
+        if (!activity)
+            continue;
 
-        const logicalDate = getLogicalDate(row.start);
+        const start = Temporal.Instant.fromEpochMilliseconds(slot.startMs)
+            .toZonedDateTimeISO(event.timeZone);
+        const end = Temporal.Instant.fromEpochMilliseconds(slot.endMs)
+            .toZonedDateTimeISO(event.timeZone);
+        const { isPast, progress, state } = getTimeslotTiming(slot.startMs, slot.endMs, nowMs);
+
+        const logicalDate = getLogicalDate(start);
         const dateKey = logicalDate.toString();
 
         let day = dayMap.get(dateKey);
@@ -84,16 +117,16 @@ async function LocationScheduleContent(props: { params: Promise<{ event: string;
         }
 
         day.events.push({
-            activityId: row.activityId,
-            endMs,
-            hidden: row.hidden,
+            activityId: slot.activityId,
+            endMs: slot.endMs,
+            hidden: !activity.visible,
             isPast,
             progress,
-            startMs,
+            startMs: slot.startMs,
             state,
-            time: formatTimeRange(row.start, row.end),
-            timeslotId: row.timeslotId,
-            title: row.title,
+            time: formatTimeRange(start, end),
+            timeslotId: slot.id,
+            title: activity.title,
         });
     }
 
@@ -145,14 +178,14 @@ export default function ScheduleLocationPage(
                     description={
                         <HeaderTextSlot
                             resolve={async () =>
-                                (await loadLocationDetail(props.params))?.areaName ?? null}
+                                (await loadLocationHeader(props.params))?.areaName ?? null}
                             width={96} />
                     }
                     icon={ <PlaceOutlinedIcon /> }
                     title={
                         <HeaderTextSlot
                             resolve={async () =>
-                                (await loadLocationDetail(props.params))?.name ?? null}
+                                (await loadLocationHeader(props.params))?.name ?? null}
                             width={136} />
                     } />
             }>

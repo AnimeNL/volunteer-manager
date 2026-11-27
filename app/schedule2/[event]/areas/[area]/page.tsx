@@ -14,7 +14,8 @@ import { ScheduleSection } from '../../components/ScheduleSection';
 import { createScheduleMetadataFn } from '../../lib/generateScheduleMetadata';
 import { formatDate } from '@lib/Temporal';
 import { formatTimeRange, getLogicalDate, getTimeslotTiming } from '../../lib/programTime';
-import { getFavouritedActivityIds, getProgramAreaDetail } from '../../lib/data/programData';
+import { getEventState } from '@lib/event';
+import { getFavouritedActivityIds } from '../../lib/data/programData';
 import { getSchedulePath } from '../../lib/navigationTypes';
 import { getTicketedActivityIds } from '../../lib/data/ticketData';
 import { pluralize } from '../../lib/format';
@@ -22,13 +23,28 @@ import { readSetting } from '@lib/Settings';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
 
 /**
- * Loads the resolved program area metadata and timeslots for the requested route parameters.
+ * Loads the resolved program area metadata for the requested route parameters.
  */
-async function loadAreaDetail(params: Promise<{ area: string; event: string }>) {
+async function loadAreaHeader(params: Promise<{ area: string; event: string }>) {
     const { area, event: eventSlug } = await params;
+    const areaId = Number(area);
+    if (!Number.isInteger(areaId) || areaId <= 0)
+        return undefined;
+
     const { event } = await requireScheduleAccess(eventSlug);
-    return await getProgramAreaDetail(
-        event.integrations?.anPlanFestivalId, area, event.timeZone);
+    const eventState = await getEventState(event);
+    const areaRecord = eventState?.program.getArea(areaId);
+    if (!eventState || !areaRecord)
+        return undefined;
+
+    const locations = eventState.program.getLocations(areaId, { programOnly: true });
+    if (!locations.length)
+        return undefined;
+
+    return {
+        locationCount: locations.length,
+        name: areaRecord.name,
+    };
 }
 
 /**
@@ -36,53 +52,46 @@ async function loadAreaDetail(params: Promise<{ area: string; event: string }>) 
  */
 async function AreaLocationsContent(props: { params: Promise<{ area: string; event: string }> }) {
     const { area, event: eventSlug } = await props.params;
+    const areaId = Number(area);
+    if (!Number.isInteger(areaId) || areaId <= 0)
+        notFound();
+
     const { currentTime, event, user } = await requireScheduleAccess(eventSlug);
 
-    const [ data, favouritedActivityIds, listLimit, ticketedActivityIds ] = await Promise.all([
-        getProgramAreaDetail(event.integrations?.anPlanFestivalId, area, event.timeZone),
+    const [ eventState, favouritedActivityIds, listLimit, ticketedActivityIds ] = await Promise.all([
+        getEventState(event),
         getFavouritedActivityIds(event.id, user.id),
         readSetting('schedule-activity-list-limit'),
         getTicketedActivityIds(event),
     ]);
 
-    if (!data)
-        notFound();
+    const areaRecord = eventState?.program.getArea(areaId);
+    const programLocations = areaRecord
+        ? eventState!.program.getLocations(areaId, { programOnly: true })
+        : [];
 
-    type TimeslotRow = typeof data.rows[number];
+    if (!eventState || !areaRecord || !programLocations.length)
+        notFound();
 
     const maxEvents = listLimit ?? 5;
     const nowMs = currentTime.epochMilliseconds;
     const today = getLogicalDate(currentTime);
 
-    const locationMap = new Map<
-        number, { active: TimeslotRow[]; id: number; name: string; upcoming: TimeslotRow[] }>();
-
-    for (const row of data.rows) {
-        let location = locationMap.get(row.locationId);
-        if (!location) {
-            location = { active: [], id: row.locationId, name: row.locationName, upcoming: [] };
-            locationMap.set(row.locationId, location);
-        }
-
-        if (row.end.epochMilliseconds <= nowMs)
-            continue;
-
-        if (row.start.epochMilliseconds <= nowMs)
-            location.active.push(row);
-        else
-            location.upcoming.push(row);
-    }
-
-    const locations = [ ...locationMap.values() ]
+    const locations = programLocations
         .map(location => {
-            location.active.sort((lhs, rhs) =>
-                lhs.end.epochMilliseconds - rhs.end.epochMilliseconds);
-            location.upcoming.sort((lhs, rhs) =>
-                lhs.start.epochMilliseconds - rhs.start.epochMilliseconds);
+            const timeslots = eventState.program.getTimeslotsForLocation(
+                location.id, { programOnly: true });
 
-            const remainingSlots = Math.max(0, maxEvents - location.active.length);
+            const active = timeslots
+                .filter(slot => slot.startMs <= nowMs && slot.endMs > nowMs)
+                .sort((lhs, rhs) => lhs.endMs - rhs.endMs);
+            const upcoming = timeslots
+                .filter(slot => slot.startMs > nowMs)
+                .sort((lhs, rhs) => lhs.startMs - rhs.startMs);
+
+            const remainingSlots = Math.max(0, maxEvents - active.length);
             return {
-                events: [ ...location.active, ...location.upcoming.slice(0, remainingSlots) ],
+                events: [ ...active, ...upcoming.slice(0, remainingSlots) ],
                 id: location.id,
                 name: location.name,
             };
@@ -105,26 +114,33 @@ async function AreaLocationsContent(props: { params: Promise<{ area: string; eve
                         title={location.name}>
                         { isEmpty &&
                             <ScheduleListRow title="No upcoming events" /> }
-                        { location.events.map(row => {
-                            const timing = getTimeslotTiming(
-                                row.start.epochMilliseconds, row.end.epochMilliseconds, nowMs);
+                        { location.events.map(slot => {
+                            const activity = eventState.program.getActivity(slot.activityId);
+                            if (!activity)
+                                return null;
 
-                            const sameDay = today.equals(getLogicalDate(row.start));
+                            const start = Temporal.Instant.fromEpochMilliseconds(slot.startMs)
+                                .toZonedDateTimeISO(event.timeZone);
+                            const end = Temporal.Instant.fromEpochMilliseconds(slot.endMs)
+                                .toZonedDateTimeISO(event.timeZone);
+                            const timing = getTimeslotTiming(slot.startMs, slot.endMs, nowMs);
+
+                            const sameDay = today.equals(getLogicalDate(start));
                             const trailing = timing.isActive
-                                ? `until ${formatDate(row.end, 'HH:mm')}`
-                                : formatTimeRange(row.start, row.end, { includeDay: !sameDay });
+                                ? `until ${formatDate(end, 'HH:mm')}`
+                                : formatTimeRange(start, end, { includeDay: !sameDay });
 
                             return (
                                 <ScheduleListRow
-                                    key={row.timeslotId}
-                                    favourite={favouritedActivityIds.has(row.activityId)}
-                                    hidden={row.hidden}
+                                    key={slot.id}
+                                    favourite={favouritedActivityIds.has(slot.activityId)}
+                                    hidden={!activity.visible}
                                     href={getSchedulePath(
-                                        event.slug, `/events/${row.activityId}`)}
+                                        event.slug, `/events/${slot.activityId}`)}
                                     progress={timing.progress}
                                     state={timing.state}
-                                    ticketed={ticketedActivityIds.has(row.activityId)}
-                                    title={row.title}
+                                    ticketed={ticketedActivityIds.has(slot.activityId)}
+                                    title={activity.title}
                                     trailing={trailing} />
                             );
                         }) }
@@ -146,7 +162,7 @@ export default function ScheduleAreaPage(props: PageProps<'/schedule2/[event]/ar
                     description={
                         <HeaderTextSlot
                             resolve={async () => {
-                                const data = await loadAreaDetail(props.params);
+                                const data = await loadAreaHeader(props.params);
                                 return data
                                     ? `${pluralize(data.locationCount, 'location')} in this area`
                                     : null;
@@ -156,7 +172,7 @@ export default function ScheduleAreaPage(props: PageProps<'/schedule2/[event]/ar
                     icon={ <EventNoteOutlinedIcon /> }
                     title={
                         <HeaderTextSlot
-                            resolve={async () => (await loadAreaDetail(props.params))?.name ?? null}
+                            resolve={async () => (await loadAreaHeader(props.params))?.name ?? null}
                             width={120} />
                     } />
             }>
@@ -175,6 +191,7 @@ export default function ScheduleAreaPage(props: PageProps<'/schedule2/[event]/ar
     );
 }
 
-export const generateMetadata = createScheduleMetadataFn({ area: 'area' }, 'Events', { event: 'event' });
+export const generateMetadata =
+    createScheduleMetadataFn({ area: 'area' }, 'Events', { event: 'event' });
 export const instant = true;
 export const prefetch = 'partial';
