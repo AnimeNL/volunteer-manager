@@ -15,6 +15,7 @@ import { writeUserSetting } from '@lib/UserSettings';
 const kNavigationSectionSettings = {
     'duty-book': 'user-schedule-expand-duty-book',
     'events': 'user-schedule-expand-events',
+    'volunteers': 'user-schedule-expand-volunteers',
 } as const;
 
 /**

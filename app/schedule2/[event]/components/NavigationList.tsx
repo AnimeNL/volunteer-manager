@@ -33,7 +33,7 @@ interface SecondaryNavigationItemsProps {
  */
 export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
     const { data, onNavigate, relativePathname } = props;
-    const { dutyBooks, eventSlug, hasHelpRequests, hasKnowledgeBase } = data;
+    const { dutyBooks, eventSlug, hasHelpRequests, hasKnowledgeBase, volunteerTeams } = data;
 
     const hasMultipleDutyBooks = dutyBooks.length > 1;
     const isDutyBookActive = hasMultipleDutyBooks
@@ -47,6 +47,17 @@ export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
         ? dutyBooks.map(entry =>
             createNavigationSubItem(
                 eventSlug, relativePathname, `/duty-book/${entry.team}`, entry.team, entry.name))
+        : [];
+
+    const hasMultipleVolunteerTeams = volunteerTeams.length > 1;
+    const isVolunteersActive = hasMultipleVolunteerTeams
+        ? relativePathname === '/volunteers'
+        : isNavigationPathActive(relativePathname, '/volunteers');
+    const volunteerTeamItems: NavigationSubItem[] = hasMultipleVolunteerTeams
+        ? volunteerTeams.map(team =>
+            createNavigationSubItem(
+                eventSlug, relativePathname, `/volunteers/teams/${team.slug}`, team.slug,
+                team.name))
         : [];
 
     const secondaryLinks = [
@@ -63,13 +74,6 @@ export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
             label: 'Knowledge base',
             segment: '/knowledge',
             visible: hasKnowledgeBase,
-        },
-        {
-            activeIcon: <GroupIcon fontSize="small" />,
-            icon: <GroupOutlinedIcon fontSize="small" />,
-            label: 'Volunteers',
-            segment: '/volunteers',
-            visible: true,
         },
     ];
 
@@ -98,6 +102,18 @@ export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
                     onClick={onNavigate}
                     selected={isNavigationPathActive(relativePathname, link.segment)} />
             )) }
+
+            <ExpandableNavigationSection
+                activeIcon={ <GroupIcon fontSize="small" /> }
+                defaultExpanded={data.expandVolunteers}
+                expandLabel="volunteer teams"
+                href={getSchedulePath(eventSlug, '/volunteers')}
+                icon={ <GroupOutlinedIcon fontSize="small" /> }
+                items={volunteerTeamItems}
+                label="Volunteers"
+                onNavigate={onNavigate}
+                sectionId="volunteers"
+                selected={isVolunteersActive} />
         </>
     );
 }

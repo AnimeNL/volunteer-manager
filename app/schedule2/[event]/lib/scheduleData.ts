@@ -6,6 +6,7 @@ import { cache } from 'react';
 import { cacheLife, cacheTag } from 'next/cache';
 
 import type { NavigationData } from './navigationTypes';
+import { getMockVolunteerTeams } from './data/volunteerData';
 import { getProgramAreas } from './data/programData';
 import { getScheduleAccess } from './getScheduleAccess';
 import { hasKnowledgeBaseAccess } from './data/knowledgeData';
@@ -36,7 +37,7 @@ export const getNavigationData = cache(
         const memberTeams = events.get(event.slug);
         const hasUnrestrictedKnowledge = access.can('event.knowledge', { event: event.slug });
 
-        const [ areas, dutyBookTeams, hasKnowledgeBase, userSettings ] =
+        const [ areas, dutyBookTeams, hasKnowledgeBase, userSettings, mockVolunteerTeams ] =
             await Promise.all([
                 festivalId ? getProgramAreas(festivalId) : Promise.resolve([]),
                 getEventDutyBookTeams(event.id),
@@ -44,7 +45,9 @@ export const getNavigationData = cache(
                 readUserSettings(user.id, [
                     'user-schedule-expand-duty-book',
                     'user-schedule-expand-events',
+                    'user-schedule-expand-volunteers',
                 ], /* disableFallback= */ true),
+                getMockVolunteerTeams(),
             ]);
 
         const dutyBooks = dutyBookTeams
@@ -52,6 +55,11 @@ export const getNavigationData = cache(
                 memberTeams?.has(team.slug) ||
                 access.can('event.duty-book', 'read', { event: event.slug, team: team.slug }))
             .map(team => ({ name: team.name, team: team.slug }));
+
+        const volunteerTeams = mockVolunteerTeams.map(team => ({
+            name: team.name,
+            slug: team.slug,
+        }));
 
         const hasHelpRequests = access.can('event.help-requests', { event: event.slug });
 
@@ -61,8 +69,10 @@ export const getNavigationData = cache(
             eventSlug: event.slug,
             expandDutyBook: userSettings['user-schedule-expand-duty-book'] ?? false,
             expandEvents: userSettings['user-schedule-expand-events'] ?? true,
+            expandVolunteers: userSettings['user-schedule-expand-volunteers'] ?? false,
             hasHelpRequests,
             hasKnowledgeBase,
+            volunteerTeams,
         };
     });
 

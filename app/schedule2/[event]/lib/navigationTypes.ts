@@ -18,6 +18,14 @@ interface NavigationDutyBook {
 }
 
 /**
+ * Team summary rendered under the expandable Volunteers section in schedule navigation menus.
+ */
+interface NavigationVolunteerTeam {
+    name: string;
+    slug: string;
+}
+
+/**
  * Serializable navigation state shared between desktop and mobile schedule menus.
  */
 export interface NavigationData {
@@ -26,8 +34,10 @@ export interface NavigationData {
     eventSlug: string;
     expandDutyBook: boolean;
     expandEvents: boolean;
+    expandVolunteers: boolean;
     hasHelpRequests: boolean;
     hasKnowledgeBase: boolean;
+    volunteerTeams: NavigationVolunteerTeam[];
 }
 
 /**
