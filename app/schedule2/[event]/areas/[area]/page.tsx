@@ -11,6 +11,7 @@ import Stack from '@mui/material/Stack';
 import { Header } from '../../components/Header';
 import { Page, SuspenseReveal } from '../../components/Page';
 import { ScheduleList, ScheduleListRow } from '../../components/ScheduleList';
+import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
 import { SectionHeader } from '../../components/SectionHeader';
 import { formatDate } from '@lib/Temporal';
 import { getSchedulePath } from '../../lib/navigationTypes';
@@ -209,33 +210,6 @@ async function AreaLocationsContent(props: { params: Promise<{ area: string; eve
 }
 
 /**
- * Skeleton placeholder mirroring the location groups while area data is streaming.
- */
-function AreaLocationsSkeleton() {
-    const groups = [
-        { rows: [ 150, 140 ], titleWidth: 84 },
-        { rows: [ 130, 125 ], titleWidth: 112 },
-        { rows: [ 180, 145, 220 ], titleWidth: 76 },
-    ];
-
-    return (
-        <Stack spacing={2} useFlexGap>
-            { groups.map((group, groupIndex) =>
-                <Stack key={groupIndex} spacing={0.75} useFlexGap>
-                    <SectionHeader title={ <Skeleton variant="text" width={group.titleWidth} /> } />
-                    <ScheduleList>
-                        { group.rows.map((rowWidth, rowIndex) =>
-                            <ScheduleListRow
-                                key={rowIndex}
-                                title={ <Skeleton variant="text" width={rowWidth} /> }
-                                trailing={ <Skeleton variant="text" width={72} /> } /> ) }
-                    </ScheduleList>
-                </Stack> ) }
-        </Stack>
-    );
-}
-
-/**
  * Area detail page listing each location in the area and its active and upcoming program events.
  */
 export default function ScheduleAreaPage(props: PageProps<'/schedule2/[event]/areas/[area]'>) {
@@ -255,7 +229,15 @@ export default function ScheduleAreaPage(props: PageProps<'/schedule2/[event]/ar
                         </SuspenseReveal>
                     } />
             }>
-            <SuspenseReveal fallback={ <AreaLocationsSkeleton /> }>
+            <SuspenseReveal
+                fallback={
+                    <ScheduleListSkeleton
+                        groups={[
+                            { rows: [ 150, 140 ], titleWidth: 84, trailingWidth: 72 },
+                            { rows: [ 130, 125 ], titleWidth: 112, trailingWidth: 72 },
+                            { rows: [ 180, 145, 220 ], titleWidth: 76, trailingWidth: 72 },
+                        ]} />
+                }>
                 <AreaLocationsContent params={props.params} />
             </SuspenseReveal>
         </Page>

@@ -4,16 +4,15 @@
 import { cache } from 'react';
 import { forbidden, notFound } from 'next/navigation';
 
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 
+import { EmptyStateCard } from '../../../../components/EmptyStateCard';
 import { Header } from '../../../../components/Header';
 import { Page, SuspenseReveal } from '../../../../components/Page';
 import { ScheduleList, ScheduleListRow } from '../../../../components/ScheduleList';
+import { ScheduleListSkeleton } from '../../../../components/ScheduleListSkeleton';
 import { SectionHeader } from '../../../../components/SectionHeader';
 import { getEventTicketHolders } from '../../../../lib/data/ticketData';
 import { requireScheduleAccess } from '../../../../lib/getScheduleAccess';
@@ -107,13 +106,8 @@ async function EventTicketsContent(
 
     if (!data.holders.length) {
         return (
-            <Card>
-                <CardContent>
-                    <Typography variant="body2" color="text.secondary">
-                        No active tickets have been issued for {data.productName} yet.
-                    </Typography>
-                </CardContent>
-            </Card>
+            <EmptyStateCard
+                description={`No active tickets have been issued for ${data.productName} yet.`} />
         );
     }
 
@@ -126,26 +120,6 @@ async function EventTicketsContent(
                         key={holder.id}
                         title={holder.name}
                         trailing={holder.orderNumber} /> ) }
-            </ScheduleList>
-        </Stack>
-    );
-}
-
-/**
- * Skeleton placeholder mirroring the ticket holders list while data is streaming.
- */
-function EventTicketsSkeleton() {
-    const rows = [ 155, 130, 170, 145, 160 ];
-
-    return (
-        <Stack spacing={0.75} useFlexGap>
-            <SectionHeader title={ <Skeleton variant="text" width={96} /> } />
-            <ScheduleList>
-                { rows.map((rowWidth, index) =>
-                    <ScheduleListRow
-                        key={index}
-                        title={ <Skeleton variant="text" width={rowWidth} /> }
-                        trailing={ <Skeleton variant="text" width={64} /> } /> ) }
             </ScheduleList>
         </Stack>
     );
@@ -173,7 +147,17 @@ export default function ScheduleEventTicketsPage(
                         </SuspenseReveal>
                     } />
             }>
-            <SuspenseReveal fallback={ <EventTicketsSkeleton /> }>
+            <SuspenseReveal
+                fallback={
+                    <ScheduleListSkeleton
+                        groups={[
+                            {
+                                rows: [ 155, 130, 170, 145, 160 ],
+                                titleWidth: 96,
+                                trailingWidth: 64,
+                            },
+                        ]} />
+                }>
                 <EventTicketsContent params={props.params} />
             </SuspenseReveal>
         </Page>

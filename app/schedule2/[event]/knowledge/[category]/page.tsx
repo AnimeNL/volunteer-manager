@@ -14,7 +14,7 @@ import { KnowledgeBaseIcon } from '@components/KnowledgeBaseIcon';
 import { KnowledgeQuestionItem, KnowledgeQuestionList } from './KnowledgeQuestionList';
 import { Markdown } from '@components/Markdown';
 import { Page, SuspenseReveal } from '../../components/Page';
-import { ScheduleList, ScheduleListRow } from '../../components/ScheduleList';
+import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
 import { SectionHeader } from '../../components/SectionHeader';
 import { getKnowledgeBaseCategory } from '../../lib/data/knowledgeData';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
@@ -117,25 +117,6 @@ async function CategoryQuestionsContent(props: {
 }
 
 /**
- * Skeleton placeholder mirroring the conjoined question list while category data is streaming.
- */
-function CategoryQuestionsSkeleton() {
-    const rows = [ 240, 190, 260, 210 ];
-
-    return (
-        <Stack spacing={0.75} useFlexGap>
-            <SectionHeader title={ <Skeleton variant="text" width={76} /> } />
-            <ScheduleList>
-                { rows.map((rowWidth, index) =>
-                    <ScheduleListRow
-                        key={index}
-                        title={ <Skeleton variant="text" width={rowWidth} /> } /> ) }
-            </ScheduleList>
-        </Stack>
-    );
-}
-
-/**
  * Knowledge Base category detail page displaying all alphabetically sorted FAQ questions.
  */
 export default function ScheduleKnowledgeCategoryPage(
@@ -166,7 +147,13 @@ export default function ScheduleKnowledgeCategoryPage(
                         </SuspenseReveal>
                     } />
             }>
-            <SuspenseReveal fallback={ <CategoryQuestionsSkeleton /> }>
+            <SuspenseReveal
+                fallback={
+                    <ScheduleListSkeleton
+                        groups={[
+                            { rows: [ 240, 190, 260, 210 ], titleWidth: 76 },
+                        ]} />
+                }>
                 <CategoryQuestionsContent
                     params={props.params}
                     searchParams={props.searchParams} />

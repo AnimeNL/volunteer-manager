@@ -13,6 +13,7 @@ import { EventFavouriteButton } from './EventFavouriteButton';
 import { Header } from '../../components/Header';
 import { Page, SuspenseReveal } from '../../components/Page';
 import { ScheduleList, ScheduleListRow } from '../../components/ScheduleList';
+import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
 import { SectionHeader } from '../../components/SectionHeader';
 import { formatDate } from '@lib/Temporal';
 import { getEventTicketSales } from '../../lib/data/ticketData';
@@ -261,26 +262,6 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
 }
 
 /**
- * Skeleton placeholder mirroring the timeslots section while event data is streaming.
- */
-function EventContentSkeleton() {
-    const rows = [ 140, 120 ];
-
-    return (
-        <Stack spacing={0.75} useFlexGap>
-            <SectionHeader title={ <Skeleton variant="text" width={68} /> } />
-            <ScheduleList>
-                { rows.map((rowWidth, index) =>
-                    <ScheduleListRow
-                        key={index}
-                        title={ <Skeleton variant="text" width={rowWidth} /> }
-                        trailing={ <Skeleton variant="text" width={96} /> } /> ) }
-            </ScheduleList>
-        </Stack>
-    );
-}
-
-/**
  * Program event detail page displaying event details and scheduled timeslots.
  */
 export default function ScheduleEventPage(props: PageProps<'/schedule2/[event]/events/[id]'>) {
@@ -306,7 +287,13 @@ export default function ScheduleEventPage(props: PageProps<'/schedule2/[event]/e
                         </SuspenseReveal>
                     } />
             }>
-            <SuspenseReveal fallback={ <EventContentSkeleton /> }>
+            <SuspenseReveal
+                fallback={
+                    <ScheduleListSkeleton
+                        groups={[
+                            { rows: [ 140, 120 ], titleWidth: 68, trailingWidth: 96 },
+                        ]} />
+                }>
                 <EventContent params={props.params} />
             </SuspenseReveal>
         </Page>

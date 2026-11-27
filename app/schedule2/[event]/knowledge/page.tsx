@@ -1,13 +1,11 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import Grid from '@mui/material/Grid';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Skeleton from '@mui/material/Skeleton';
-import Typography from '@mui/material/Typography';
 
+import { EmptyStateCard } from '../components/EmptyStateCard';
 import { Header } from '../components/Header';
 import { KnowledgeCategoryGrid } from './KnowledgeCategoryGrid';
 import { Page, SuspenseReveal } from '../components/Page';
@@ -27,13 +25,8 @@ async function KnowledgeCategoriesContent(props: { params: Promise<{ event: stri
 
     if (!categories.length) {
         return (
-            <Card>
-                <CardContent>
-                    <Typography variant="body2" color="text.secondary">
-                        The knowledge base for this event is not available yet.
-                    </Typography>
-                </CardContent>
-            </Card>
+            <EmptyStateCard
+                description="The knowledge base for this event is not available yet." />
         );
     }
 

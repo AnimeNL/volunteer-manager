@@ -12,6 +12,7 @@ import Stack from '@mui/material/Stack';
 import { Header } from '../../components/Header';
 import { Page, SuspenseReveal } from '../../components/Page';
 import { ScheduleList, ScheduleListRow } from '../../components/ScheduleList';
+import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
 import { SectionHeader } from '../../components/SectionHeader';
 import { formatDate } from '@lib/Temporal';
 import { getSchedulePath } from '../../lib/navigationTypes';
@@ -195,33 +196,6 @@ async function LocationScheduleContent(props: { params: Promise<{ event: string;
 }
 
 /**
- * Skeleton placeholder mirroring day-grouped events while location data is streaming.
- */
-function LocationScheduleSkeleton() {
-    const groups = [
-        { rows: [ 210, 175, 195 ], titleWidth: 72 },
-        { rows: [ 205, 165 ], titleWidth: 64 },
-    ];
-
-    return (
-        <Stack spacing={2} useFlexGap>
-            { groups.map((group, groupIndex) =>
-                <Stack key={groupIndex} spacing={0.75} useFlexGap>
-                    <SectionHeader
-                        title={ <Skeleton variant="text" width={group.titleWidth} /> } />
-                    <ScheduleList>
-                        { group.rows.map((rowWidth, rowIndex) =>
-                            <ScheduleListRow
-                                key={rowIndex}
-                                title={ <Skeleton variant="text" width={rowWidth} /> }
-                                trailing={ <Skeleton variant="text" width={72} /> } /> ) }
-                    </ScheduleList>
-                </Stack> ) }
-        </Stack>
-    );
-}
-
-/**
  * Location detail page listing scheduled program events grouped by festival day.
  */
 export default function ScheduleLocationPage(
@@ -243,7 +217,14 @@ export default function ScheduleLocationPage(
                         </SuspenseReveal>
                     } />
             }>
-            <SuspenseReveal fallback={ <LocationScheduleSkeleton /> }>
+            <SuspenseReveal
+                fallback={
+                    <ScheduleListSkeleton
+                        groups={[
+                            { rows: [ 210, 175, 195 ], titleWidth: 72, trailingWidth: 72 },
+                            { rows: [ 205, 165 ], titleWidth: 64, trailingWidth: 72 },
+                        ]} />
+                }>
                 <LocationScheduleContent params={props.params} />
             </SuspenseReveal>
         </Page>
