@@ -10,6 +10,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
 import InputBase, { inputBaseClasses } from '@mui/material/InputBase';
 import SearchIcon from '@mui/icons-material/Search';
+import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 
 import { kHeaderBarHeightPx } from '../Constants';
@@ -54,7 +55,13 @@ export function ApplicationBar(props: ApplicationBarProps) {
     }
 
     return (
-        <HeaderRow>
+        <Stack component="header" direction="row" spacing={1.5} sx={{
+            alignItems: 'center',
+            flexShrink: 0,
+            px: { xs: 1.5, md: 0 },
+            pt: { xs: 1.5, md: 0 },
+            viewTransitionName: 'schedule-header',
+        }}>
             <SearchDock onClick={() => inputRef.current?.focus()} role="search">
                 <SearchIcon fontSize="small" sx={{ color: 'text.secondary', flexShrink: 0 }} />
                 <InputBase
@@ -81,31 +88,9 @@ export function ApplicationBar(props: ApplicationBarProps) {
             </SearchDock>
 
             {props.accountMenu}
-        </HeaderRow>
+        </Stack>
     );
 }
-
-/**
- * Outer header row anchored across view transitions. On mobile, sits pinned above the scrolling
- * sheet with `12px` horizontal padding; on desktop, aligns flush with the content sheet edges and
- * scrolls with the page beside the sticky sidebar.
- */
-const HeaderRow = styled('header')(({ theme }) => ({
-    alignItems: 'center',
-    display: 'flex',
-    flexShrink: 0,
-    gap: theme.spacing(1.5),
-    paddingLeft: theme.spacing(1.5),
-    paddingRight: theme.spacing(1.5),
-    paddingTop: theme.spacing(1.5),
-    viewTransitionName: 'schedule-header',
-
-    [theme.breakpoints.up('md')]: {
-        paddingLeft: 0,
-        paddingRight: 0,
-        paddingTop: 0,
-    },
-}));
 
 /**
  * Full-pill M3 Expressive search bar dock.
