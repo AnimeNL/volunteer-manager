@@ -46,11 +46,17 @@ interface VolunteerTicketDetails {
 }
 
 /**
+ * Request-cached lookup for the event's ticketing service instance.
+ */
+const getTicketService = cache(
+    async (eventId: number) => await createTicketService(eventId));
+
+/**
  * Request-cached query loading the assigned festival ticket for `userId` in `eventId`.
  */
 const loadVolunteerTicket = cache(
     async (eventId: number, userId: number): Promise<VolunteerTicketDetails | undefined> => {
-        const service = await createTicketService(eventId);
+        const service = await getTicketService(eventId);
         if (!service)
             return undefined;
 
@@ -70,7 +76,7 @@ const loadVolunteerTicket = cache(
  */
 const loadTicketConfigurations = cache(
     async (eventId: number): Promise<TicketConfiguration[]> => {
-        const service = await createTicketService(eventId);
+        const service = await getTicketService(eventId);
         if (!service)
             return [];
 
@@ -105,7 +111,7 @@ const loadEventTicketHolders = cache(
         eventId: number, activityId: number, activityTitle: string, eventTicketId: number)
         : Promise<EventTicketHoldersResult | undefined> =>
     {
-        const service = await createTicketService(eventId);
+        const service = await getTicketService(eventId);
         if (!service)
             return undefined;
 

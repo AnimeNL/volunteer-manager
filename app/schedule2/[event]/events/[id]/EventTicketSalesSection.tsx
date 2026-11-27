@@ -7,7 +7,7 @@ import Stack from '@mui/material/Stack';
 import type { EventTicketSalesEntry } from '../../lib/data/ticketData';
 import { ScheduleList, ScheduleListRow } from '../../components/ScheduleList';
 import { SectionHeader } from '../../components/SectionHeader';
-import { formatEuroPrice } from '../../lib/programTime';
+import { formatEuroPrice } from '../../lib/format';
 import { getSchedulePath } from '../../lib/navigationTypes';
 
 /**

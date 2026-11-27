@@ -46,11 +46,3 @@ export function compareTimeslots(
         lhs.startMs - rhs.startMs ||
         lhs.endMs - rhs.endMs;
 }
-
-/**
- * Formats a ticket price given in `cents` as a compact EUR label (e.g. `€20` or `€12.50`).
- */
-export function formatEuroPrice(cents: number): string {
-    const euros = cents / 100;
-    return Number.isInteger(euros) ? `€${euros}` : `€${euros.toFixed(2)}`;
-}
