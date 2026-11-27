@@ -120,6 +120,9 @@ function calculateByteSize(contents: any): number {
     if (Buffer.isBuffer(contents))
         return contents.length;
 
+    if (typeof contents.estimateByteSize === 'function')
+        return contents.estimateByteSize();
+
     // Special-case React elements and thenables, as they may contain circular references and other
     // exceptional data such as non-awaited Next.js props.
     if (contents.$$typeof || typeof contents.then === 'function') {

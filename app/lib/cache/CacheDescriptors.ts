@@ -66,6 +66,11 @@ interface CacheDescriptorMap {
         Contents: CachedEvent;
     };
 
+    EventState: {
+        Parameters: number;  // event ID
+        Contents: any;  // EventStateCacheEntry
+    };
+
     IP2Location: {
         Parameters: string;
         Contents: {
@@ -339,6 +344,12 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
     EventCache: {
         name: 'EventCache',
         description: 'Contextual event information used throughout the system.',
+        type: 'permanent',
+    },
+
+    EventState: {
+        name: 'EventState',
+        description: 'Indexed operational event state (program, volunteers, shifts, and schedules).',
         type: 'permanent',
     },
 
