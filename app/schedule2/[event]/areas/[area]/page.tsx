@@ -14,7 +14,7 @@ import { ScheduleSection } from '../../components/ScheduleSection';
 import { createScheduleMetadataFn } from '../../lib/generateScheduleMetadata';
 import { formatDate } from '@lib/Temporal';
 import { formatTimeRange, getLogicalDate, getTimeslotTiming } from '../../lib/programTime';
-import { getProgramAreaDetail } from '../../lib/data/programData';
+import { getFavouritedActivityIds, getProgramAreaDetail } from '../../lib/data/programData';
 import { getSchedulePath } from '../../lib/navigationTypes';
 import { getTicketedActivityIds } from '../../lib/data/ticketData';
 import { pluralize } from '../../lib/format';
@@ -36,10 +36,11 @@ async function loadAreaDetail(params: Promise<{ area: string; event: string }>) 
  */
 async function AreaLocationsContent(props: { params: Promise<{ area: string; event: string }> }) {
     const { area, event: eventSlug } = await props.params;
-    const { currentTime, event } = await requireScheduleAccess(eventSlug);
+    const { currentTime, event, user } = await requireScheduleAccess(eventSlug);
 
-    const [ data, listLimit, ticketedActivityIds ] = await Promise.all([
+    const [ data, favouritedActivityIds, listLimit, ticketedActivityIds ] = await Promise.all([
         getProgramAreaDetail(event.integrations?.anPlanFestivalId, area, event.timeZone),
+        getFavouritedActivityIds(event.id, user.id),
         readSetting('schedule-activity-list-limit'),
         getTicketedActivityIds(event),
     ]);
@@ -116,6 +117,7 @@ async function AreaLocationsContent(props: { params: Promise<{ area: string; eve
                             return (
                                 <ScheduleListRow
                                     key={row.timeslotId}
+                                    favourite={favouritedActivityIds.has(row.activityId)}
                                     hidden={row.hidden}
                                     href={getSchedulePath(
                                         event.slug, `/events/${row.activityId}`)}

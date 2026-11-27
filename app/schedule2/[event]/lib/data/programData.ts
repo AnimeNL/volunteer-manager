@@ -7,7 +7,7 @@ import { cacheLife, cacheTag } from 'next/cache';
 
 import type { NavigationArea } from '../navigationTypes';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations,
-    tActivitiesTimeslots } from '@lib/database';
+    tActivitiesTimeslots, tUsersEventsFavourites } from '@lib/database';
 
 import { kActivityType } from '@lib/database/Types';
 
@@ -327,4 +327,19 @@ export const getProgramEventSummary = cache(
 
         const title = await loadCachedEventSummary(festivalId!, activityId);
         return title ? { activityId, title } : undefined;
+    });
+
+/**
+ * Request-cached loader returning the set of AnPlan activity IDs favourited by `userId` in
+ * `eventId`.
+ */
+export const getFavouritedActivityIds = cache(
+    async (eventId: number, userId: number): Promise<Set<number>> => {
+        const activityIds = await db.selectFrom(tUsersEventsFavourites)
+            .where(tUsersEventsFavourites.userId.equals(userId))
+                .and(tUsersEventsFavourites.eventId.equals(eventId))
+            .selectOneColumn(tUsersEventsFavourites.activityId)
+            .executeSelectMany();
+
+        return new Set(activityIds);
     });

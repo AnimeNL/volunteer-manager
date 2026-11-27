@@ -13,6 +13,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import LinearProgress from '@mui/material/LinearProgress';
 import Stack from '@mui/material/Stack';
+import StarIcon from '@mui/icons-material/Star';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
@@ -37,6 +38,12 @@ interface ScheduleListRowProps {
      * Whether to display a trailing navigation chevron beside the right-aligned metadata.
      */
     chevron?: boolean;
+
+    /**
+     * Whether the item has been favourited by the volunteer, displaying a star icon beside the
+     * trailing metadata.
+     */
+    favourite?: boolean;
 
     /**
      * Whether the item is hidden from visitors, displaying a slashed-eye indicator.
@@ -93,6 +100,7 @@ interface ScheduleListRowProps {
 export function ScheduleListRow(props: ScheduleListRowProps) {
     const {
         chevron = false,
+        favourite = false,
         hidden = false,
         href,
         progress,
@@ -151,11 +159,26 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
                             {subtitle}
                         </Typography> }
                 </Box>
-                { (ticketed || !!trailing || chevron) &&
+                { (favourite || ticketed || !!trailing || chevron) &&
                     <Stack
                         direction="row"
                         spacing={0.75}
                         sx={{ alignItems: 'center', flexShrink: 0 }}>
+                        { favourite &&
+                            <Tooltip title="Favourited event">
+                                <Box
+                                    component="span"
+                                    aria-label="Favourited event"
+                                    sx={{
+                                        alignItems: 'center',
+                                        color: isPast ? 'text.disabled' : 'primary.main',
+                                        display: 'inline-flex',
+                                        flexShrink: 0,
+                                        typography: 'body2',
+                                    }}>
+                                    <StarIcon fontSize="inherit" />
+                                </Box>
+                            </Tooltip> }
                         { ticketed &&
                             <Tooltip title="Ticketed event">
                                 <Box
@@ -169,7 +192,6 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
                                         display: 'inline-flex',
                                         flexShrink: 0,
                                         opacity: state === 'default' ? 0.85 : 1,
-                                        transform: 'translateY(-1px)',
                                         typography: 'body2',
                                     }}>
                                     <ConfirmationNumberOutlinedIcon fontSize="inherit" />

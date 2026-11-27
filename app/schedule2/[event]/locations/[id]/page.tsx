@@ -17,7 +17,7 @@ import { compareTimeslots, formatTimeRange, getLogicalDate,
     getTimeslotTiming } from '../../lib/programTime';
 import { createScheduleMetadataFn } from '../../lib/generateScheduleMetadata';
 import { formatDate } from '@lib/Temporal';
-import { getProgramLocationDetail } from '../../lib/data/programData';
+import { getFavouritedActivityIds, getProgramLocationDetail } from '../../lib/data/programData';
 import { getSchedulePath } from '../../lib/navigationTypes';
 import { getTicketedActivityIds } from '../../lib/data/ticketData';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
@@ -38,9 +38,10 @@ async function loadLocationDetail(params: Promise<{ event: string; id: string }>
  */
 async function LocationScheduleContent(props: { params: Promise<{ event: string; id: string }> }) {
     const { event: eventSlug, id } = await props.params;
-    const { currentTime, event } = await requireScheduleAccess(eventSlug);
-    const [ data, ticketedActivityIds ] = await Promise.all([
+    const { currentTime, event, user } = await requireScheduleAccess(eventSlug);
+    const [ data, favouritedActivityIds, ticketedActivityIds ] = await Promise.all([
         getProgramLocationDetail(event.integrations?.anPlanFestivalId, id, event.timeZone),
+        getFavouritedActivityIds(event.id, user.id),
         getTicketedActivityIds(event),
     ]);
     if (!data)
@@ -115,6 +116,7 @@ async function LocationScheduleContent(props: { params: Promise<{ event: string;
                         { day.events.map(programEvent =>
                             <ScheduleListRow
                                 key={programEvent.timeslotId}
+                                favourite={favouritedActivityIds.has(programEvent.activityId)}
                                 hidden={programEvent.hidden}
                                 href={getSchedulePath(
                                     event.slug, `/events/${programEvent.activityId}`)}
