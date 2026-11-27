@@ -7,3 +7,20 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Using Next.js `Link` with MUI Components in Server Components
+
+When passing Next.js `Link` to a MUI Client Component (such as `<MuiLink component={Link}>` or
+`<Button LinkComponent={Link}>`) from a React Server Component, always import `Link` from
+`@app/LinkProxy` (`app/LinkProxy.ts`) instead of `next/link`:
+
+```tsx
+import Link from '@app/LinkProxy';
+import MuiLink from '@mui/material/Link';
+
+<MuiLink component={Link} href="...">Label</MuiLink>
+```
+
+Importing directly from `next/link` fails at runtime with
+`Functions cannot be passed directly to Client Components` in Next.js 16+. Treat `@app/LinkProxy`
+as a block-1 import (as if it were `next/link`).

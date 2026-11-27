@@ -36,10 +36,9 @@ React View Transitions.
   `prefers-reduced-motion`.
 
 ## Isolation & Dependencies
-* Code in `app/schedule2/` may only import from external packages, `@lib` (`app/lib/`),
-  `@components` (`app/components/`), or other modules inside `app/schedule2/`. Depending on
-  anything else in `app/` (such as `app/schedule/`, `app/admin/`, or `@app/LinkProxy`) is
-  prohibited.
+* Code in `app/schedule2/` may only import from external packages, `@app/LinkProxy`, `@lib`
+  (`app/lib/`), `@components` (`app/components/`), or other modules inside `app/schedule2/`.
+  Depending on anything else in `app/` (such as `app/schedule/` or `app/admin/`) is prohibited.
 
 ## Naming & Comments
 * Always refer to this portal as `schedule` (never `schedule2`) in symbol names, component names,
@@ -58,9 +57,9 @@ React View Transitions.
 * Default to plain React function components as Server Components. Only extract a component for a
   meaningful boundary: a `'use client'` leaf, a `<Suspense>` data or skeleton boundary, a reusable
   domain unit, or a repeated styled primitive. Avoid wrapper components created solely to style a
-  one-off element. Never pass `component={Link}` (or any component function) as a prop to a MUI
-  Client Component from a Server Component—render Next.js `<Link>` directly in Server Components or
-  use a `'use client'` wrapper such as `<InteractiveSurface>`.
+  one-off element. When passing `component={Link}` to a MUI component (such as
+  `<MuiLink component={Link}>`) from a Server Component, import `Link` from `@app/LinkProxy` rather
+  than `next/link` (see root `AGENTS.md`).
 * Stay 100% on MUI for component styling. Do not use hoisted `const kStyles` objects (they signal
   that `styled()`, concise inline `sx`, or theme overrides should be used instead), and do not add
   CSS Modules (`*.module.css`). Reserve plain CSS files for global or animation rules that MUI does

@@ -1,9 +1,10 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import MuiLink from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
@@ -73,13 +74,9 @@ export function SectionHeader(props: SectionHeaderProps) {
         return content;
 
     return (
-        <Link href={href} style={{
-            WebkitTapHighlightColor: 'transparent',
-            color: 'inherit',
-            display: 'block',
-            textDecoration: 'none',
-        }}>
+        <MuiLink component={Link} href={href} color="inherit" underline="none"
+                 sx={{ WebkitTapHighlightColor: 'transparent', display: 'block' }}>
             {content}
-        </Link>
+        </MuiLink>
     );
 }
