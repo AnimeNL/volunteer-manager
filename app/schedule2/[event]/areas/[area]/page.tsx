@@ -14,6 +14,7 @@ import { ScheduleList, ScheduleListRow } from '../../components/ScheduleList';
 import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
 import { SectionHeader } from '../../components/SectionHeader';
 import { formatDate } from '@lib/Temporal';
+import { getLogicalDate, getTimeslotTiming } from '../../lib/programTime';
 import { getSchedulePath } from '../../lib/navigationTypes';
 import { readSetting } from '@lib/Settings';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
@@ -21,11 +22,6 @@ import db, { tActivities, tActivitiesAreas, tActivitiesLocations,
     tActivitiesTimeslots } from '@lib/database';
 
 import { kActivityType } from '@lib/database/Types';
-
-/**
- * Hour of the morning at which the logical festival day rolls over.
- */
-const kLogicalDayChangeHour = 4;
 
 /**
  * Request-cached loader fetching all scheduled program timeslots for `areaParam` in `festivalId`.
@@ -117,7 +113,7 @@ async function AreaLocationsContent(props: { params: Promise<{ area: string; eve
 
     const maxEvents = listLimit ?? 5;
     const nowMs = currentTime.epochMilliseconds;
-    const today = currentTime.subtract({ hours: kLogicalDayChangeHour }).toPlainDate();
+    const today = getLogicalDate(currentTime);
 
     const locationMap = new Map<
         number, { active: TimeslotRow[]; id: number; name: string; upcoming: TimeslotRow[] }>();
@@ -174,14 +170,11 @@ async function AreaLocationsContent(props: { params: Promise<{ area: string; eve
                             { location.events.map(row => {
                                 const start = row.start.withTimeZone(event.timeZone);
                                 const end = row.end.withTimeZone(event.timeZone);
-                                const startMs = row.start.epochMilliseconds;
-                                const endMs = row.end.epochMilliseconds;
-                                const isActive = startMs <= nowMs;
+                                const timing = getTimeslotTiming(
+                                    row.start.epochMilliseconds, row.end.epochMilliseconds, nowMs);
 
-                                const sameDay = today.equals(
-                                    start.subtract({ hours: kLogicalDayChangeHour }).toPlainDate());
-
-                                const trailing = isActive
+                                const sameDay = today.equals(getLogicalDate(start));
+                                const trailing = timing.isActive
                                     ? `until ${formatDate(end, 'HH:mm')}`
                                     : `${formatDate(start, sameDay ? 'HH:mm' : 'ddd, HH:mm')}` +
                                       `–${formatDate(end, 'HH:mm')}`;
@@ -192,11 +185,8 @@ async function AreaLocationsContent(props: { params: Promise<{ area: string; eve
                                         hidden={row.hidden}
                                         href={getSchedulePath(
                                             event.slug, `/events/${row.activityId}`)}
-                                        progress={isActive
-                                            ? Math.round(((nowMs - startMs) / (endMs - startMs))
-                                                * 100)
-                                            : undefined}
-                                        state={isActive ? 'active' : 'default'}
+                                        progress={timing.progress}
+                                        state={timing.state}
                                         title={row.title}
                                         trailing={trailing} />
                                 );

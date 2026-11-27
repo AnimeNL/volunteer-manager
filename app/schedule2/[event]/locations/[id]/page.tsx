@@ -14,6 +14,7 @@ import { Page, SuspenseReveal } from '../../components/Page';
 import { ScheduleList, ScheduleListRow } from '../../components/ScheduleList';
 import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
 import { SectionHeader } from '../../components/SectionHeader';
+import { compareTimeslots, getLogicalDate, getTimeslotTiming } from '../../lib/programTime';
 import { formatDate } from '@lib/Temporal';
 import { getSchedulePath } from '../../lib/navigationTypes';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
@@ -21,11 +22,6 @@ import db, { tActivities, tActivitiesAreas, tActivitiesLocations,
     tActivitiesTimeslots } from '@lib/database';
 
 import { kActivityType } from '@lib/database/Types';
-
-/**
- * Hour of the morning at which the logical festival day rolls over.
- */
-const kLogicalDayChangeHour = 4;
 
 /**
  * Request-cached loader fetching all scheduled program timeslots for `locationParam` in
@@ -112,9 +108,10 @@ async function LocationScheduleContent(props: { params: Promise<{ event: string;
             activityId: number;
             endMs: number;
             hidden: boolean;
-            isActive: boolean;
             isPast: boolean;
+            progress: number | undefined;
             startMs: number;
+            state: 'active' | 'default' | 'past';
             time: string;
             timeslotId: number;
             title: string;
@@ -127,9 +124,9 @@ async function LocationScheduleContent(props: { params: Promise<{ event: string;
         const end = row.end.withTimeZone(event.timeZone);
         const startMs = row.start.epochMilliseconds;
         const endMs = row.end.epochMilliseconds;
-        const isPast = endMs <= nowMs;
+        const { isPast, progress, state } = getTimeslotTiming(startMs, endMs, nowMs);
 
-        const logicalDate = start.subtract({ hours: kLogicalDayChangeHour }).toPlainDate();
+        const logicalDate = getLogicalDate(start);
         const dateKey = logicalDate.toString();
 
         let day = dayMap.get(dateKey);
@@ -142,9 +139,10 @@ async function LocationScheduleContent(props: { params: Promise<{ event: string;
             activityId: row.activityId,
             endMs,
             hidden: row.hidden,
-            isActive: !isPast && startMs <= nowMs,
             isPast,
+            progress,
             startMs,
+            state,
             time: `${formatDate(start, 'HH:mm')}–${formatDate(end, 'HH:mm')}`,
             timeslotId: row.timeslotId,
             title: row.title,
@@ -153,10 +151,7 @@ async function LocationScheduleContent(props: { params: Promise<{ event: string;
 
     const days = [ ...dayMap.values() ]
         .map(day => {
-            day.events.sort((lhs, rhs) =>
-                Number(lhs.isPast) - Number(rhs.isPast) ||
-                lhs.startMs - rhs.startMs ||
-                lhs.endMs - rhs.endMs);
+            day.events.sort(compareTimeslots);
 
             return { ...day, isPast: day.events.every(e => e.isPast) };
         })
@@ -178,13 +173,8 @@ async function LocationScheduleContent(props: { params: Promise<{ event: string;
                                     hidden={programEvent.hidden}
                                     href={getSchedulePath(
                                         event.slug, `/events/${programEvent.activityId}`)}
-                                    progress={programEvent.isActive
-                                        ? Math.round(((nowMs - programEvent.startMs) /
-                                            (programEvent.endMs - programEvent.startMs)) * 100)
-                                        : undefined}
-                                    state={programEvent.isPast
-                                        ? 'past'
-                                        : (programEvent.isActive ? 'active' : 'default')}
+                                    progress={programEvent.progress}
+                                    state={programEvent.state}
                                     title={programEvent.title}
                                     trailing={programEvent.time} /> ) }
                         </ScheduleList>

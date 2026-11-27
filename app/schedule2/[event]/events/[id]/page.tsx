@@ -15,6 +15,7 @@ import { Page, SuspenseReveal } from '../../components/Page';
 import { ScheduleList, ScheduleListRow } from '../../components/ScheduleList';
 import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
 import { SectionHeader } from '../../components/SectionHeader';
+import { compareTimeslots, formatEuroPrice, getTimeslotTiming } from '../../lib/programTime';
 import { formatDate } from '@lib/Temporal';
 import { getEventTicketSales } from '../../lib/data/ticketData';
 import { getSchedulePath } from '../../lib/navigationTypes';
@@ -123,14 +124,6 @@ async function EventFavouriteAction(props: { params: Promise<{ event: string; id
 }
 
 /**
- * Formats a ticket price given in `cents` as a compact EUR label (e.g. `€20` or `€12.50`).
- */
-function formatPrice(cents: number): string {
-    const euros = cents / 100;
-    return Number.isInteger(euros) ? `€${euros}` : `€${euros.toFixed(2)}`;
-}
-
-/**
  * Authenticates the request behind `<Suspense>` and renders scheduled timeslots and ticket sales
  * for the event.
  */
@@ -158,23 +151,22 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
             const end = row.end.withTimeZone(event.timeZone);
             const startMs = row.start.epochMilliseconds;
             const endMs = row.end.epochMilliseconds;
-            const isPast = endMs <= nowMs;
+            const { isPast, progress, state } = getTimeslotTiming(startMs, endMs, nowMs);
 
             return {
                 endMs,
-                isActive: !isPast && startMs <= nowMs,
                 isPast,
                 locationId: row.locationId,
                 locationName: row.locationName,
+                progress,
                 startMs,
+                state,
                 time: `${formatDate(start, 'ddd, HH:mm')}–${formatDate(end, 'HH:mm')}`,
                 timeslotId: row.timeslotId,
             };
         })
         .sort((lhs, rhs) =>
-            Number(lhs.isPast) - Number(rhs.isPast) ||
-            lhs.startMs - rhs.startMs ||
-            lhs.endMs - rhs.endMs ||
+            compareTimeslots(lhs, rhs) ||
             lhs.locationName.localeCompare(rhs.locationName));
 
     const allPast = timeslots.every(timeslot => timeslot.isPast);
@@ -188,13 +180,8 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
                         <ScheduleListRow
                             key={timeslot.timeslotId}
                             href={getSchedulePath(event.slug, `/locations/${timeslot.locationId}`)}
-                            progress={timeslot.isActive
-                                ? Math.round(((nowMs - timeslot.startMs) /
-                                    (timeslot.endMs - timeslot.startMs)) * 100)
-                                : undefined}
-                            state={timeslot.isPast
-                                ? 'past'
-                                : (timeslot.isActive ? 'active' : 'default')}
+                            progress={timeslot.progress}
+                            state={timeslot.state}
                             title={timeslot.locationName}
                             trailing={timeslot.time} /> ) }
                 </ScheduleList>
@@ -213,7 +200,7 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
                                 ? 'error'
                                 : ((progress ?? 0) < 75 ? 'success' : 'warning');
                             const price = entry.price !== undefined
-                                ? ` · ${formatPrice(entry.price)}`
+                                ? ` · ${formatEuroPrice(entry.price)}`
                                 : '';
 
                             const trailing = entry.limit !== undefined ? (
