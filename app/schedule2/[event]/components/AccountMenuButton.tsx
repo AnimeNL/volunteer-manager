@@ -28,6 +28,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
 import { useColorScheme } from '@mui/material/styles';
 
+import { determineInitials } from '@components/Avatar';
 import { getSchedulePath } from '../lib/navigationTypes';
 import { useInstallPrompt } from '../lib/installPrompt';
 
@@ -92,7 +93,7 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
             window.location.href = response.returnUrl ?? '/';
     }
 
-    const initials = userName ? getInitials(userName) : '';
+    const initials = userName?.trim() ? determineInitials(userName) : '';
     const installSection = canInstall ? (
         <>
             <MenuItem onClick={handleInstall}>
@@ -219,18 +220,4 @@ function ColorSchemeToggle() {
             </ToggleButtonGroup>
         </Box>
     );
-}
-
-/**
- * Extracts up to two uppercase initials from a user's display name for the avatar fallback.
- */
-function getInitials(name: string): string {
-    const trimmed = name.trim();
-    if (!trimmed)
-        return '';
-
-    const uppercase = [ ...trimmed ].filter(char => char >= 'A' && char <= 'Z');
-    return uppercase.length
-        ? uppercase.slice(0, 2).join('')
-        : trimmed[0].toUpperCase();
 }
