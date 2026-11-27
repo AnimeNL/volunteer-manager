@@ -185,6 +185,7 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
                 data-state={state}
                 hasSubtitle={!!subtitle}
                 href={href}
+                isHidden={hidden}
                 rowState={state}>
                 {inner}
             </RowButton>
@@ -192,9 +193,34 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
     }
 
     return (
-        <RowStatic data-state={state} hasSubtitle={!!subtitle} rowState={state}>
+        <RowStatic data-state={state} hasSubtitle={!!subtitle} isHidden={hidden} rowState={state}>
             {inner}
         </RowStatic>
+    );
+}
+
+/**
+ * Styling props forwarded to `<RowButton>` and `<RowStatic>`.
+ */
+interface RowSurfaceProps {
+    hasSubtitle: boolean;
+    isHidden: boolean;
+    rowState: ScheduleListRowState;
+}
+
+/**
+ * Filter preventing internal row styling props from reaching the underlying DOM element.
+ */
+const isRowSurfaceProp = (prop: PropertyKey) =>
+    prop !== 'hasSubtitle' && prop !== 'isHidden' && prop !== 'rowState';
+
+/**
+ * Builds a subtle 45-degree repeating hatch background image using the given CSS colour expression.
+ */
+function debossedHatch(color: string): string {
+    return (
+        `repeating-linear-gradient(-45deg, ${color}, ${color} 4px, ` +
+        'transparent 4px, transparent 12px)'
     );
 }
 
@@ -203,6 +229,11 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
  */
 function rowSurfaceStyles(theme: Theme) {
     const palette = (theme.vars || theme).palette;
+
+    const lightStripe = `color-mix(in srgb, ${palette.text.primary} 3.2%, transparent)`;
+    const darkStripe = `color-mix(in srgb, ${palette.common.black} 7.5%, transparent)`;
+    const lightPastStripe = `color-mix(in srgb, ${palette.text.primary} 2%, transparent)`;
+    const darkPastStripe = `color-mix(in srgb, ${palette.common.black} 4.5%, transparent)`;
 
     return {
         display: 'flex',
@@ -225,6 +256,24 @@ function rowSurfaceStyles(theme: Theme) {
                         `${palette.background.paper})`,
                 },
             },
+            {
+                props: { isHidden: true },
+                style: {
+                    backgroundImage: debossedHatch(lightStripe),
+                    ...theme.applyStyles('dark', {
+                        backgroundImage: debossedHatch(darkStripe),
+                    }),
+                },
+            },
+            {
+                props: { isHidden: true, rowState: 'past' as ScheduleListRowState },
+                style: {
+                    backgroundImage: debossedHatch(lightPastStripe),
+                    ...theme.applyStyles('dark', {
+                        backgroundImage: debossedHatch(darkPastStripe),
+                    }),
+                },
+            },
         ],
     };
 }
@@ -233,8 +282,8 @@ function rowSurfaceStyles(theme: Theme) {
  * Interactive row button rendered when `href` is provided.
  */
 const RowButton = styled(ButtonBase, {
-    shouldForwardProp: prop => prop !== 'hasSubtitle' && prop !== 'rowState',
-})<{ hasSubtitle: boolean; rowState: ScheduleListRowState }>(({ theme }) => {
+    shouldForwardProp: isRowSurfaceProp,
+})<RowSurfaceProps>(({ theme }) => {
     const palette = (theme.vars || theme).palette;
 
     return {
@@ -252,13 +301,11 @@ const RowButton = styled(ButtonBase, {
                 `color-mix(in srgb, ${palette.secondary.main} 80%, ${palette.background.paper})`,
         },
     };
-}) as ExtendButtonBase<
-    ButtonBaseTypeMap<{ hasSubtitle: boolean; rowState: ScheduleListRowState }>>;
+}) as ExtendButtonBase<ButtonBaseTypeMap<RowSurfaceProps>>;
 
 /**
  * Non-interactive row container matching `<RowButton>` geometry and state surface.
  */
 const RowStatic = styled(Box, {
-    shouldForwardProp: prop => prop !== 'hasSubtitle' && prop !== 'rowState',
-})<{ hasSubtitle: boolean; rowState: ScheduleListRowState }>(
-    ({ theme }) => rowSurfaceStyles(theme));
+    shouldForwardProp: isRowSurfaceProp,
+})<RowSurfaceProps>(({ theme }) => rowSurfaceStyles(theme));
