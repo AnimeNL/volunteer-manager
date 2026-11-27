@@ -135,7 +135,7 @@ function formatPrice(cents: number): string {
  */
 async function EventContent(props: { params: Promise<{ event: string; id: string }> }) {
     const { event: eventSlug, id } = await props.params;
-    const { currentTime, event } = await requireScheduleAccess(eventSlug);
+    const { access, currentTime, event } = await requireScheduleAccess(eventSlug);
 
     const [ data, showSales ] = await Promise.all([
         loadEventData(event.integrations?.anPlanFestivalId, id),
@@ -148,6 +148,9 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
     const sales = showSales
         ? await getEventTicketSales(event, data.activityId, data.title)
         : [];
+    const ticketsHref = access.can('event.tickets', 'read', { event: event.slug })
+        ? getSchedulePath(event.slug, `/events/${data.activityId}/tickets`)
+        : undefined;
 
     const nowMs = currentTime.epochMilliseconds;
     const timeslots = data.timeslots
@@ -200,7 +203,11 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
             </Stack>
             { sales.length > 0 &&
                 <Stack spacing={0.75} useFlexGap>
-                    <SectionHeader title="Tickets sold" />
+                    <SectionHeader
+                        actionLabel={ticketsHref ? 'View tickets' : undefined}
+                        href={ticketsHref}
+                        title="Tickets sold"
+                        transitionTypes={ticketsHref ? [ 'nav-forward' ] : undefined} />
                     <ScheduleList>
                         { sales.map(entry => {
                             const isSoldOut = entry.limit !== undefined &&
@@ -238,10 +245,12 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
                             return (
                                 <ScheduleListRow
                                     key={entry.id}
+                                    href={ticketsHref}
                                     progress={progress}
                                     progressColor={isSoldOut ? 'error' : 'warning'}
                                     title={entry.name}
-                                    trailing={trailing} />
+                                    trailing={trailing}
+                                    transitionTypes={ticketsHref ? [ 'nav-forward' ] : undefined} />
                             );
                         }) }
                     </ScheduleList>
