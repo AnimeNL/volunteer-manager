@@ -7,9 +7,9 @@ import { forbidden, notFound, unauthorized } from 'next/navigation';
 
 import type { CachedEvent } from '@lib/cache';
 import type { UserAuthenticationContext } from '@lib/auth';
+import { determineAvailabilityStatus } from '@lib/EnvironmentContext';
 import { getAuthenticationContext } from '@lib/auth';
 import { getEvent } from '@lib/cache';
-import { isAfter } from '@lib/Temporal';
 import { readUserSettings } from '@lib/UserSettings';
 import db, { tEnvironmentsEvents, tEventsTeams, tTeams, tUsersEvents } from '@lib/database';
 
@@ -35,7 +35,10 @@ type ScheduleAccessResult =
  * publication window is currently open.
  */
 async function hasOpenPortalAvailabilityWindow(
-    eventId: number, userId: number, now: Temporal.ZonedDateTime): Promise<boolean>
+    eventId: number,
+    eventEndTime: Temporal.ZonedDateTime,
+    userId: number,
+    now: Temporal.ZonedDateTime): Promise<boolean>
 {
     const environmentsEventsJoin = tEnvironmentsEvents.forUseInLeftJoin();
 
@@ -58,15 +61,9 @@ async function hasOpenPortalAvailabilityWindow(
         })
         .executeSelectMany();
 
-    for (const { start, end } of windows) {
-        if (!start || isAfter(start, now))
-            continue;
-
-        if (!end || isAfter(end, now))
-            return true;
-    }
-
-    return false;
+    return windows.some(({ start, end }) =>
+        determineAvailabilityStatus(now, eventEndTime, { start, end, override: false }) ===
+        'active');
 }
 
 /**
@@ -90,8 +87,8 @@ const resolveScheduleAccess = cache(
             if (!authenticationContext.events.has(event.slug))
                 return { status: 'forbidden' };
 
-            const hasOpenWindow =
-                await hasOpenPortalAvailabilityWindow(event.id, user.id, wallClockNow);
+            const hasOpenWindow = await hasOpenPortalAvailabilityWindow(
+                event.id, event.endTime, user.id, wallClockNow);
             if (!hasOpenWindow)
                 return { status: 'forbidden' };
         }

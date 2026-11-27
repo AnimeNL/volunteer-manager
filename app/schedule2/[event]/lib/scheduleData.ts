@@ -27,14 +27,14 @@ interface DutyBookTeamRecord {
  */
 export const getNavigationData = cache(
     async (eventSlug: string): Promise<NavigationData | undefined> => {
-        const access = await getScheduleAccess(eventSlug);
-        if (!access)
+        const scheduleContext = await getScheduleAccess(eventSlug);
+        if (!scheduleContext)
             return undefined;
 
-        const { access: permissions, event, events, user } = access;
+        const { access, event, events, user } = scheduleContext;
         const festivalId = event.integrations?.anPlanFestivalId;
         const memberTeams = events.get(event.slug);
-        const hasUnrestrictedKnowledge = permissions.can('event.knowledge', { event: event.slug });
+        const hasUnrestrictedKnowledge = access.can('event.knowledge', { event: event.slug });
 
         const [ areas, dutyBookTeams, hasKnowledgeBase, userSettings ] =
             await Promise.all([
@@ -50,10 +50,10 @@ export const getNavigationData = cache(
         const dutyBooks = dutyBookTeams
             .filter(team =>
                 memberTeams?.has(team.slug) ||
-                permissions.can('event.duty-book', 'read', { event: event.slug, team: team.slug }))
+                access.can('event.duty-book', 'read', { event: event.slug, team: team.slug }))
             .map(team => ({ name: team.name, team: team.slug }));
 
-        const hasHelpRequests = permissions.can('event.help-requests', { event: event.slug });
+        const hasHelpRequests = access.can('event.help-requests', { event: event.slug });
 
         return {
             areas,

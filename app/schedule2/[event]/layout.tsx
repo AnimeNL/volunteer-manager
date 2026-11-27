@@ -37,22 +37,23 @@ const kHexColorRegex = /^#[0-9a-fA-F]{6}$/;
  */
 async function AuthenticatedAccountMenu(props: { params: Promise<{ event: string }> }) {
     const { event: eventSlug } = await props.params;
-    const access = await getScheduleAccess(eventSlug);
-    const user = access?.user ?? (await getAuthenticationContext()).user;
+    const scheduleContext = await getScheduleAccess(eventSlug);
+    const user = scheduleContext?.user ?? (await getAuthenticationContext()).user;
 
-    const [ hotelBookings, ticket ] = access
+    const [ hotelBookings, ticket ] = scheduleContext
         ? await Promise.all([
-            getVolunteerHotelBookings(access.event, access.user.id),
-            getVolunteerTicket(access.event, access.user.id),
+            getVolunteerHotelBookings(scheduleContext.event, scheduleContext.user.id),
+            getVolunteerTicket(scheduleContext.event, scheduleContext.user.id),
         ])
         : [ [], undefined ];
 
     const hasDevelopment =
-        access?.access.can('event.settings', { event: access.event.slug }) ?? false;
+        scheduleContext?.access.can('event.settings', { event: scheduleContext.event.slug }) ??
+        false;
 
     return (
         <AccountMenuButton avatarUrl={user?.avatarUrl}
-                           eventSlug={access?.event.slug}
+                           eventSlug={scheduleContext?.event.slug}
                            hasDevelopment={hasDevelopment}
                            hasHotelRoom={hotelBookings.length > 0}
                            hasTicket={!!ticket}
