@@ -3,18 +3,14 @@
 
 import 'server-only';
 import { cache } from 'react';
-import { cacheLife, cacheTag } from 'next/cache';
 
 import type { AccessControl } from '@lib/auth/access';
 import type { CachedEvent } from '@lib/cache';
+import type { EventState } from '@lib/event';
 import type { User } from '@lib/auth';
-import type { VolunteerAccessParams } from './VolunteerAccess';
 import { VolunteerAccess } from './VolunteerAccess';
+import { getEventState } from '@lib/event';
 import { requireScheduleAccess } from '../getScheduleAccess';
-import db, { tEventsTeams, tRoles, tSchedule, tShifts, tTeams, tTeamsVisibility, tUsersEvents }
-    from '@lib/database';
-
-import { kRegistrationStatus } from '@lib/database/Types';
 
 /**
  * Minimal viewer and event context accepted by `getVolunteerAccess()`. Compatible with both
@@ -23,148 +19,81 @@ import { kRegistrationStatus } from '@lib/database/Types';
  */
 export interface VolunteerAccessContext {
     access: AccessControl;
-    event: Pick<CachedEvent, 'id' | 'slug'>;
+    event: CachedEvent;
     user: Pick<User, 'id'>;
 }
 
 /**
- * Serializable event-wide snapshot cached across requests for constructing `VolunteerAccess`.
+ * Builds a `VolunteerAccess` policy instance directly from an in-memory `EventState` snapshot,
+ * issuing no database queries.
  */
-interface CachedEventAccessSnapshot {
-    teams: VolunteerAccessParams['teams'];
-    participations: VolunteerAccessParams['participations'];
-    shifts: VolunteerAccessParams['shifts'];
-}
-
-/**
- * Loads all directional team visibility edges (`[teamId, visibleTeamId]`) behind `'use cache'`.
- * Invalidated via `updateTag('schedule-teams-visibility')` when team settings change.
- */
-async function loadCachedTeamVisibility(): Promise<readonly [ number, number ][]> {
-    'use cache';
-    cacheLife('minutes');
-    cacheTag('schedule-teams-visibility');
-
-    const rows = await db.selectFrom(tTeamsVisibility)
-        .select({
-            teamId: tTeamsVisibility.teamId,
-            visibleTeamId: tTeamsVisibility.visibleTeamId,
-        })
-        .executeSelectMany();
-
-    return rows.map(row => [ row.teamId, row.visibleTeamId ]);
-}
-
-/**
- * Loads the permission-neutral event snapshot (enabled teams, accepted participations, and active
- * scheduled shift windows) required by `VolunteerAccess`, cached per event.
- */
-async function loadCachedEventAccessSnapshot(eventId: number): Promise<CachedEventAccessSnapshot> {
-    'use cache';
-    cacheLife('minutes');
-    cacheTag('schedule-volunteer-access', `schedule-volunteer-access:${eventId}`);
-
-    const [ teams, participations, rawShifts ] = await Promise.all([
-        db.selectFrom(tEventsTeams)
-            .innerJoin(tTeams)
-                .on(tTeams.teamId.equals(tEventsTeams.teamId))
-                    .and(tTeams.teamDeleted.isNull())
-            .where(tEventsTeams.eventId.equals(eventId))
-                .and(tEventsTeams.enableTeam.equals(/* true= */ 1))
-            .select({
-                id: tTeams.teamId,
-                slug: tTeams.teamSlug,
-            })
-            .executeSelectMany(),
-
-        db.selectFrom(tUsersEvents)
-            .innerJoin(tRoles)
-                .on(tRoles.roleId.equals(tUsersEvents.roleId))
-            .where(tUsersEvents.eventId.equals(eventId))
-                .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
-            .select({
-                userId: tUsersEvents.userId,
-                teamId: tUsersEvents.teamId,
-                isLeader: tRoles.rolePermissionGrant.isNotNull(),
-            })
-            .executeSelectMany(),
-
-        db.selectFrom(tSchedule)
-            .innerJoin(tShifts)
-                .on(tShifts.shiftId.equals(tSchedule.shiftId))
-                    .and(tShifts.shiftDeleted.isNull())
-            .where(tSchedule.eventId.equals(eventId))
-                .and(tSchedule.scheduleDeleted.isNull())
-            .select({
-                scheduleId: tSchedule.scheduleId,
-                userId: tSchedule.userId,
-                shiftId: tShifts.shiftId,
-                shiftTeamId: tShifts.teamId,
-                activityId: tShifts.shiftActivityId,
-                start: tSchedule.scheduleTimeStart,
-                end: tSchedule.scheduleTimeEnd,
-            })
-            .executeSelectMany(),
-    ]);
-
-    const shifts = rawShifts.map(shift => ({
-        scheduleId: shift.scheduleId,
-        userId: shift.userId,
-        shiftId: shift.shiftId,
-        shiftTeamId: shift.shiftTeamId,
-        activityId: shift.activityId,
-        startMs: shift.start.epochMilliseconds,
-        endMs: shift.end.epochMilliseconds,
+function buildVolunteerAccess(
+    eventState: EventState,
+    viewerUserId: number,
+    access: AccessControl): VolunteerAccess
+{
+    const teams = eventState.volunteers.getTeams().map(team => ({
+        id: team.id,
+        slug: team.slug,
     }));
 
-    return { teams, participations, shifts };
-}
-
-/**
- * Converts flat `[teamId, visibleTeamId]` edges into a lookup map for `VolunteerAccess`.
- */
-function buildTeamVisibilityMap(
-    edges: readonly [ number, number ][]): Map<number, Set<number>>
-{
-    const map = new Map<number, Set<number>>();
-    for (const [ teamId, visibleTeamId ] of edges) {
-        let targets = map.get(teamId);
-        if (!targets) {
-            targets = new Set<number>();
-            map.set(teamId, targets);
+    const participations: { userId: number; teamId: number; isLeader: boolean }[] = [];
+    for (const volunteer of eventState.volunteers.getVolunteers()) {
+        for (const participation of volunteer.participations) {
+            const role = eventState.volunteers.getRole(participation.roleId);
+            participations.push({
+                userId: volunteer.id,
+                teamId: participation.teamId,
+                isLeader: role?.isLeader ?? false,
+            });
         }
-
-        targets.add(visibleTeamId);
     }
 
-    return map;
+    const shifts = eventState.shifts.getAllAssignments().map(assignment => ({
+        scheduleId: assignment.id,
+        userId: assignment.userId,
+        shiftId: assignment.shiftId,
+        shiftTeamId: assignment.teamId,
+        activityId: assignment.activityId,
+        startMs: assignment.startMs,
+        endMs: assignment.endMs,
+    }));
+
+    return new VolunteerAccess({
+        viewerUserId,
+        eventSlug: eventState.eventSlug,
+        access,
+        teams,
+        teamVisibility: eventState.volunteers.getTeamVisibility(),
+        participations,
+        shifts,
+    });
 }
 
 /**
  * Request-cached builder so multiple Server Components and data loaders in the same render share
- * one precomputed `VolunteerAccess` instance.
+ * one precomputed `VolunteerAccess` instance backed by the permanent `EventState` cache.
  */
 const resolveVolunteerAccess = cache(
     async (
-        eventId: number,
-        eventSlug: string,
+        event: CachedEvent,
         viewerUserId: number,
         access: AccessControl): Promise<VolunteerAccess> =>
     {
-        const [ visibilityEdges, snapshot ] = await Promise.all([
-            loadCachedTeamVisibility(),
-            loadCachedEventAccessSnapshot(eventId),
-        ]);
+        const eventState = await getEventState(event);
+        if (!eventState) {
+            return new VolunteerAccess({
+                viewerUserId,
+                eventSlug: event.slug,
+                access,
+                teams: [],
+                teamVisibility: new Map(),
+                participations: [],
+                shifts: [],
+            });
+        }
 
-        return new VolunteerAccess({
-            viewerUserId,
-            eventSlug,
-            access,
-            teams: snapshot.teams,
-            teamVisibility: buildTeamVisibilityMap(visibilityEdges),
-            participations: snapshot.participations,
-            shifts: snapshot.shifts,
-        });
+        return buildVolunteerAccess(eventState, viewerUserId, access);
     });
 
 /**
@@ -179,6 +108,5 @@ export async function getVolunteerAccess(
         ? await requireScheduleAccess(contextOrEventSlug)
         : contextOrEventSlug;
 
-    return await resolveVolunteerAccess(
-        context.event.id, context.event.slug, context.user.id, context.access);
+    return await resolveVolunteerAccess(context.event, context.user.id, context.access);
 }

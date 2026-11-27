@@ -2,14 +2,14 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import 'server-only';
-import { cache } from 'react';
 
 import type { AccessControl } from '@lib/auth/access';
 import type { CachedEvent } from '@lib/cache';
 import type { EventState, EventTeam, VolunteerStateAtTime } from '@lib/event';
-import { VolunteerAccess } from '../access/VolunteerAccess';
+import type { VolunteerAccess } from '../access';
 import { formatDate } from '@lib/Temporal';
 import { getEventState } from '@lib/event';
+import { getVolunteerAccess } from '../access';
 
 /**
  * Individual volunteer entry displayed in a team roster.
@@ -113,63 +113,6 @@ interface VolunteerViewerContext {
     event: CachedEvent;
     user: { id: number };
 }
-
-/**
- * Request-cached builder creating a `VolunteerAccess` policy instance from `EventState` without
- * issuing additional database queries.
- */
-const resolveVolunteerContext = cache(
-    async (
-        event: CachedEvent,
-        viewerUserId: number,
-        access: AccessControl): Promise<{
-            eventState: EventState;
-            volunteerAccess: VolunteerAccess;
-        } | undefined> =>
-    {
-        const eventState = await getEventState(event);
-        if (!eventState)
-            return undefined;
-
-        const teams = eventState.volunteers.getTeams().map(team => ({
-            id: team.id,
-            slug: team.slug,
-        }));
-
-        const participations: { userId: number; teamId: number; isLeader: boolean }[] = [];
-        for (const volunteer of eventState.volunteers.getVolunteers()) {
-            for (const participation of volunteer.participations) {
-                const role = eventState.volunteers.getRole(participation.roleId);
-                participations.push({
-                    userId: volunteer.id,
-                    teamId: participation.teamId,
-                    isLeader: role?.isLeader ?? false,
-                });
-            }
-        }
-
-        const shifts = eventState.shifts.getAllAssignments().map(assignment => ({
-            scheduleId: assignment.id,
-            userId: assignment.userId,
-            shiftId: assignment.shiftId,
-            shiftTeamId: assignment.teamId,
-            activityId: assignment.activityId,
-            startMs: assignment.startMs,
-            endMs: assignment.endMs,
-        }));
-
-        const volunteerAccess = new VolunteerAccess({
-            viewerUserId,
-            eventSlug: event.slug,
-            access,
-            teams,
-            teamVisibility: eventState.volunteers.getTeamVisibility(),
-            participations,
-            shifts,
-        });
-
-        return { eventState, volunteerAccess };
-    });
 
 /**
  * Formats an unavailability return timestamp relative to `currentTime` in `timeZone`.
@@ -286,12 +229,13 @@ function buildTeamDetail(
 export async function getVolunteerTeams(
     context: VolunteerViewerContext): Promise<VolunteerTeamSummary[]>
 {
-    const resolved = await resolveVolunteerContext(
-        context.event, context.user.id, context.access);
-    if (!resolved)
+    const [ eventState, volunteerAccess ] = await Promise.all([
+        getEventState(context.event),
+        getVolunteerAccess(context),
+    ]);
+    if (!eventState)
         return [];
 
-    const { eventState, volunteerAccess } = resolved;
     const summaries: VolunteerTeamSummary[] = [];
 
     for (const team of eventState.volunteers.getTeams()) {
@@ -324,12 +268,13 @@ export async function getVolunteerTeamDetail(
     context: VolunteerViewerContext,
     teamSlug: string): Promise<VolunteerTeamDetail | undefined>
 {
-    const resolved = await resolveVolunteerContext(
-        context.event, context.user.id, context.access);
-    if (!resolved)
+    const [ eventState, volunteerAccess ] = await Promise.all([
+        getEventState(context.event),
+        getVolunteerAccess(context),
+    ]);
+    if (!eventState)
         return undefined;
 
-    const { eventState, volunteerAccess } = resolved;
     const team = eventState.volunteers.getTeam(teamSlug);
     if (!team || !volunteerAccess.canSeeTeam(team.id))
         return undefined;

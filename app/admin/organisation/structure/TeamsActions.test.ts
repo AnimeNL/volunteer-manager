@@ -1,21 +1,17 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { Cache } from '@lib/cache';
 import { SetRecordErrorLogDeferDelegate } from '@lib/ErrorLog';
 import { buildAuthenticationContext } from '@lib/auth/AuthenticationTestHelpers';
 import { useMockConnection } from '@lib/database/Connection';
 
 import { updateTeam } from './TeamsActions';
 
-const mockUpdateTag = vi.fn();
 const mockInvalidateTeamCache = vi.fn();
 
 vi.mock('next/headers', () => ({
     headers: async () => new Headers(),
-}));
-
-vi.mock('next/cache', () => ({
-    updateTag: (...args: unknown[]) => mockUpdateTag(...args),
 }));
 
 vi.mock('@lib/cache', async importOriginal => {
@@ -98,8 +94,8 @@ describe('TeamsActions', () => {
     const mockConnection = useMockConnection();
 
     beforeEach(() => {
-        mockUpdateTag.mockReset();
         mockInvalidateTeamCache.mockReset();
+        Cache.getInstance('EventState').clear();
         SetRecordErrorLogDeferDelegate(async () => undefined);
     });
 
@@ -109,6 +105,8 @@ describe('TeamsActions', () => {
 
     it('persists deduplicated directional visibleTeamIds without self-references', async () => {
         const visibilityInsertParams: unknown[] = [];
+        const eventStateCache = Cache.getInstance('EventState');
+        eventStateCache.set(7, { sentinel: true } as any);
 
         mockConnection.expect('beginTransaction', () => undefined);
         mockConnection.expect('update', () => 1);
@@ -126,11 +124,14 @@ describe('TeamsActions', () => {
         expect(result).toEqual({ success: true, refresh: true });
         expect(visibilityInsertParams).toEqual([ 1, 2, 1, 3 ]);
         expect(mockInvalidateTeamCache).toHaveBeenCalledWith(1);
-        expect(mockUpdateTag).toHaveBeenCalledWith('schedule-teams-visibility');
+        expect(eventStateCache.has(7)).toBe(false);
     });
 
     it('clears existing team visibility rows without inserting when visibleTeamIds is empty',
         async () => {
+            const eventStateCache = Cache.getInstance('EventState');
+            eventStateCache.set(7, { sentinel: true } as any);
+
             mockConnection.expect('beginTransaction', () => undefined);
             mockConnection.expect('update', () => 1);
             mockConnection.expect('delete', () => 2);
@@ -141,6 +142,6 @@ describe('TeamsActions', () => {
             const result = await updateTeam(1, buildUpdateTeamInput([]));
 
             expect(result).toEqual({ success: true, refresh: true });
-            expect(mockUpdateTag).toHaveBeenCalledWith('schedule-teams-visibility');
+            expect(eventStateCache.has(7)).toBe(false);
         });
 });

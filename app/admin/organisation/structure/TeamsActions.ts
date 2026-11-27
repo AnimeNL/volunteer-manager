@@ -4,7 +4,6 @@
 'use server';
 
 import { notFound } from 'next/navigation';
-import { updateTag } from 'next/cache';
 import { z } from 'zod/v4';
 
 import { Cache, invalidateTeamCache } from '@lib/cache';
@@ -322,9 +321,9 @@ export async function toggleTeamEnabled(teamId: number, enabled: boolean, formDa
 
         await invalidateTeamCache(teamId);
         invalidateAuthCache();
-        updateTag('schedule-teams-visibility');
 
         Cache.getInstance('AdminNavigationMenuCache').clear();
+        Cache.getInstance('EventState').clear();
 
         LogBuilder.for('UpdateTeamEnabled')
             .withCondition(!!affectedRows)
@@ -508,9 +507,9 @@ export async function updateTeam(teamId: number, formData: unknown) {
 
         Cache.getInstance('AdminNavigationMenuCache').clear();
         Cache.getInstance('Environments').clear();
+        Cache.getInstance('EventState').clear();
 
         await invalidateTeamCache(teamId);
-        updateTag('schedule-teams-visibility');
 
         LogBuilder.for('UpdateTeam')
             .withCondition(!!affectedRows)

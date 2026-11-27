@@ -60,9 +60,9 @@ filtering.
     hidden team (unless shared or handing off with the viewer). When a volunteer with no hidden
     team membership is borrowed onto a cross-team shift owned by another team (such as a shared
     briefing), that shift remains visible on their schedule.
-12. **Single deciding unit and cache-friendly layering**: Shared event data is cached once per
-    event; per-viewer decisions are evaluated in one pure, unit-tested `VolunteerAccess` instance
-    memoized per request.
+12. **Single deciding unit and cache-friendly layering**: Shared event data lives in the permanent
+    `@lib/event` (`EventState`) cache; per-viewer decisions are evaluated in one pure, unit-tested
+    `VolunteerAccess` instance memoized per request via `React.cache`.
 
 ## Visibility & Access Model
 
