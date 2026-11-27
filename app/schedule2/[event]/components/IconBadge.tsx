@@ -1,7 +1,10 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+'use client';
+
 import Avatar from '@mui/material/Avatar';
+import { styled } from '@mui/material/styles';
 
 /**
  * Supported dimensions and corner treatments for `<IconBadge>`.
@@ -28,26 +31,6 @@ interface IconBadgeProps {
     tone?: IconBadgeTone;
 }
 
-const kSizeStyles = {
-    sm: { borderRadius: '10px', height: 32, width: 32 },
-    md: { borderRadius: '10px', height: 40, width: 40 },
-    lg: { borderRadius: { xs: 1, md: 0.5 }, height: 46, width: 46 },
-    xl: { height: 64, width: 64 },
-};
-
-const kToneStyles = {
-    secondary: { bgcolor: 'secondary.main', color: 'secondary.contrastText' },
-    error: {
-        bgcolor: 'color-mix(in srgb, var(--mui-palette-error-main) 14%, transparent)',
-        color: 'error.main',
-    },
-    info: {
-        bgcolor: 'color-mix(in srgb, var(--mui-palette-info-main) 14%, transparent)',
-        color: 'info.main',
-    },
-    muted: { bgcolor: 'action.hover', color: 'text.disabled' },
-};
-
 /**
  * Shared tonal icon badge built on MUI `<Avatar>` for headers, category tiles, vendor rows, and
  * empty/blocked states.
@@ -56,11 +39,75 @@ export function IconBadge(props: React.PropsWithChildren<IconBadgeProps>) {
     const { children, size = 'md', tone = 'secondary' } = props;
 
     return (
-        <Avatar
+        <StyledIconBadge
             aria-hidden="true"
-            variant={size === 'xl' ? 'circular' : 'rounded'}
-            sx={{ flexShrink: 0, ...kSizeStyles[size], ...kToneStyles[tone] }}>
+            badgeSize={size}
+            tone={tone}
+            variant={size === 'xl' ? 'circular' : 'rounded'}>
             {children}
-        </Avatar>
+        </StyledIconBadge>
     );
 }
+
+const StyledIconBadge = styled(Avatar, {
+    shouldForwardProp: prop => prop !== 'badgeSize' && prop !== 'tone',
+})<{ badgeSize: IconBadgeSize; tone: IconBadgeTone }>(({ theme }) => {
+    const palette = (theme.vars || theme).palette;
+
+    return {
+        flexShrink: 0,
+        variants: [
+            {
+                props: { badgeSize: 'sm' },
+                style: { borderRadius: 10, height: 32, width: 32 },
+            },
+            {
+                props: { badgeSize: 'md' },
+                style: { borderRadius: 10, height: 40, width: 40 },
+            },
+            {
+                props: { badgeSize: 'lg' },
+                style: {
+                    borderRadius: theme.shape.borderRadius,
+                    height: 46,
+                    width: 46,
+                    [theme.breakpoints.up('md')]: {
+                        borderRadius: Number(theme.shape.borderRadius) / 2,
+                    },
+                },
+            },
+            {
+                props: { badgeSize: 'xl' },
+                style: { height: 64, width: 64 },
+            },
+            {
+                props: { tone: 'secondary' },
+                style: {
+                    backgroundColor: palette.secondary.main,
+                    color: palette.secondary.contrastText,
+                },
+            },
+            {
+                props: { tone: 'error' },
+                style: {
+                    backgroundColor: `color-mix(in srgb, ${palette.error.main} 14%, transparent)`,
+                    color: palette.error.main,
+                },
+            },
+            {
+                props: { tone: 'info' },
+                style: {
+                    backgroundColor: `color-mix(in srgb, ${palette.info.main} 14%, transparent)`,
+                    color: palette.info.main,
+                },
+            },
+            {
+                props: { tone: 'muted' },
+                style: {
+                    backgroundColor: palette.action.hover,
+                    color: palette.text.disabled,
+                },
+            },
+        ],
+    };
+});

@@ -18,6 +18,7 @@ import { styled } from '@mui/material/styles';
 
 import { RestrictedBadge } from './RestrictedBadge';
 import { useActivityRippleKey } from './InteractiveSurface';
+import { useScheduleListVariant } from './ScheduleList';
 
 /**
  * Display state of a `<ScheduleListRow>`, controlling surface tint, typography emphasis, and
@@ -94,6 +95,7 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
     } = props;
 
     const rippleKey = useActivityRippleKey();
+    const segmented = useScheduleListVariant() === 'segmented';
 
     const isPast = state === 'past';
     const clampedProgress =
@@ -182,18 +184,23 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
             <RowButton
                 key={rippleKey}
                 component={Link}
-                data-state={state}
+                data-active={state === 'active' || undefined}
                 hasSubtitle={!!subtitle}
                 href={href}
                 isHidden={hidden}
-                rowState={state}>
+                rowState={state}
+                segmented={segmented}>
                 {inner}
             </RowButton>
         );
     }
 
     return (
-        <RowStatic data-state={state} hasSubtitle={!!subtitle} isHidden={hidden} rowState={state}>
+        <RowStatic
+            data-active={state === 'active' || undefined}
+            hasSubtitle={!!subtitle}
+            isHidden={hidden}
+            rowState={state}>
             {inner}
         </RowStatic>
     );
@@ -206,13 +213,14 @@ interface RowSurfaceProps {
     hasSubtitle: boolean;
     isHidden: boolean;
     rowState: ScheduleListRowState;
+    segmented?: boolean;
 }
 
 /**
  * Filter preventing internal row styling props from reaching the underlying DOM element.
  */
 const isRowSurfaceProp = (prop: PropertyKey) =>
-    prop !== 'hasSubtitle' && prop !== 'isHidden' && prop !== 'rowState';
+    prop !== 'hasSubtitle' && prop !== 'isHidden' && prop !== 'rowState' && prop !== 'segmented';
 
 /**
  * Builds a subtle 45-degree repeating hatch background image using the given CSS colour expression.
@@ -303,15 +311,37 @@ const RowButton = styled(ButtonBase, {
             backgroundColor: palette.action.hover,
         },
 
-        '&[data-state="active"]:hover': {
-            backgroundColor:
-                `color-mix(in srgb, ${palette.secondary.main} 80%, ${palette.background.paper})`,
-        },
-
-        '&[data-state="past"]:hover': {
-            backgroundColor:
-                `color-mix(in srgb, ${palette.text.primary} 8%, ${palette.m3.sheet})`,
-        },
+        variants: [
+            {
+                props: { rowState: 'default', segmented: true },
+                style: {
+                    '&:hover': {
+                        backgroundColor:
+                            `color-mix(in srgb, ${palette.background.paper} 94%, ` +
+                            `${palette.text.primary})`,
+                    },
+                },
+            },
+            {
+                props: { rowState: 'active' },
+                style: {
+                    '&:hover': {
+                        backgroundColor:
+                            `color-mix(in srgb, ${palette.secondary.main} 80%, ` +
+                            `${palette.background.paper})`,
+                    },
+                },
+            },
+            {
+                props: { rowState: 'past' },
+                style: {
+                    '&:hover': {
+                        backgroundColor:
+                            `color-mix(in srgb, ${palette.text.primary} 8%, ${palette.m3.sheet})`,
+                    },
+                },
+            },
+        ],
     };
 }) as ExtendButtonBase<ButtonBaseTypeMap<RowSurfaceProps>>;
 

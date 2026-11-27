@@ -49,9 +49,6 @@ export function Page(props: React.PropsWithChildren<PageProps>) {
                 overflowY: { xs: 'auto', md: 'visible' },
                 overscrollBehaviorY: { xs: 'contain', md: 'auto' },
                 position: { xs: 'relative', md: 'static' },
-                '&::-webkit-scrollbar-track': {
-                    marginTop: { xs: `${kSheetBorderRadiusPx}px`, md: 0 },
-                },
                 ...(hasBanner
                     ? { gap: { xs: 1.5, md: 0 }, p: 0 }
                     : {

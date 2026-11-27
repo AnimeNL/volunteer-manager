@@ -100,9 +100,9 @@ function OverviewTileFrame(props: OverviewTileFrameProps) {
     return (
         <Box sx={{ height: '100%', position: 'relative' }}>
             <TileSurface key={rippleKey} accent={accent} component={Link} href={href}>
-                <Box aria-hidden className="tile-watermark">
+                <TileWatermark aria-hidden accent={accent}>
                     <Icon sx={{ fontSize: 'inherit' }} />
-                </Box>
+                </TileWatermark>
                 {children}
             </TileSurface>
             { onDismiss &&
@@ -121,10 +121,15 @@ function OverviewTileFrame(props: OverviewTileFrameProps) {
  * Horizontal hero tile rendered inside `<OverviewTiles>` with an optional subtitle.
  */
 export function OverviewHeroTile(props: OverviewHeroTileProps) {
-    const { icon: Icon, label, onDismiss, subtitle, ...frameProps } = props;
+    const { accent, icon: Icon, label, onDismiss, subtitle, ...frameProps } = props;
 
     return (
-        <OverviewTileFrame {...frameProps} icon={Icon} label={label} onDismiss={onDismiss}>
+        <OverviewTileFrame
+            {...frameProps}
+            accent={accent}
+            icon={Icon}
+            label={label}
+            onDismiss={onDismiss}>
             <Stack direction="row" spacing={1.5} sx={{
                 alignItems: 'center',
                 height: '100%',
@@ -133,16 +138,16 @@ export function OverviewHeroTile(props: OverviewHeroTileProps) {
                 width: '100%',
                 zIndex: 1,
             }}>
-                <Box className="tile-badge">
+                <TileBadge accent={accent}>
                     <Icon fontSize="small" />
-                </Box>
+                </TileBadge>
                 <Box sx={{ maxWidth: '100%', minWidth: 0, pr: onDismiss ? 4 : 0 }}>
                     <Stack direction="row" spacing={0.5}
                            sx={{ alignItems: 'center', minWidth: 0 }}>
                         <Typography variant="subtitle1" noWrap sx={{ lineHeight: 1.2 }}>
                             {label}
                         </Typography>
-                        <ArrowForwardIcon className="tile-arrow" fontSize="inherit" />
+                        <TileArrow fontSize="inherit" />
                     </Stack>
                     { subtitle &&
                         <Typography variant="caption" noWrap
@@ -159,10 +164,10 @@ export function OverviewHeroTile(props: OverviewHeroTileProps) {
  * Compact vertical supporting action tile rendered inside `<OverviewTiles>`.
  */
 export function OverviewActionTile(props: OverviewTileBaseProps) {
-    const { icon: Icon, label, ...frameProps } = props;
+    const { accent, icon: Icon, label, ...frameProps } = props;
 
     return (
-        <OverviewTileFrame {...frameProps} icon={Icon} label={label}>
+        <OverviewTileFrame {...frameProps} accent={accent} icon={Icon} label={label}>
             <Stack spacing={1.25} sx={{
                 alignItems: 'flex-start',
                 height: '100%',
@@ -172,16 +177,16 @@ export function OverviewActionTile(props: OverviewTileBaseProps) {
                 width: '100%',
                 zIndex: 1,
             }}>
-                <Box className="tile-badge">
+                <TileBadge accent={accent}>
                     <Icon fontSize="small" />
-                </Box>
+                </TileBadge>
                 <Box sx={{ maxWidth: '100%', minWidth: 0 }}>
                     <Stack direction="row" spacing={0.5}
                            sx={{ alignItems: 'center', minWidth: 0 }}>
                         <Typography variant="subtitle2" noWrap sx={{ lineHeight: 1.2 }}>
                             {label}
                         </Typography>
-                        <ArrowForwardIcon className="tile-arrow" fontSize="inherit" />
+                        <TileArrow fontSize="inherit" />
                     </Stack>
                 </Box>
             </Stack>
@@ -210,8 +215,62 @@ const DismissButton = styled(IconButton, {
 }));
 
 /**
- * Interactive flat tonal tile surface owning the hover tint, icon badge, watermark, and arrow
- * transitions so all tonal tokens are resolved once.
+ * Tonal squircle icon badge inside an overview tile.
+ */
+const TileBadge = styled(Box, {
+    shouldForwardProp: prop => prop !== 'accent',
+})<{ accent?: TileAccentKey }>(({ accent, theme }) => {
+    const tone = resolveTileTone(theme, accent);
+
+    return {
+        alignItems: 'center',
+        backgroundColor: tone.iconBackground,
+        borderRadius: 10,
+        color: tone.icon,
+        display: 'flex',
+        flexShrink: 0,
+        height: theme.spacing(4),
+        justifyContent: 'center',
+        width: theme.spacing(4),
+    };
+});
+
+/**
+ * Decorative corner watermark icon animated via CSS variables controlled by `<TileSurface>`.
+ */
+const TileWatermark = styled(Box, {
+    shouldForwardProp: prop => prop !== 'accent',
+})<{ accent?: TileAccentKey }>(({ accent, theme }) => ({
+    bottom: -14,
+    color: resolveTileTone(theme, accent).icon,
+    display: 'flex',
+    fontSize: '4.5rem',
+    opacity: 'var(--tile-watermark-opacity, 0.1)',
+    pointerEvents: 'none',
+    position: 'absolute',
+    right: -10,
+    transform: 'var(--tile-watermark-transform, rotate(-10deg))',
+    transition: theme.transitions.create([ 'opacity', 'transform' ], {
+        duration: theme.transitions.duration.standard,
+        easing: theme.transitions.easing.easeOut,
+    }),
+}));
+
+/**
+ * Trailing directional arrow icon animated via CSS variables controlled by `<TileSurface>`.
+ */
+const TileArrow = styled(ArrowForwardIcon)(({ theme }) => ({
+    flexShrink: 0,
+    opacity: 'var(--tile-arrow-opacity, 0.55)',
+    transform: 'var(--tile-arrow-transform, none)',
+    transition: theme.transitions.create([ 'opacity', 'transform' ], {
+        duration: theme.transitions.duration.shorter,
+        easing: theme.transitions.easing.easeOut,
+    }),
+}));
+
+/**
+ * Interactive flat tonal tile surface owning the hover tint and CSS variable transitions.
  */
 const TileSurface = styled(ButtonBase, {
     shouldForwardProp: prop => prop !== 'accent',
@@ -243,63 +302,21 @@ const TileSurface = styled(ButtonBase, {
             }),
         },
 
-        '& .tile-badge': {
-            alignItems: 'center',
-            backgroundColor: tone.iconBackground,
-            borderRadius: 10,
-            color: tone.icon,
-            display: 'flex',
-            flexShrink: 0,
-            height: theme.spacing(4),
-            justifyContent: 'center',
-            width: theme.spacing(4),
-        },
-
-        '& .tile-watermark': {
-            bottom: -14,
-            color: tone.icon,
-            display: 'flex',
-            fontSize: '4.5rem',
-            opacity: 0.1,
-            pointerEvents: 'none',
-            position: 'absolute',
-            right: -10,
-            transform: 'rotate(-10deg)',
-            transition: theme.transitions.create([ 'opacity', 'transform' ], {
-                duration: theme.transitions.duration.standard,
-                easing: theme.transitions.easing.easeOut,
-            }),
-        },
-
-        '& .tile-arrow': {
-            flexShrink: 0,
-            opacity: 0.55,
-            transition: theme.transitions.create([ 'opacity', 'transform' ], {
-                duration: theme.transitions.duration.shorter,
-                easing: theme.transitions.easing.easeOut,
-            }),
-        },
-
         '&:hover': {
+            '--tile-arrow-opacity': 1,
+            '--tile-arrow-transform': 'translateX(3px)',
+            '--tile-watermark-opacity': 0.2,
+            '--tile-watermark-transform': 'rotate(-3deg) scale(1.12)',
+
             '&::after': {
                 backgroundColor: palette.action.hover,
-            },
-            '& .tile-watermark': {
-                opacity: 0.2,
-                transform: 'rotate(-3deg) scale(1.12)',
-            },
-            '& .tile-arrow': {
-                opacity: 1,
-                transform: 'translateX(3px)',
             },
         },
 
         '@media (prefers-reduced-motion: reduce)': {
-            '&:hover .tile-watermark': {
-                transform: 'rotate(-10deg)',
-            },
-            '&:hover .tile-arrow': {
-                transform: 'none',
+            '&:hover': {
+                '--tile-arrow-transform': 'none',
+                '--tile-watermark-transform': 'rotate(-10deg)',
             },
         },
     };

@@ -61,12 +61,7 @@ export function KnowledgeQuestionItem(
                     }}>
                     {question}
                 </Typography>
-                <ExpandMoreIcon fontSize="small" sx={{
-                    color: 'text.secondary',
-                    flexShrink: 0,
-                    transform: expanded ? 'rotate(180deg)' : 'none',
-                    transition: 'transform 200ms',
-                }} />
+                <QuestionExpandIcon expanded={expanded} fontSize="small" />
             </QuestionSummaryButton>
 
             <Collapse in={expanded}>
@@ -123,4 +118,26 @@ const QuestionSummaryButton = styled(ButtonBase)(({ theme }) => ({
     '&:hover': {
         backgroundColor: (theme.vars || theme).palette.action.hover,
     },
+}));
+
+/**
+ * Rotating chevron indicator for expandable Knowledge Base questions.
+ */
+const QuestionExpandIcon = styled(ExpandMoreIcon, {
+    shouldForwardProp: prop => prop !== 'expanded',
+})<{ expanded: boolean }>(({ theme }) => ({
+    color: (theme.vars || theme).palette.text.secondary,
+    flexShrink: 0,
+    transition: theme.transitions.create('transform', {
+        duration: theme.transitions.duration.shorter,
+    }),
+
+    variants: [
+        {
+            props: { expanded: true },
+            style: {
+                transform: 'rotate(180deg)',
+            },
+        },
+    ],
 }));

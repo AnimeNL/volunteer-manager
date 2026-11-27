@@ -160,39 +160,6 @@ function createScheduleTheme(scheme: M3ColorScheme) {
                 }),
             },
         },
-        MuiCssBaseline: {
-            styleOverrides: theme => {
-                const palette = (theme.vars || theme).palette;
-                return {
-                    '*::-webkit-scrollbar': {
-                        height: 10,
-                        width: 10,
-                    },
-                    '*::-webkit-scrollbar-track': {
-                        backgroundColor: 'transparent',
-                    },
-                    '*::-webkit-scrollbar-thumb': {
-                        backgroundClip: 'content-box',
-                        backgroundColor: palette.divider,
-                        border: '3px solid transparent',
-                        borderRadius: 999,
-                    },
-                    '*::-webkit-scrollbar-thumb:hover': {
-                        backgroundColor:
-                            `color-mix(in srgb, ${palette.text.secondary} 50%, transparent)`,
-                    },
-                    '*::-webkit-scrollbar-corner': {
-                        backgroundColor: 'transparent',
-                    },
-                    '@supports not selector(::-webkit-scrollbar)': {
-                        '*': {
-                            scrollbarColor: `${palette.divider} transparent`,
-                            scrollbarWidth: 'thin',
-                        },
-                    },
-                };
-            },
-        },
         MuiDrawer: {
             styleOverrides: {
                 paper: ({ ownerState, theme }) => ownerState.anchor === 'bottom' ? {

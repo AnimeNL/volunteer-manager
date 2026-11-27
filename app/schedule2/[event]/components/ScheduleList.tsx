@@ -3,11 +3,27 @@
 
 'use client';
 
+import { createContext, useContext } from 'react';
+
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 
 export { ScheduleListRow } from './ScheduleListRow';
+
+/**
+ * Layout variant shared from `<ScheduleList>` to its child `<ScheduleListRow>` items.
+ */
+type ScheduleListVariant = 'conjoined' | 'segmented';
+
+const ScheduleListVariantContext = createContext<ScheduleListVariant>('conjoined');
+
+/**
+ * Returns the layout variant of the enclosing `<ScheduleList>`.
+ */
+export function useScheduleListVariant(): ScheduleListVariant {
+    return useContext(ScheduleListVariantContext);
+}
 
 /**
  * Props accepted by the <ScheduleList> component.
@@ -23,7 +39,7 @@ interface ScheduleListProps {
      * Layout presentation: `'conjoined'` (default) groups rows inside a single rounded card with
      * hairline dividers, while `'segmented'` stacks individual rounded tiles with a 3px gap.
      */
-    variant?: 'conjoined' | 'segmented';
+    variant?: ScheduleListVariant;
 }
 
 /**
@@ -33,13 +49,18 @@ interface ScheduleListProps {
 export function ScheduleList(props: React.PropsWithChildren<ScheduleListProps>) {
     const { children, muted = false, variant = 'conjoined' } = props;
 
-    if (variant === 'segmented')
-        return <SegmentedListRoot spacing={0.375}>{children}</SegmentedListRoot>;
-
     return (
-        <ConjoinedListRoot muted={muted}>
-            {children}
-        </ConjoinedListRoot>
+        <ScheduleListVariantContext.Provider value={variant}>
+            { variant === 'segmented' ? (
+                <SegmentedListRoot spacing={0.375}>
+                    {children}
+                </SegmentedListRoot>
+            ) : (
+                <ConjoinedListRoot muted={muted}>
+                    {children}
+                </ConjoinedListRoot>
+            ) }
+        </ScheduleListVariantContext.Provider>
     );
 }
 
@@ -60,12 +81,12 @@ const ConjoinedListRoot = styled(Box, {
             borderTop: `1px solid color-mix(in srgb, ${palette.divider} 65%, transparent)`,
         },
 
-        '& > [data-state="active"] + [data-state="active"]': {
+        '& > [data-active="true"] + [data-active="true"]': {
             borderTop:
                 `1px solid color-mix(in srgb, ${palette.secondary.contrastText} 12%, transparent)`,
         },
 
-        '& > :not([data-state="active"]) + [data-state="active"]': {
+        '& > :not([data-active="true"]) + [data-active="true"]': {
             borderTop: 'none',
         },
 
@@ -84,30 +105,20 @@ const ConjoinedListRoot = styled(Box, {
 /**
  * M3 Expressive segmented stack applying 12px outer corners and 4px inner corners to child rows.
  */
-const SegmentedListRoot = styled(Stack)(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
+const SegmentedListRoot = styled(Stack)(({ theme }) => ({
+    '& > *': {
+        backgroundColor: (theme.vars || theme).palette.background.paper,
+        borderRadius: 4,
+        overflow: 'hidden',
+    },
 
-    return {
-        '& > [data-state]': {
-            backgroundColor: palette.background.paper,
-            borderRadius: 4,
-            overflow: 'hidden',
-        },
+    '& > :first-of-type': {
+        borderTopLeftRadius: theme.shape.borderRadius,
+        borderTopRightRadius: theme.shape.borderRadius,
+    },
 
-        '& > [data-state]:first-of-type': {
-            borderTopLeftRadius: theme.shape.borderRadius,
-            borderTopRightRadius: theme.shape.borderRadius,
-        },
-
-        '& > [data-state]:last-of-type': {
-            borderBottomLeftRadius: theme.shape.borderRadius,
-            borderBottomRightRadius: theme.shape.borderRadius,
-        },
-
-        '& > a[data-state="default"]:hover': {
-            backgroundColor:
-                `color-mix(in srgb, ${palette.background.paper} 94%, ${palette.text.primary})`,
-        },
-    };
-});
-
+    '& > :last-of-type': {
+        borderBottomLeftRadius: theme.shape.borderRadius,
+        borderBottomRightRadius: theme.shape.borderRadius,
+    },
+}));
