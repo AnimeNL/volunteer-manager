@@ -4,6 +4,7 @@
 import NotListedLocationOutlinedIcon from '@mui/icons-material/NotListedLocationOutlined';
 
 import { PlaceholderPage } from '../components/PlaceholderPage';
+import { createScheduleMetadataFn } from '../lib/generateScheduleMetadata';
 
 /**
  * Placeholder Help requests page for the schedule portal.
@@ -21,5 +22,6 @@ export default function ScheduleHelpRequestsPage(
     );
 }
 
+export const generateMetadata = createScheduleMetadataFn('Help requests', { event: 'event' });
 export const instant = true;
 export const prefetch = 'partial';

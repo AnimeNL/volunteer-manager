@@ -14,6 +14,7 @@ import { MobileEventBanner } from './components/EventBanner';
 import { OverviewTiles } from './overview/OverviewTiles';
 import { OverviewVendorCard } from './overview/OverviewVendorCard';
 import { Page, SuspenseReveal } from './components/Page';
+import { createScheduleMetadataFn } from './lib/generateScheduleMetadata';
 import { getActiveVendors, hasVendorSchedule } from './lib/data/vendorData';
 import { getVolunteerHotelBookings } from './lib/data/hotelData';
 import { getVolunteerTicket } from './lib/data/ticketData';
@@ -176,5 +177,6 @@ export default function ScheduleLandingPage(props: PageProps<'/schedule2/[event]
     );
 }
 
+export const generateMetadata = createScheduleMetadataFn({ event: 'event' });
 export const instant = true;
 export const prefetch = 'partial';

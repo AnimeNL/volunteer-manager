@@ -10,6 +10,7 @@ import { Header } from '../components/Header';
 import { Page, SuspenseReveal } from '../components/Page';
 import { ScheduleList, ScheduleListRow } from '../components/ScheduleList';
 import { SegmentedListSkeleton } from '../components/ScheduleListSkeleton';
+import { createScheduleMetadataFn } from '../lib/generateScheduleMetadata';
 import { getProgramAreasWithLocations } from '../lib/data/programData';
 import { getSchedulePath } from '../lib/navigationTypes';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
@@ -113,5 +114,6 @@ export default function ScheduleAreasPage(props: PageProps<'/schedule2/[event]/a
     );
 }
 
+export const generateMetadata = createScheduleMetadataFn('Events', { event: 'event' });
 export const instant = true;
 export const prefetch = 'partial';

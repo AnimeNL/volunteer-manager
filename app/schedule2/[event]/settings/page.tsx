@@ -12,6 +12,7 @@ import Stack from '@mui/material/Stack';
 import { Header } from '../components/Header';
 import { Page, SuspenseReveal } from '../components/Page';
 import { TimeOffsetForm } from './TimeOffsetForm';
+import { createScheduleMetadataFn } from '../lib/generateScheduleMetadata';
 import { formatDate } from '@lib/Temporal';
 import { readUserSettings } from '@lib/UserSettings';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
@@ -84,5 +85,6 @@ export default function ScheduleSettingsPage(props: PageProps<'/schedule2/[event
     );
 }
 
+export const generateMetadata = createScheduleMetadataFn('Developer settings', { event: 'event' });
 export const instant = true;
 export const prefetch = 'partial';

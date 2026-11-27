@@ -13,6 +13,7 @@ import { Page, SuspenseReveal } from '../../../../components/Page';
 import { ScheduleList, ScheduleListRow } from '../../../../components/ScheduleList';
 import { ScheduleListSkeleton } from '../../../../components/ScheduleListSkeleton';
 import { SectionHeader } from '../../../../components/SectionHeader';
+import { createScheduleMetadataFn } from '../../../../lib/generateScheduleMetadata';
 import { getEventTicketHolders } from '../../../../lib/data/ticketData';
 import { getProgramEventSummary } from '../../../../lib/data/programData';
 import { requireScheduleAccess } from '../../../../lib/getScheduleAccess';
@@ -142,5 +143,7 @@ export default function ScheduleEventTicketsPage(
     );
 }
 
+export const generateMetadata =
+    createScheduleMetadataFn('Tickets', { activity: 'id' }, 'Events', { event: 'event' });
 export const instant = true;
 export const prefetch = 'partial';

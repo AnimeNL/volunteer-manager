@@ -12,6 +12,7 @@ import Typography from '@mui/material/Typography';
 import { Header } from '../components/Header';
 import { Page, SuspenseReveal } from '../components/Page';
 import { QrCode } from '@components/QrCode';
+import { createScheduleMetadataFn } from '../lib/generateScheduleMetadata';
 import { getVolunteerTicket } from '../lib/data/ticketData';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
 
@@ -111,5 +112,6 @@ export default function ScheduleTicketPage(props: PageProps<'/schedule2/[event]/
     );
 }
 
+export const generateMetadata = createScheduleMetadataFn('Your ticket', { event: 'event' });
 export const instant = true;
 export const prefetch = 'partial';

@@ -4,6 +4,7 @@
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 
 import { PlaceholderPage } from '../../../components/PlaceholderPage';
+import { createScheduleMetadataFn } from '../../../lib/generateScheduleMetadata';
 
 /**
  * Placeholder ticket holders and check-in page for a program event.
@@ -21,5 +22,7 @@ export default function ScheduleEventTicketsPage(
     );
 }
 
+export const generateMetadata =
+    createScheduleMetadataFn('Tickets', { activity: 'id' }, 'Events', { event: 'event' });
 export const instant = true;
 export const prefetch = 'partial';

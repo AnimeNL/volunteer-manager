@@ -4,6 +4,7 @@
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 
 import { PlaceholderPage } from '../components/PlaceholderPage';
+import { createScheduleMetadataFn } from '../lib/generateScheduleMetadata';
 
 /**
  * Placeholder Volunteers page for the schedule portal.
@@ -18,5 +19,6 @@ export default function ScheduleVolunteersPage(props: PageProps<'/schedule2/[eve
     );
 }
 
+export const generateMetadata = createScheduleMetadataFn('Volunteers', { event: 'event' });
 export const instant = true;
 export const prefetch = 'partial';

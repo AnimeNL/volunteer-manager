@@ -4,6 +4,7 @@
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
 
 import { PlaceholderPage } from '../components/PlaceholderPage';
+import { createScheduleMetadataFn } from '../lib/generateScheduleMetadata';
 
 /**
  * Placeholder Feedback page for the schedule portal.
@@ -18,5 +19,6 @@ export default function ScheduleFeedbackPage(props: PageProps<'/schedule2/[event
     );
 }
 
+export const generateMetadata = createScheduleMetadataFn('Feedback', { event: 'event' });
 export const instant = true;
 export const prefetch = 'partial';

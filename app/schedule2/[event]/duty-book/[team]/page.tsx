@@ -4,6 +4,7 @@
 import BookOutlinedIcon from '@mui/icons-material/BookOutlined';
 
 import { PlaceholderPage } from '../../components/PlaceholderPage';
+import { createScheduleMetadataFn } from '../../lib/generateScheduleMetadata';
 
 /**
  * Placeholder team Duty book page for the schedule portal.
@@ -20,5 +21,7 @@ export default function ScheduleDutyBookTeamPage(
     );
 }
 
+export const generateMetadata =
+    createScheduleMetadataFn({ team: 'team' }, 'Duty book', { event: 'event' });
 export const instant = true;
 export const prefetch = 'partial';

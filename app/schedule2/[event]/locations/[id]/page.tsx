@@ -15,6 +15,7 @@ import { ScheduleList, ScheduleListRow } from '../../components/ScheduleList';
 import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
 import { SectionHeader } from '../../components/SectionHeader';
 import { compareTimeslots, getLogicalDate, getTimeslotTiming } from '../../lib/programTime';
+import { createScheduleMetadataFn } from '../../lib/generateScheduleMetadata';
 import { formatDate } from '@lib/Temporal';
 import { getProgramLocationDetail } from '../../lib/data/programData';
 import { getSchedulePath } from '../../lib/navigationTypes';
@@ -178,5 +179,7 @@ export default function ScheduleLocationPage(
     );
 }
 
+export const generateMetadata =
+    createScheduleMetadataFn({ location: 'id' }, 'Events', { event: 'event' });
 export const instant = true;
 export const prefetch = 'partial';

@@ -4,6 +4,7 @@
 import BookOutlinedIcon from '@mui/icons-material/BookOutlined';
 
 import { PlaceholderPage } from '../components/PlaceholderPage';
+import { createScheduleMetadataFn } from '../lib/generateScheduleMetadata';
 
 /**
  * Placeholder Duty book overview page for the schedule portal.
@@ -18,5 +19,6 @@ export default function ScheduleDutyBookPage(props: PageProps<'/schedule2/[event
     );
 }
 
+export const generateMetadata = createScheduleMetadataFn('Duty book', { event: 'event' });
 export const instant = true;
 export const prefetch = 'partial';

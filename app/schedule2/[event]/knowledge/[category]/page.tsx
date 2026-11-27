@@ -17,6 +17,7 @@ import { RestrictedBadge } from '../../components/RestrictedBadge';
 import { ScheduleList } from '../../components/ScheduleList';
 import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
 import { SectionHeader } from '../../components/SectionHeader';
+import { createScheduleMetadataFn } from '../../lib/generateScheduleMetadata';
 import { getKnowledgeBaseCategory } from '../../lib/data/knowledgeData';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
 
@@ -161,5 +162,7 @@ export default function ScheduleKnowledgeCategoryPage(
     );
 }
 
+export const generateMetadata =
+    createScheduleMetadataFn({ category: 'category' }, 'Knowledge base', { event: 'event' });
 export const instant = true;
 export const prefetch = 'partial';

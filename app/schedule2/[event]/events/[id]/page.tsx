@@ -15,6 +15,7 @@ import { ScheduleList, ScheduleListRow } from '../../components/ScheduleList';
 import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
 import { SectionHeader } from '../../components/SectionHeader';
 import { compareTimeslots, getTimeslotTiming } from '../../lib/programTime';
+import { createScheduleMetadataFn } from '../../lib/generateScheduleMetadata';
 import { formatDate } from '@lib/Temporal';
 import { getEventTicketSales } from '../../lib/data/ticketData';
 import { getProgramEventDetail } from '../../lib/data/programData';
@@ -182,5 +183,7 @@ export default function ScheduleEventPage(props: PageProps<'/schedule2/[event]/e
     );
 }
 
+export const generateMetadata =
+    createScheduleMetadataFn({ activity: 'id' }, 'Events', { event: 'event' });
 export const instant = true;
 export const prefetch = 'partial';

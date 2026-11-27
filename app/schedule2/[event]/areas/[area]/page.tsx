@@ -12,6 +12,7 @@ import { Page, SuspenseReveal } from '../../components/Page';
 import { ScheduleList, ScheduleListRow } from '../../components/ScheduleList';
 import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
 import { SectionHeader } from '../../components/SectionHeader';
+import { createScheduleMetadataFn } from '../../lib/generateScheduleMetadata';
 import { formatDate } from '@lib/Temporal';
 import { getLogicalDate, getTimeslotTiming } from '../../lib/programTime';
 import { getProgramAreaDetail } from '../../lib/data/programData';
@@ -184,5 +185,6 @@ export default function ScheduleAreaPage(props: PageProps<'/schedule2/[event]/ar
     );
 }
 
+export const generateMetadata = createScheduleMetadataFn({ area: 'area' }, 'Events', { event: 'event' });
 export const instant = true;
 export const prefetch = 'partial';

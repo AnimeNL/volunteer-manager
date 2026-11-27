@@ -13,6 +13,7 @@ import type { VendorTeam } from '@lib/database/Types';
 import { Header } from '../../components/Header';
 import { Page, SuspenseReveal } from '../../components/Page';
 import { VendorScheduleCalendar } from './VendorScheduleCalendar';
+import { createScheduleMetadataFn } from '../../lib/generateScheduleMetadata';
 import { getVendorSchedule } from '../../lib/data/vendorData';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
 
@@ -152,5 +153,6 @@ export default function ScheduleVendorTeamPage(
     );
 }
 
+export const generateMetadata = createScheduleMetadataFn({ vendor: 'team' }, { event: 'event' });
 export const instant = true;
 export const prefetch = 'partial';

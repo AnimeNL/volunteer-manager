@@ -20,6 +20,7 @@ import Typography from '@mui/material/Typography';
 
 import { Header } from '../components/Header';
 import { Page, SuspenseReveal } from '../components/Page';
+import { createScheduleMetadataFn } from '../lib/generateScheduleMetadata';
 import { formatDate } from '@lib/Temporal';
 import { getVolunteerHotelBookings } from '../lib/data/hotelData';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
@@ -208,5 +209,6 @@ export default function ScheduleHotelPage(props: PageProps<'/schedule2/[event]/h
     );
 }
 
+export const generateMetadata = createScheduleMetadataFn('Hotel room', { event: 'event' });
 export const instant = true;
 export const prefetch = 'partial';

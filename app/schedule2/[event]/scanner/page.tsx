@@ -11,6 +11,7 @@ import Skeleton from '@mui/material/Skeleton';
 import { Header } from '../components/Header';
 import { Page, SuspenseReveal } from '../components/Page';
 import { QrScanner } from './QrScanner';
+import { createScheduleMetadataFn } from '../lib/generateScheduleMetadata';
 import { readCachedSetting } from '@lib/Settings';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
 
@@ -69,5 +70,6 @@ export default function ScheduleScannerPage(props: PageProps<'/schedule2/[event]
     );
 }
 
+export const generateMetadata = createScheduleMetadataFn('Scanner', { event: 'event' });
 export const instant = true;
 export const prefetch = 'partial';

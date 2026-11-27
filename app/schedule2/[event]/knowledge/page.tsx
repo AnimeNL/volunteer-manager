@@ -9,6 +9,7 @@ import { EmptyStateCard } from '../components/EmptyStateCard';
 import { Header } from '../components/Header';
 import { KnowledgeCategoryGrid } from './KnowledgeCategoryGrid';
 import { Page, SuspenseReveal } from '../components/Page';
+import { createScheduleMetadataFn } from '../lib/generateScheduleMetadata';
 import { getKnowledgeBaseCategories } from '../lib/data/knowledgeData';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
 
@@ -66,5 +67,6 @@ export default function ScheduleKnowledgePage(props: PageProps<'/schedule2/[even
     );
 }
 
+export const generateMetadata = createScheduleMetadataFn('Knowledge base', { event: 'event' });
 export const instant = true;
 export const prefetch = 'partial';
