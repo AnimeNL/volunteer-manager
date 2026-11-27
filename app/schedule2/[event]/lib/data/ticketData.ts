@@ -11,7 +11,7 @@ import { createTicketService, isTicketServiceConfigured } from '@lib/tickets';
 /**
  * Individual ticket holder entry for a program event's ticket product.
  */
-export interface EventTicketHolder {
+interface EventTicketHolder {
     barcode?: string;
     id: string;
     name: string;
@@ -21,7 +21,7 @@ export interface EventTicketHolder {
 /**
  * Resolved ticket product name and active ticket holders for a program event.
  */
-export interface EventTicketHoldersResult {
+interface EventTicketHoldersResult {
     holders: EventTicketHolder[];
     productName: string;
 }

@@ -20,7 +20,7 @@ const kDuplicateCooldownMs = 2500;
 /**
  * Lifecycle state of the camera-based QR scanner.
  */
-export type ScannerStatus =
+type ScannerStatus =
     'initializing' | 'scanning' | 'permission-denied' | 'unavailable' | 'error';
 
 /**

@@ -28,10 +28,12 @@ React View Transitions.
   `requireAuthentication*()`, which requires administrative access (`event.visible`).
 
 ## View Transitions
-* Use React's `<ViewTransition>` component and `<Link transitionTypes={[...]}>` for route
-  transitions, `<Suspense>` skeleton-to-content reveals, and shared-element morphs.
-* Anchor persistent shell chrome (header bar, mobile bottom navigation) using `viewTransitionName`
-  so only page content transitions, and respect `prefers-reduced-motion`.
+* Cross-page route transitions use a single uniform Material Fade Through animation handled
+  centrally by `<Page>` (do not pass directional `transitionTypes` to `<Link>` or compute
+  directional slide order).
+* Use `<SuspenseReveal>` for skeleton-to-content reveals and anchor persistent shell chrome
+  (`schedule-header`, `schedule-mobile-nav`) via `viewTransitionName`, respecting
+  `prefers-reduced-motion`.
 
 ## Isolation & Dependencies
 * Code in `app/schedule2/` may only import from external packages, `@lib` (`app/lib/`),
@@ -84,3 +86,13 @@ React View Transitions.
 * Use standard MUI `<Typography variant="...">` and icon `fontSize` presets (`small`, `medium`,
   `large`) rather than hardcoded custom `fontSize` values so the type scale stays consistent across
   the portal.
+* Follow the canonical palette boundary: use MUI's semantic palette (`primary.*`, `secondary.*`,
+  `background.default`/`paper`, `text.primary`/`secondary`/`disabled`, `divider`, `action.hover`,
+  `warning.*`, `error.*`, `info.*`) and `color="text.secondary"` (not legacy `textSecondary`);
+  reserve `m3.*` strictly for M3-specific surfaces/accents MUI does not model (`sheet`, `dock`,
+  `dockActive`, `floatingNav`, `treeLine`, `ambientGlow*`, `tileAccentA–D`). Never hardcode
+  hex/rgba colours outside `ScheduleTheme.tsx` and `m3ColorScheme.ts`.
+* Reuse the shared primitives in `components/` (`InteractiveSurface` / `useActivityRippleKey`,
+  `IconBadge`, `RestrictedBadge`, `EmptyStateCard`, `ScheduleList` / `ScheduleListRow`,
+  `ScheduleListSkeleton` / `SegmentedListSkeleton`) and co-locate route-specific components next to
+  their route (like `overview/`, `knowledge/`, `scanner/`, `settings/`, `vendors/`).
