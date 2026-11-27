@@ -6,8 +6,6 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import { kCardBorderRadiusPx, kSheetBorderRadiusPx } from '../Constants';
-
 /**
  * Props accepted by the <Header> component.
  */
@@ -54,23 +52,20 @@ export function Header(props: HeaderProps) {
             pb: { xs: 0.5, md: 1.5 },
         }}>
             <Avatar aria-hidden="true" variant="rounded" sx={{
-                bgcolor: 'm3.secondaryContainer',
-                borderRadius: {
-                    xs: `${kCardBorderRadiusPx}px`,
-                    md: `${kSheetBorderRadiusPx - 12}px`,
-                },
-                color: 'text.primary',
+                bgcolor: 'secondary.main',
+                borderRadius: { xs: 1, md: 0.5 },
+                color: 'secondary.contrastText',
                 height: 46,
                 width: 46,
             }}>
                 {props.icon}
             </Avatar>
             <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>
-                <Typography component="h1" variant="h6" noWrap sx={{ lineHeight: 1.3 }}>
+                <Typography component="h1" variant="h6" noWrap>
                     {props.title}
                 </Typography>
                 { !!props.description &&
-                    <Typography component="div" variant="body2" color="textSecondary" noWrap>
+                    <Typography component="div" variant="body2" color="text.secondary" noWrap>
                         {props.description}
                     </Typography> }
             </Box>

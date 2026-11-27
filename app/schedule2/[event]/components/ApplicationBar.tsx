@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
-import InputBase from '@mui/material/InputBase';
+import InputBase, { inputBaseClasses } from '@mui/material/InputBase';
 import SearchIcon from '@mui/icons-material/Search';
 import { styled } from '@mui/material/styles';
 
@@ -71,7 +71,7 @@ export function ApplicationBar(props: ApplicationBarProps) {
                         }
                     }}
                     placeholder="Search shifts, events, volunteers…"
-                    sx={{ '& .MuiInputBase-input': { p: 0 } }}
+                    sx={{ [`& .${inputBaseClasses.input}`]: { p: 0 } }}
                     value={query} />
                 { query.length > 0 &&
                     <IconButton aria-label="Clear search" onClick={handleClear} size="small"

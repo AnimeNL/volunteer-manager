@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
+import MuiLink from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
@@ -40,19 +41,19 @@ export function ScheduleErrorCard(props: ScheduleErrorCardProps) {
             <Card>
                 <CardContent>
                     <Stack spacing={1}>
-                        <Typography variant="body2" color="textSecondary">
+                        <Typography variant="body2" color="text.secondary">
                             Error {props.statusCode}
                         </Typography>
                         <Typography variant="h5">
                             {props.title}
                         </Typography>
-                        <Typography variant="body2" color="textSecondary">
+                        <Typography variant="body2" color="text.secondary">
                             {props.description}
                         </Typography>
                         <Typography variant="body2" sx={{ pt: 1 }}>
-                            <Link href="/" style={{ color: 'inherit' }}>
+                            <MuiLink component={Link} href="/" color="inherit">
                                 Return to the Volunteer Portal
-                            </Link>
+                            </MuiLink>
                         </Typography>
                     </Stack>
                 </CardContent>

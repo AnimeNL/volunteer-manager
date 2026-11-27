@@ -4,6 +4,7 @@
 import Link from 'next/link';
 
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import MuiLink from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
@@ -50,9 +51,8 @@ export function SectionHeader(props: SectionHeaderProps) {
             <Typography
                 component="h2"
                 variant="overline"
-                color={muted ? 'textDisabled' : 'textSecondary'}
-                noWrap
-                sx={{ fontWeight: 600, lineHeight: 1.5 }}>
+                color={muted ? 'text.disabled' : 'text.secondary'}
+                noWrap>
                 {title}
             </Typography>
             { !!href &&
@@ -74,13 +74,9 @@ export function SectionHeader(props: SectionHeaderProps) {
         return content;
 
     return (
-        <Link href={href} style={{
-            WebkitTapHighlightColor: 'transparent',
-            color: 'inherit',
-            display: 'block',
-            textDecoration: 'none',
-        }}>
+        <MuiLink component={Link} href={href} color="inherit" underline="none"
+                 sx={{ WebkitTapHighlightColor: 'transparent', display: 'block' }}>
             {content}
-        </Link>
+        </MuiLink>
     );
 }
