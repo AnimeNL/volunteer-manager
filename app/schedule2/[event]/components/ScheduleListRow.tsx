@@ -56,6 +56,11 @@ interface ScheduleListRowProps {
     href?: string;
 
     /**
+     * Optional leading adornment rendered before the title (e.g. a volunteer avatar or team dot).
+     */
+    leading?: React.ReactNode;
+
+    /**
      * Optional completion percentage (`0` to `100`) rendered as a subtle 2px progress track
      * beneath non-past rows.
      */
@@ -103,6 +108,7 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
         favourite = false,
         hidden = false,
         href,
+        leading,
         progress,
         progressColor = 'primary',
         state = 'default',
@@ -128,6 +134,10 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
                 justifyContent: 'space-between',
                 minWidth: 0,
             }}>
+                { !!leading &&
+                    <Box sx={{ alignItems: 'center', display: 'inline-flex', flexShrink: 0 }}>
+                        {leading}
+                    </Box> }
                 <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>
                     <Stack
                         direction="row"
