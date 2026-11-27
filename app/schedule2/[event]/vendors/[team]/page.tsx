@@ -10,7 +10,7 @@ import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 
 import type { VendorTeam } from '@lib/database/Types';
-import { Header } from '../../components/Header';
+import { Header, HeaderAsyncSlot, HeaderTextSlot } from '../../components/Header';
 import { Page, SuspenseReveal } from '../../components/Page';
 import { VendorScheduleCalendar } from './VendorScheduleCalendar';
 import { createScheduleMetadataFn } from '../../lib/generateScheduleMetadata';
@@ -42,32 +42,6 @@ function parseVendorTeam(team: string): VendorTeam | undefined {
         return team;
 
     return undefined;
-}
-
-/**
- * Streams the leading icon for the vendor team header without blocking the static App Shell.
- */
-async function VendorHeaderIcon(props: { params: Promise<{ team: string }> }) {
-    const team = parseVendorTeam((await props.params).team);
-    return team === kVendorTeam.FirstAid
-        ? <LocalHospitalOutlinedIcon />
-        : <ShieldOutlinedIcon />;
-}
-
-/**
- * Streams the title for the vendor team header without blocking the static App Shell.
- */
-async function VendorHeaderTitle(props: { params: Promise<{ team: string }> }) {
-    const team = parseVendorTeam((await props.params).team);
-    return team ? kVendorPageInfo[team].title : 'Vendors';
-}
-
-/**
- * Streams the description for the vendor team header without blocking the static App Shell.
- */
-async function VendorHeaderDescription(props: { params: Promise<{ team: string }> }) {
-    const team = parseVendorTeam((await props.params).team);
-    return team ? kVendorPageInfo[team].description : 'On-site vendor schedule.';
 }
 
 /**
@@ -129,19 +103,31 @@ export default function ScheduleVendorTeamPage(
             header={
                 <Header
                     description={
-                        <SuspenseReveal fallback={ <Skeleton variant="text" width={220} /> }>
-                            <VendorHeaderDescription params={props.params} />
-                        </SuspenseReveal>
+                        <HeaderTextSlot
+                            resolve={async () => {
+                                const team = parseVendorTeam((await props.params).team);
+                                return team
+                                    ? kVendorPageInfo[team].description
+                                    : 'On-site vendor schedule.';
+                            }}
+                            width={220} />
                     }
                     icon={
-                        <SuspenseReveal fallback={null}>
-                            <VendorHeaderIcon params={props.params} />
-                        </SuspenseReveal>
+                        <HeaderAsyncSlot
+                            resolve={async () => {
+                                const team = parseVendorTeam((await props.params).team);
+                                return team === kVendorTeam.FirstAid
+                                    ? <LocalHospitalOutlinedIcon />
+                                    : <ShieldOutlinedIcon />;
+                            }} />
                     }
                     title={
-                        <SuspenseReveal fallback={ <Skeleton variant="text" width={110} /> }>
-                            <VendorHeaderTitle params={props.params} />
-                        </SuspenseReveal>
+                        <HeaderTextSlot
+                            resolve={async () => {
+                                const team = parseVendorTeam((await props.params).team);
+                                return team ? kVendorPageInfo[team].title : 'Vendors';
+                            }}
+                            width={110} />
                     } />
             }>
             <Card>

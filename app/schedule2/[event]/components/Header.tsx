@@ -2,10 +2,12 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import Box from '@mui/material/Box';
+import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { IconBadge } from './IconBadge';
+import { SuspenseReveal } from './Page';
 
 /**
  * Props accepted by the <Header> component.
@@ -67,5 +69,40 @@ export function Header(props: HeaderProps) {
                     {props.actions}
                 </Stack> }
         </Stack>
+    );
+}
+
+/**
+ * Server Component leaf awaiting an async header slot resolver inside `<SuspenseReveal>`.
+ */
+async function AsyncHeaderValue(props: { resolve: () => Promise<React.ReactNode> }) {
+    return await props.resolve();
+}
+
+/**
+ * Streams an async `<Header>` slot (such as `icon` or `actions`) behind `<SuspenseReveal>`.
+ */
+export function HeaderAsyncSlot(props: {
+    fallback?: React.ReactNode;
+    resolve: () => Promise<React.ReactNode>;
+}) {
+    return (
+        <SuspenseReveal fallback={props.fallback ?? null}>
+            <AsyncHeaderValue resolve={props.resolve} />
+        </SuspenseReveal>
+    );
+}
+
+/**
+ * Streams an async text `<Header>` slot (`title` or `description`) with a `<Skeleton>` fallback.
+ */
+export function HeaderTextSlot(props: {
+    resolve: () => Promise<React.ReactNode>;
+    width: number;
+}) {
+    return (
+        <HeaderAsyncSlot
+            fallback={ <Skeleton variant="text" width={props.width} /> }
+            resolve={props.resolve} />
     );
 }

@@ -4,10 +4,9 @@
 import { notFound } from 'next/navigation';
 
 import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
-import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 
-import { Header } from '../../components/Header';
+import { Header, HeaderTextSlot } from '../../components/Header';
 import { Page, SuspenseReveal } from '../../components/Page';
 import { ScheduleListRow } from '../../components/ScheduleList';
 import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
@@ -22,29 +21,13 @@ import { readSetting } from '@lib/Settings';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
 
 /**
- * Streams the resolved area title into the page `<Header>`.
+ * Loads the resolved program area metadata and timeslots for the requested route parameters.
  */
-async function AreaTitle(props: { params: Promise<{ area: string; event: string }> }) {
-    const { area, event: eventSlug } = await props.params;
+async function loadAreaDetail(params: Promise<{ area: string; event: string }>) {
+    const { area, event: eventSlug } = await params;
     const { event } = await requireScheduleAccess(eventSlug);
-    const data = await getProgramAreaDetail(
+    return await getProgramAreaDetail(
         event.integrations?.anPlanFestivalId, area, event.timeZone);
-
-    return data?.name ?? null;
-}
-
-/**
- * Streams the resolved area description into the page `<Header>`.
- */
-async function AreaDescription(props: { params: Promise<{ area: string; event: string }> }) {
-    const { area, event: eventSlug } = await props.params;
-    const { event } = await requireScheduleAccess(eventSlug);
-    const data = await getProgramAreaDetail(
-        event.integrations?.anPlanFestivalId, area, event.timeZone);
-    if (!data)
-        return null;
-
-    return `${pluralize(data.locationCount, 'location')} in this area`;
 }
 
 /**
@@ -156,15 +139,20 @@ export default function ScheduleAreaPage(props: PageProps<'/schedule2/[event]/ar
             header={
                 <Header
                     description={
-                        <SuspenseReveal fallback={ <Skeleton variant="text" width={140} /> }>
-                            <AreaDescription params={props.params} />
-                        </SuspenseReveal>
+                        <HeaderTextSlot
+                            resolve={async () => {
+                                const data = await loadAreaDetail(props.params);
+                                return data
+                                    ? `${pluralize(data.locationCount, 'location')} in this area`
+                                    : null;
+                            }}
+                            width={140} />
                     }
                     icon={ <EventNoteOutlinedIcon /> }
                     title={
-                        <SuspenseReveal fallback={ <Skeleton variant="text" width={120} /> }>
-                            <AreaTitle params={props.params} />
-                        </SuspenseReveal>
+                        <HeaderTextSlot
+                            resolve={async () => (await loadAreaDetail(props.params))?.name ?? null}
+                            width={120} />
                     } />
             }>
             <SuspenseReveal

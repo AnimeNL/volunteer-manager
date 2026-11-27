@@ -5,9 +5,8 @@ import { notFound } from 'next/navigation';
 
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import Skeleton from '@mui/material/Skeleton';
 
-import { Header } from '../../components/Header';
+import { Header, HeaderAsyncSlot, HeaderTextSlot } from '../../components/Header';
 import { KnowledgeBaseIcon } from '@components/KnowledgeBaseIcon';
 import { KnowledgeQuestionItem } from './KnowledgeQuestionList';
 import { Markdown } from '@components/Markdown';
@@ -29,53 +28,6 @@ async function resolveCategory(paramsPromise: Promise<{ category: string; event:
 
     const hasUnrestrictedAccess = access.can('event.knowledge', { event: event.slug });
     return await getKnowledgeBaseCategory(event.id, categoryParam, user.id, hasUnrestrictedAccess);
-}
-
-/**
- * Streams the resolved category icon into the page `<Header>`.
- */
-async function CategoryIcon(props: { params: Promise<{ category: string; event: string }> }) {
-    const category = await resolveCategory(props.params);
-    if (!category)
-        return <InfoOutlinedIcon />;
-
-    return <KnowledgeBaseIcon variant={category.icon} />;
-}
-
-/**
- * Streams the resolved category title into the page `<Header>`.
- */
-async function CategoryTitle(props: { params: Promise<{ category: string; event: string }> }) {
-    const category = await resolveCategory(props.params);
-    return category?.title ?? null;
-}
-
-/**
- * Streams the resolved category description into the page `<Header>`.
- */
-async function CategoryDescription(
-    props: { params: Promise<{ category: string; event: string }> })
-{
-    const category = await resolveCategory(props.params);
-    return category?.description ?? null;
-}
-
-/**
- * Streams the restricted-access indicator into the page `<Header>` when the category is limited.
- */
-async function CategoryHeaderActions(
-    props: { params: Promise<{ category: string; event: string }> })
-{
-    const category = await resolveCategory(props.params);
-    if (!category?.limited)
-        return null;
-
-    return (
-        <RestrictedBadge
-            icon={ <LockOutlinedIcon fontSize="small" /> }
-            mx={0.75}
-            title="Access is limited" />
-    );
 }
 
 /**
@@ -121,24 +73,41 @@ export default function ScheduleKnowledgeCategoryPage(
             header={
                 <Header
                     actions={
-                        <SuspenseReveal fallback={null}>
-                            <CategoryHeaderActions params={props.params} />
-                        </SuspenseReveal>
+                        <HeaderAsyncSlot
+                            resolve={async () => {
+                                const category = await resolveCategory(props.params);
+                                if (!category?.limited)
+                                    return null;
+
+                                return (
+                                    <RestrictedBadge
+                                        icon={ <LockOutlinedIcon fontSize="small" /> }
+                                        mx={0.75}
+                                        title="Access is limited" />
+                                );
+                            }} />
                     }
                     description={
-                        <SuspenseReveal fallback={ <Skeleton variant="text" width={200} /> }>
-                            <CategoryDescription params={props.params} />
-                        </SuspenseReveal>
+                        <HeaderTextSlot
+                            resolve={async () =>
+                                (await resolveCategory(props.params))?.description ?? null}
+                            width={200} />
                     }
                     icon={
-                        <SuspenseReveal fallback={ <InfoOutlinedIcon /> }>
-                            <CategoryIcon params={props.params} />
-                        </SuspenseReveal>
+                        <HeaderAsyncSlot
+                            fallback={ <InfoOutlinedIcon /> }
+                            resolve={async () => {
+                                const category = await resolveCategory(props.params);
+                                return category
+                                    ? <KnowledgeBaseIcon variant={category.icon} />
+                                    : <InfoOutlinedIcon />;
+                            }} />
                     }
                     title={
-                        <SuspenseReveal fallback={ <Skeleton variant="text" width={150} /> }>
-                            <CategoryTitle params={props.params} />
-                        </SuspenseReveal>
+                        <HeaderTextSlot
+                            resolve={async () =>
+                                (await resolveCategory(props.params))?.title ?? null}
+                            width={150} />
                     } />
             }>
             <SuspenseReveal

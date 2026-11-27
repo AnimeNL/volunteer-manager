@@ -6,10 +6,9 @@ import { notFound, redirect } from 'next/navigation';
 
 import Divider from '@mui/material/Divider';
 import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined';
-import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 
-import { Header } from '../../components/Header';
+import { Header, HeaderTextSlot } from '../../components/Header';
 import { Page, SuspenseReveal } from '../../components/Page';
 import { ScheduleListRow } from '../../components/ScheduleList';
 import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
@@ -23,27 +22,13 @@ import { getSchedulePath } from '../../lib/navigationTypes';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
 
 /**
- * Streams the resolved location title into the page `<Header>`.
+ * Loads the resolved program location metadata and timeslots for the requested route parameters.
  */
-async function LocationTitle(props: { params: Promise<{ event: string; id: string }> }) {
-    const { event: eventSlug, id } = await props.params;
+async function loadLocationDetail(params: Promise<{ event: string; id: string }>) {
+    const { event: eventSlug, id } = await params;
     const { event } = await requireScheduleAccess(eventSlug);
-    const data = await getProgramLocationDetail(
+    return await getProgramLocationDetail(
         event.integrations?.anPlanFestivalId, id, event.timeZone);
-
-    return data?.name ?? null;
-}
-
-/**
- * Streams the parent area name into the page `<Header>` description.
- */
-async function LocationDescription(props: { params: Promise<{ event: string; id: string }> }) {
-    const { event: eventSlug, id } = await props.params;
-    const { event } = await requireScheduleAccess(eventSlug);
-    const data = await getProgramLocationDetail(
-        event.integrations?.anPlanFestivalId, id, event.timeZone);
-
-    return data?.areaName ?? null;
 }
 
 /**
@@ -152,15 +137,17 @@ export default function ScheduleLocationPage(
             header={
                 <Header
                     description={
-                        <SuspenseReveal fallback={ <Skeleton variant="text" width={96} /> }>
-                            <LocationDescription params={props.params} />
-                        </SuspenseReveal>
+                        <HeaderTextSlot
+                            resolve={async () =>
+                                (await loadLocationDetail(props.params))?.areaName ?? null}
+                            width={96} />
                     }
                     icon={ <PlaceOutlinedIcon /> }
                     title={
-                        <SuspenseReveal fallback={ <Skeleton variant="text" width={136} /> }>
-                            <LocationTitle params={props.params} />
-                        </SuspenseReveal>
+                        <HeaderTextSlot
+                            resolve={async () =>
+                                (await loadLocationDetail(props.params))?.name ?? null}
+                            width={136} />
                     } />
             }>
             <SuspenseReveal

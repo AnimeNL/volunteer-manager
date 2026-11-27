@@ -9,7 +9,7 @@ import Stack from '@mui/material/Stack';
 
 import { EventFavouriteButton } from './EventFavouriteButton';
 import { EventTicketSalesSection } from './EventTicketSalesSection';
-import { Header } from '../../components/Header';
+import { Header, HeaderAsyncSlot, HeaderTextSlot } from '../../components/Header';
 import { Page, SuspenseReveal } from '../../components/Page';
 import { ScheduleListRow } from '../../components/ScheduleList';
 import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
@@ -24,27 +24,13 @@ import { requireScheduleAccess } from '../../lib/getScheduleAccess';
 import db, { tUsersEventsFavourites } from '@lib/database';
 
 /**
- * Streams the resolved program event title into the page `<Header>`.
+ * Loads the resolved program event details for the requested route parameters.
  */
-async function EventTitle(props: { params: Promise<{ event: string; id: string }> }) {
-    const { event: eventSlug, id } = await props.params;
+async function loadEventDetail(params: Promise<{ event: string; id: string }>) {
+    const { event: eventSlug, id } = await params;
     const { event } = await requireScheduleAccess(eventSlug);
-    const data = await getProgramEventDetail(
+    return await getProgramEventDetail(
         event.integrations?.anPlanFestivalId, id, event.timeZone);
-
-    return data?.title ?? null;
-}
-
-/**
- * Streams the resolved event location summary into the page `<Header>` description.
- */
-async function EventDescription(props: { params: Promise<{ event: string; id: string }> }) {
-    const { event: eventSlug, id } = await props.params;
-    const { event } = await requireScheduleAccess(eventSlug);
-    const data = await getProgramEventDetail(
-        event.integrations?.anPlanFestivalId, id, event.timeZone);
-
-    return data?.location ?? null;
 }
 
 /**
@@ -149,21 +135,22 @@ export default function ScheduleEventPage(props: PageProps<'/schedule2/[event]/e
             header={
                 <Header
                     actions={
-                        <SuspenseReveal
-                            fallback={ <Skeleton variant="circular" width={40} height={40} /> }>
-                            <EventFavouriteAction params={props.params} />
-                        </SuspenseReveal>
+                        <HeaderAsyncSlot
+                            fallback={ <Skeleton variant="circular" width={40} height={40} /> }
+                            resolve={() => EventFavouriteAction({ params: props.params })} />
                     }
                     description={
-                        <SuspenseReveal fallback={ <Skeleton variant="text" width={112} /> }>
-                            <EventDescription params={props.params} />
-                        </SuspenseReveal>
+                        <HeaderTextSlot
+                            resolve={async () =>
+                                (await loadEventDetail(props.params))?.location ?? null}
+                            width={112} />
                     }
                     icon={ <EventNoteOutlinedIcon /> }
                     title={
-                        <SuspenseReveal fallback={ <Skeleton variant="text" width={160} /> }>
-                            <EventTitle params={props.params} />
-                        </SuspenseReveal>
+                        <HeaderTextSlot
+                            resolve={async () =>
+                                (await loadEventDetail(props.params))?.title ?? null}
+                            width={160} />
                     } />
             }>
             <SuspenseReveal

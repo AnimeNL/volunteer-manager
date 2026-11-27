@@ -4,10 +4,9 @@
 import { forbidden, notFound } from 'next/navigation';
 
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
-import Skeleton from '@mui/material/Skeleton';
 
 import { EmptyStateCard } from '../../../../components/EmptyStateCard';
-import { Header } from '../../../../components/Header';
+import { Header, HeaderTextSlot } from '../../../../components/Header';
 import { Page, SuspenseReveal } from '../../../../components/Page';
 import { ScheduleListRow } from '../../../../components/ScheduleList';
 import { ScheduleListSkeleton } from '../../../../components/ScheduleListSkeleton';
@@ -49,29 +48,6 @@ async function resolveEventTicketHolders(
 }
 
 /**
- * Streams the program event title into the page `<Header>`.
- */
-async function EventTicketsTitle(
-    props: { params: Promise<{ event: string; id: string; ticketId: string }> })
-{
-    const data = await resolveEventTicketHolders(props.params);
-    return data?.eventTitle ?? null;
-}
-
-/**
- * Streams the product name and ticket count into the page `<Header>` description.
- */
-async function EventTicketsDescription(
-    props: { params: Promise<{ event: string; id: string; ticketId: string }> })
-{
-    const data = await resolveEventTicketHolders(props.params);
-    if (!data)
-        return null;
-
-    return `${data.productName} · ${pluralize(data.holders.length, 'ticket')}`;
-}
-
-/**
  * Authenticates the request behind `<Suspense>` and renders the flat list of ticket holders.
  */
 async function EventTicketsContent(
@@ -110,15 +86,23 @@ export default function ScheduleEventTicketsPage(
             header={
                 <Header
                     description={
-                        <SuspenseReveal fallback={ <Skeleton variant="text" width={160} /> }>
-                            <EventTicketsDescription params={props.params} />
-                        </SuspenseReveal>
+                        <HeaderTextSlot
+                            resolve={async () => {
+                                const data = await resolveEventTicketHolders(props.params);
+                                return data
+                                    ? `${data.productName} · ` +
+                                      `${pluralize(data.holders.length, 'ticket')}`
+                                    : null;
+                            }}
+                            width={160} />
                     }
                     icon={ <ConfirmationNumberOutlinedIcon /> }
                     title={
-                        <SuspenseReveal fallback={ <Skeleton variant="text" width={180} /> }>
-                            <EventTicketsTitle params={props.params} />
-                        </SuspenseReveal>
+                        <HeaderTextSlot
+                            resolve={async () =>
+                                (await resolveEventTicketHolders(props.params))?.eventTitle ??
+                                null}
+                            width={180} />
                     } />
             }>
             <SuspenseReveal
