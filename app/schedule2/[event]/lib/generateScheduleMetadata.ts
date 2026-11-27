@@ -4,10 +4,11 @@
 import type { Metadata } from 'next';
 import { cacheLife, cacheTag } from 'next/cache';
 
+import { parseVendorTeam } from './vendorMetadata';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tContentCategories, tEvents,
     tTeams } from '@lib/database';
 
-import { kVendorTeam } from '@lib/database/Types';
+import { kVendorMetadata } from './vendorMetadata';
 
 /**
  * Fallback application title appended when an event short name cannot be resolved.
@@ -139,12 +140,8 @@ async function resolveTeamName(slug: string): Promise<string | null> {
  * Resolves the human-readable title for a vendor team route parameter.
  */
 async function resolveVendorTitle(team: string): Promise<string | null> {
-    if (team === kVendorTeam.FirstAid)
-        return 'First Aid';
-    if (team === kVendorTeam.Security)
-        return 'Security';
-
-    return null;
+    const vendorTeam = parseVendorTeam(team);
+    return vendorTeam ? kVendorMetadata[vendorTeam].title : null;
 }
 
 /**

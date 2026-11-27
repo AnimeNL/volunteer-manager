@@ -11,7 +11,7 @@ type IconBadgeSize = 'sm' | 'md' | 'lg' | 'xl';
 /**
  * Supported colour treatments for `<IconBadge>`.
  */
-type IconBadgeTone = 'error' | 'info' | 'muted' | 'secondary';
+export type IconBadgeTone = 'error' | 'info' | 'muted' | 'secondary';
 
 /**
  * Props accepted by the `<IconBadge>` component.

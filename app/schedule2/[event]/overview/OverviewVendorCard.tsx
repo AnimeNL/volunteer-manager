@@ -9,8 +9,6 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import Divider from '@mui/material/Divider';
-import LocalHospitalOutlinedIcon from '@mui/icons-material/LocalHospitalOutlined';
-import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
@@ -19,21 +17,15 @@ import { IconBadge } from '../components/IconBadge';
 import { InteractiveSurface } from '../components/InteractiveSurface';
 import { getSchedulePath } from '../lib/navigationTypes';
 
-import { kVendorTeam } from '@lib/database/Types';
+import { kVendorMetadata } from '../lib/vendorMetadata';
 
 /**
- * Static display metadata for each vendor team shown on the overview card.
+ * List formatter joining on-site vendor names as English prose (e.g. "A, B and C").
  */
-const kVendorMetadata: Record<VendorTeam, { icon: React.ReactNode; title: string }> = {
-    [kVendorTeam.FirstAid]: {
-        icon: <LocalHospitalOutlinedIcon fontSize="small" />,
-        title: 'First Aid',
-    },
-    [kVendorTeam.Security]: {
-        icon: <ShieldOutlinedIcon fontSize="small" />,
-        title: 'Security',
-    },
-};
+const kVendorNameFormatter = new Intl.ListFormat('en-GB', {
+    style: 'long',
+    type: 'conjunction',
+});
 
 /**
  * Entry describing a single on-site vendor team row in `<OverviewVendorCard>`.
@@ -74,10 +66,7 @@ interface OverviewVendorCardProps {
  * Formats an ordered list of on-site personnel names as prose (e.g. "A, B and C").
  */
 function formatVendorNames(names: string[]): string {
-    if (names.length <= 1)
-        return names[0] ?? 'Nobody is currently on site';
-
-    return `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
+    return names.length ? kVendorNameFormatter.format(names) : 'Nobody is currently on site';
 }
 
 /**
@@ -94,18 +83,14 @@ export function OverviewVendorCard(props: OverviewVendorCardProps) {
     return (
         <Card>
             { entries.map((entry, index) => {
-                const { icon, title } = kVendorMetadata[entry.team];
+                const { icon: Icon, title, tone } = kVendorMetadata[entry.team];
                 const isEmpty = !entry.names.length;
 
                 const content = (
                     <Stack direction="row" spacing={1.5}
                            sx={{ alignItems: 'center', minWidth: 0, width: '100%' }}>
-                        <IconBadge
-                            size="sm"
-                            tone={isEmpty
-                                ? 'muted'
-                                : (entry.team === kVendorTeam.FirstAid ? 'error' : 'info')}>
-                            {icon}
+                        <IconBadge size="sm" tone={isEmpty ? 'muted' : tone}>
+                            <Icon fontSize="small" />
                         </IconBadge>
                         <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>
                             <Typography variant="subtitle2" color="textPrimary"

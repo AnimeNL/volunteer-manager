@@ -4,45 +4,20 @@
 import { forbidden, notFound } from 'next/navigation';
 
 import Card from '@mui/material/Card';
-import LocalHospitalOutlinedIcon from '@mui/icons-material/LocalHospitalOutlined';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 
-import type { VendorTeam } from '@lib/database/Types';
 import { Header, HeaderAsyncSlot, HeaderTextSlot } from '../../components/Header';
 import { Page, SuspenseReveal } from '../../components/Page';
 import { VendorScheduleCalendar } from './VendorScheduleCalendar';
 import { createScheduleMetadataFn } from '../../lib/generateScheduleMetadata';
 import { getVendorSchedule } from '../../lib/data/vendorData';
+import { parseVendorTeam } from '../../lib/vendorMetadata';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
 
 import { kAnyTeam } from '@lib/auth/access';
-import { kVendorTeam } from '@lib/database/Types';
-
-/**
- * Metadata describing each supported vendor team route.
- */
-const kVendorPageInfo: Record<VendorTeam, { description: string; title: string }> = {
-    [kVendorTeam.FirstAid]: {
-        description: 'On-site schedule for First Aid personnel.',
-        title: 'First Aid',
-    },
-    [kVendorTeam.Security]: {
-        description: 'On-site schedule for Security personnel.',
-        title: 'Security',
-    },
-};
-
-/**
- * Validates `team` as a known `VendorTeam` slug, returning `undefined` otherwise.
- */
-function parseVendorTeam(team: string): VendorTeam | undefined {
-    if (team === kVendorTeam.FirstAid || team === kVendorTeam.Security)
-        return team;
-
-    return undefined;
-}
+import { kVendorCalendarHeightPx, kVendorMetadata } from '../../lib/vendorMetadata';
 
 /**
  * Authenticates the request behind `<Suspense>`, validates the vendor team parameter,
@@ -80,7 +55,7 @@ async function VendorScheduleContent(
  */
 function VendorScheduleSkeleton() {
     return (
-        <Stack spacing={1.5} sx={{ height: 1225, p: 1.5 }}>
+        <Stack spacing={1.5} sx={{ height: kVendorCalendarHeightPx, p: 1.5 }}>
             <Stack direction="row" spacing={1.5} sx={{ pl: 6 }}>
                 <Skeleton variant="rounded" height={44} sx={{ flex: '1 1 0' }} />
                 <Skeleton variant="rounded" height={44} sx={{ flex: '1 1 0' }} />
@@ -107,7 +82,7 @@ export default function ScheduleVendorTeamPage(
                             resolve={async () => {
                                 const team = parseVendorTeam((await props.params).team);
                                 return team
-                                    ? kVendorPageInfo[team].description
+                                    ? kVendorMetadata[team].description
                                     : 'On-site vendor schedule.';
                             }}
                             width={220} />
@@ -116,16 +91,15 @@ export default function ScheduleVendorTeamPage(
                         <HeaderAsyncSlot
                             resolve={async () => {
                                 const team = parseVendorTeam((await props.params).team);
-                                return team === kVendorTeam.FirstAid
-                                    ? <LocalHospitalOutlinedIcon />
-                                    : <ShieldOutlinedIcon />;
+                                const Icon = team ? kVendorMetadata[team].icon : ShieldOutlinedIcon;
+                                return <Icon />;
                             }} />
                     }
                     title={
                         <HeaderTextSlot
                             resolve={async () => {
                                 const team = parseVendorTeam((await props.params).team);
-                                return team ? kVendorPageInfo[team].title : 'Vendors';
+                                return team ? kVendorMetadata[team].title : 'Vendors';
                             }}
                             width={110} />
                     } />

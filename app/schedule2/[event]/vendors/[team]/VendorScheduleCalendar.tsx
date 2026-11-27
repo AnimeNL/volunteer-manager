@@ -13,18 +13,14 @@ import { StandaloneCompactThreeDayViewPremium }
 
 import type { VendorScheduleMember, VendorScheduleShift } from '../../lib/data/vendorData';
 
+import { kVendorCalendarHeightPx } from '../../lib/vendorMetadata';
+
 /**
  * Distinct MUI scheduler colour palettes cycled across vendor resources.
  */
 const kResourceColors: readonly SchedulerEventColor[] = [
     'blue', 'teal', 'purple', 'orange', 'green', 'indigo', 'pink', 'amber', 'red', 'lime',
 ];
-
-/**
- * Full 24-hour natural height (89px day header + 24 * 46px hour rows, plus buffer) so the three-day
- * grid renders without an internal scrollbar and scrolls with the page.
- */
-const kFullDayGridHeightPx = 1225;
 
 /**
  * Props accepted by the <VendorScheduleCalendar> component.
@@ -85,7 +81,7 @@ export function VendorScheduleCalendar(props: VendorScheduleCalendarProps) {
     }, [ shifts, startDate, vendors ]);
 
     return (
-        <Box sx={{ height: kFullDayGridHeightPx, width: '100%' }}>
+        <Box sx={{ height: kVendorCalendarHeightPx, width: '100%' }}>
             <StandaloneCompactThreeDayViewPremium
                 dateLocale="en-GB"
                 displayTimezone={timeZone}
