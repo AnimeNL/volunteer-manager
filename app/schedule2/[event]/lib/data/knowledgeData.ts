@@ -35,6 +35,40 @@ export interface KnowledgeBaseCategorySummary {
 }
 
 /**
+ * Single Knowledge Base question and its Markdown answer.
+ */
+interface KnowledgeBaseQuestion {
+    answer: string;
+    id: string;
+    question: string;
+}
+
+/**
+ * Full Knowledge Base category detail including all alphabetically sorted FAQ questions.
+ */
+interface KnowledgeBaseCategoryDetail {
+    description?: string;
+    icon: string;
+    id: number;
+    limited: boolean;
+    questions: KnowledgeBaseQuestion[];
+    title: string;
+}
+
+/**
+ * Serializable Knowledge Base category detail cached per event and category.
+ */
+interface CachedKnowledgeCategoryDetail {
+    description?: string;
+    icon: string;
+    id: number;
+    questions: KnowledgeBaseQuestion[];
+    roles: string;
+    teams: string;
+    title: string;
+}
+
+/**
  * Accepted role and team identifiers for a volunteer participating in an event.
  */
 interface VolunteerParticipation {
@@ -153,3 +187,80 @@ export async function getKnowledgeBaseCategories(
             title: category.title,
         }));
 }
+
+/**
+ * Loads a single non-empty Knowledge Base category and its visible FAQ questions for `eventId`.
+ */
+async function loadCachedKnowledgeCategory(
+    eventId: number, categoryId: number): Promise<CachedKnowledgeCategoryDetail | null>
+{
+    'use cache';
+    cacheLife('minutes');
+    cacheTag('schedule-knowledge', `schedule-knowledge:${eventId}`);
+
+    return await db.selectFrom(tContentCategories)
+        .innerJoin(tContent)
+            .on(tContent.contentType.equals(kContentType.FAQ))
+                .and(tContent.contentCategoryId.equals(tContentCategories.categoryId))
+                .and(tContent.revisionVisible.equals(/* true= */ 1))
+        .where(tContentCategories.categoryId.equals(categoryId))
+            .and(tContentCategories.eventId.equals(eventId))
+            .and(tContentCategories.categoryDeleted.isNull())
+        .select({
+            description: tContentCategories.categoryDescription,
+            icon: tContentCategories.categoryIcon,
+            id: tContentCategories.categoryId,
+            questions: db.aggregateAsArray({
+                answer: tContent.content,
+                id: tContent.contentPath,
+                question: tContent.contentTitle,
+            }),
+            roles: tContentCategories.categoryRoles,
+            teams: tContentCategories.categoryTeams,
+            title: tContentCategories.categoryTitle,
+        })
+        .groupBy(tContentCategories.categoryId)
+        .executeSelectNoneOrOne();
+}
+
+/**
+ * Returns the requested Knowledge Base category and its alphabetically sorted questions if it
+ * exists, has visible questions, and is accessible to `userId` in `eventId`.
+ */
+export const getKnowledgeBaseCategory = cache(
+    async (
+        eventId: number, categoryParam: string, userId: number, hasUnrestrictedAccess: boolean)
+        : Promise<KnowledgeBaseCategoryDetail | undefined> =>
+    {
+        const categoryId = Number(categoryParam);
+        if (!Number.isInteger(categoryId))
+            return undefined;
+
+        const category = await loadCachedKnowledgeCategory(eventId, categoryId);
+        if (!category || !category.questions.length)
+            return undefined;
+
+        const limited = category.roles.length > 0 || category.teams.length > 0;
+        const participations = limited && !hasUnrestrictedAccess
+            ? await loadVolunteerParticipations(eventId, userId)
+            : [];
+
+        if (!canAccessCategory(
+            category.roles, category.teams, hasUnrestrictedAccess, participations))
+        {
+            return undefined;
+        }
+
+        const questions = [ ...category.questions ]
+            .sort((lhs, rhs) => lhs.question.localeCompare(rhs.question));
+
+        return {
+            description: category.description,
+            icon: category.icon,
+            id: category.id,
+            limited,
+            questions,
+            title: category.title,
+        };
+    });
+
