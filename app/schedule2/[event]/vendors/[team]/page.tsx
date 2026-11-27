@@ -2,7 +2,6 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { forbidden, notFound } from 'next/navigation';
-import { Suspense } from 'react';
 
 import Card from '@mui/material/Card';
 import LocalHospitalOutlinedIcon from '@mui/icons-material/LocalHospitalOutlined';
@@ -129,19 +128,19 @@ export default function ScheduleVendorTeamPage(
             header={
                 <Header
                     description={
-                        <Suspense fallback={ <Skeleton variant="text" width={220} /> }>
+                        <SuspenseReveal fallback={ <Skeleton variant="text" width={220} /> }>
                             <VendorHeaderDescription params={props.params} />
-                        </Suspense>
+                        </SuspenseReveal>
                     }
                     icon={
-                        <Suspense fallback={null}>
+                        <SuspenseReveal fallback={null}>
                             <VendorHeaderIcon params={props.params} />
-                        </Suspense>
+                        </SuspenseReveal>
                     }
                     title={
-                        <Suspense fallback={ <Skeleton variant="text" width={110} /> }>
+                        <SuspenseReveal fallback={ <Skeleton variant="text" width={110} /> }>
                             <VendorHeaderTitle params={props.params} />
-                        </Suspense>
+                        </SuspenseReveal>
                     } />
             }>
             <Card>

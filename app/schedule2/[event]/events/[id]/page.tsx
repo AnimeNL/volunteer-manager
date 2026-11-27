@@ -3,18 +3,18 @@
 
 import { notFound } from 'next/navigation';
 
-import Box from '@mui/material/Box';
 import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 
 import { EventFavouriteButton } from './EventFavouriteButton';
+import { EventTicketSalesSection } from './EventTicketSalesSection';
 import { Header } from '../../components/Header';
 import { Page, SuspenseReveal } from '../../components/Page';
 import { ScheduleList, ScheduleListRow } from '../../components/ScheduleList';
 import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
 import { SectionHeader } from '../../components/SectionHeader';
-import { compareTimeslots, formatEuroPrice, getTimeslotTiming } from '../../lib/programTime';
+import { compareTimeslots, getTimeslotTiming } from '../../lib/programTime';
 import { formatDate } from '@lib/Temporal';
 import { getEventTicketSales } from '../../lib/data/ticketData';
 import { getProgramEventDetail } from '../../lib/data/programData';
@@ -134,64 +134,11 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
                             trailing={timeslot.time} /> ) }
                 </ScheduleList>
             </Stack>
-            { sales.length > 0 &&
-                <Stack spacing={0.75} useFlexGap>
-                    <SectionHeader title="Tickets sold" />
-                    <ScheduleList>
-                        { sales.map(entry => {
-                            const isSoldOut = entry.limit !== undefined &&
-                                entry.sold >= entry.limit;
-                            const progress = entry.limit !== undefined
-                                ? Math.min(100, Math.round((entry.sold / entry.limit) * 100))
-                                : undefined;
-                            const progressColor = isSoldOut
-                                ? 'error'
-                                : ((progress ?? 0) < 75 ? 'success' : 'warning');
-                            const price = entry.price !== undefined
-                                ? ` · ${formatEuroPrice(entry.price)}`
-                                : '';
-
-                            const trailing = entry.limit !== undefined ? (
-                                <>
-                                    <Box
-                                        component="span"
-                                        sx={{
-                                            color: isSoldOut ? 'error.main' : 'text.primary',
-                                            fontWeight: isSoldOut ? 600 : 500,
-                                        }}>
-                                        {entry.sold}
-                                    </Box>
-                                    {` / ${entry.limit}${price}`}
-                                </>
-                            ) : (
-                                <>
-                                    <Box
-                                        component="span"
-                                        sx={{ color: 'text.primary', fontWeight: 500 }}>
-                                        {entry.sold}
-                                    </Box>
-                                    {` sold${price}`}
-                                </>
-                            );
-
-                            const href = canViewTickets
-                                ? getSchedulePath(
-                                    event.slug, `/events/${data.activityId}/tickets/${entry.id}`)
-                                : undefined;
-
-                            return (
-                                <ScheduleListRow
-                                    key={entry.id}
-                                    chevron={canViewTickets}
-                                    href={href}
-                                    progress={progress}
-                                    progressColor={progressColor}
-                                    title={entry.name}
-                                    trailing={trailing} />
-                            );
-                        }) }
-                    </ScheduleList>
-                </Stack> }
+            <EventTicketSalesSection
+                activityId={data.activityId}
+                canViewTickets={canViewTickets}
+                eventSlug={event.slug}
+                sales={sales} />
         </Stack>
     );
 }

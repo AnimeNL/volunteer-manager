@@ -40,6 +40,39 @@ function HotelBookingDetails(props: { booking: HotelBooking }) {
             ? booking.sharingWith.join(' & ')
             : 'Not sharing with anyone';
 
+    const rows: { icon: React.ReactNode; primary: string; secondary: React.ReactNode }[] = [
+        {
+            icon: <LoginOutlinedIcon fontSize="small" />,
+            primary: 'Check-in',
+            secondary: formatDate(booking.checkIn, 'dddd, MMMM D'),
+        },
+        {
+            icon: <LogoutOutlinedIcon fontSize="small" />,
+            primary: 'Check-out',
+            secondary: formatDate(booking.checkOut, 'dddd, MMMM D'),
+        },
+        {
+            icon: <PeopleOutlinedIcon fontSize="small" />,
+            primary: 'Sharing with',
+            secondary: sharingText,
+        },
+    ];
+
+    if (booking.reservation) {
+        rows.push({
+            icon: <TagOutlinedIcon fontSize="small" />,
+            primary: 'Reservation number',
+            secondary: (
+                <Typography component="span" variant="body2" sx={{
+                    fontFamily: 'monospace',
+                    letterSpacing: 1,
+                }}>
+                    {booking.reservation}
+                </Typography>
+            ),
+        });
+    }
+
     return (
         <>
             <CardContent>
@@ -52,46 +85,15 @@ function HotelBookingDetails(props: { booking: HotelBooking }) {
             </CardContent>
             <Divider />
             <List dense disablePadding>
-                <ListItem>
-                    <ListItemIcon>
-                        <LoginOutlinedIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText
-                        primary="Check-in"
-                        secondary={formatDate(booking.checkIn, 'dddd, MMMM D')} />
-                </ListItem>
-                <ListItem>
-                    <ListItemIcon>
-                        <LogoutOutlinedIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText
-                        primary="Check-out"
-                        secondary={formatDate(booking.checkOut, 'dddd, MMMM D')} />
-                </ListItem>
-                <ListItem>
-                    <ListItemIcon>
-                        <PeopleOutlinedIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText
-                        primary="Sharing with"
-                        secondary={sharingText} />
-                </ListItem>
-                { !!booking.reservation &&
-                    <ListItem>
+                { rows.map(({ icon, primary, secondary }) =>
+                    <ListItem key={primary}>
                         <ListItemIcon>
-                            <TagOutlinedIcon fontSize="small" />
+                            {icon}
                         </ListItemIcon>
                         <ListItemText
-                            primary="Reservation number"
-                            secondary={
-                                <Typography component="span" variant="body2" sx={{
-                                    fontFamily: 'monospace',
-                                    letterSpacing: 1,
-                                }}>
-                                    {booking.reservation}
-                                </Typography>
-                            } />
-                    </ListItem> }
+                            primary={primary}
+                            secondary={secondary} />
+                    </ListItem> ) }
             </List>
         </>
     );
