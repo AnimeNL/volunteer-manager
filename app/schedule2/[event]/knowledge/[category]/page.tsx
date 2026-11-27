@@ -10,10 +10,11 @@ import Stack from '@mui/material/Stack';
 
 import { Header } from '../../components/Header';
 import { KnowledgeBaseIcon } from '@components/KnowledgeBaseIcon';
-import { KnowledgeQuestionItem, KnowledgeQuestionList } from './KnowledgeQuestionList';
+import { KnowledgeQuestionItem } from './KnowledgeQuestionList';
 import { Markdown } from '@components/Markdown';
 import { Page, SuspenseReveal } from '../../components/Page';
 import { RestrictedBadge } from '../../components/RestrictedBadge';
+import { ScheduleList } from '../../components/ScheduleList';
 import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
 import { SectionHeader } from '../../components/SectionHeader';
 import { getKnowledgeBaseCategory } from '../../lib/data/knowledgeData';
@@ -100,7 +101,7 @@ async function CategoryQuestionsContent(props: {
     return (
         <Stack spacing={0.75} useFlexGap>
             <SectionHeader title={countLabel} />
-            <KnowledgeQuestionList>
+            <ScheduleList>
                 { category.questions.map(({ answer, id, question }) =>
                     <KnowledgeQuestionItem
                         key={id}
@@ -109,7 +110,7 @@ async function CategoryQuestionsContent(props: {
                         question={question}>
                         <Markdown content={answer} variant="body2" />
                     </KnowledgeQuestionItem> ) }
-            </KnowledgeQuestionList>
+            </ScheduleList>
         </Stack>
     );
 }

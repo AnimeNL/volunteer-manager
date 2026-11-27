@@ -12,15 +12,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
-import { kCardBorderRadiusPx } from '../../Constants';
-
-/**
- * Conjoined M3 tonal card container grouping Knowledge Base Q&A items with hairline dividers.
- */
-export function KnowledgeQuestionList(props: React.PropsWithChildren) {
-    return <QuestionListRoot>{props.children}</QuestionListRoot>;
-}
-
 /**
  * Props accepted by the <KnowledgeQuestionItem> component.
  */
@@ -42,8 +33,8 @@ interface KnowledgeQuestionItemProps {
 }
 
 /**
- * Expandable Knowledge Base Q&A row rendered inside `<KnowledgeQuestionList>`. Highlights the
- * expanded answer with a subtle tonal tint and a primary-coloured left accent bar.
+ * Expandable Knowledge Base Q&A row rendered inside `<ScheduleList>`. Highlights the expanded
+ * answer with a subtle tonal tint and a primary-coloured left accent bar.
  */
 export function KnowledgeQuestionItem(
     props: React.PropsWithChildren<KnowledgeQuestionItemProps>)
@@ -70,36 +61,24 @@ export function KnowledgeQuestionItem(
                     }}>
                     {question}
                 </Typography>
-                <ExpandChevron expanded={expanded} fontSize="small" />
+                <ExpandMoreIcon fontSize="small" sx={{
+                    color: 'text.secondary',
+                    flexShrink: 0,
+                    transform: expanded ? 'rotate(180deg)' : 'none',
+                    transition: 'transform 200ms',
+                }} />
             </QuestionSummaryButton>
 
             <Collapse in={expanded}>
-                <QuestionAnswerPanel id={panelId}>
-                    <QuestionAnswerAccent>
+                <Box id={panelId} sx={{ pb: 1.75, pt: 0.25, px: 2 }}>
+                    <Box sx={{ borderLeft: 2, borderColor: 'primary.main', pl: 1.5 }}>
                         {children}
-                    </QuestionAnswerAccent>
-                </QuestionAnswerPanel>
+                    </Box>
+                </Box>
             </Collapse>
         </QuestionItemRoot>
     );
 }
-
-/**
- * Conjoined rounded card surface with hairline dividers between question rows.
- */
-const QuestionListRoot = styled(Box)(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
-
-    return {
-        backgroundColor: palette.background.paper,
-        borderRadius: kCardBorderRadiusPx,
-        overflow: 'hidden',
-
-        '& > :not(:first-of-type)': {
-            borderTop: `1px solid color-mix(in srgb, ${palette.divider} 65%, transparent)`,
-        },
-    };
-});
 
 /**
  * Individual question container transitioning to a subtle secondary-container tint when expanded.
@@ -144,40 +123,4 @@ const QuestionSummaryButton = styled(ButtonBase)(({ theme }) => ({
     '&:hover': {
         backgroundColor: (theme.vars || theme).palette.action.hover,
     },
-}));
-
-/**
- * Rotating chevron indicator for expandable question rows.
- */
-const ExpandChevron = styled(ExpandMoreIcon, {
-    shouldForwardProp: prop => prop !== 'expanded',
-})<{ expanded: boolean }>(({ theme }) => ({
-    color: (theme.vars || theme).palette.text.secondary,
-    flexShrink: 0,
-    transition: theme.transitions.create('transform', {
-        duration: theme.transitions.duration.shorter,
-    }),
-    variants: [
-        {
-            props: { expanded: true },
-            style: {
-                transform: 'rotate(180deg)',
-            },
-        },
-    ],
-}));
-
-/**
- * Padding wrapper for the collapsed/expanded answer body.
- */
-const QuestionAnswerPanel = styled(Box)(({ theme }) => ({
-    padding: theme.spacing(0.25, 2, 1.75),
-}));
-
-/**
- * Primary-coloured left accent bar framing the rendered Markdown answer.
- */
-const QuestionAnswerAccent = styled(Box)(({ theme }) => ({
-    borderLeft: `2px solid ${(theme.vars || theme).palette.primary.main}`,
-    paddingLeft: theme.spacing(1.5),
 }));
