@@ -27,7 +27,11 @@ export type DismissibleOverviewActionTileId = keyof typeof kOverviewActionTileSe
  * Zod schema describing the data accepted by `dismissOverviewActionTile`.
  */
 const kDismissOverviewActionTileData = z.object({
-    tile: z.enum([ 'feedback', 'hotel', 'ticket' ]),
+    tile: z.enum(
+        Object.keys(kOverviewActionTileSettings) as [
+            DismissibleOverviewActionTileId,
+            ...DismissibleOverviewActionTileId[],
+        ]),
 });
 
 /**

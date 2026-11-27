@@ -10,11 +10,29 @@ import { requireVolunteerAuthenticationWithEvent } from '@lib/auth';
 import { writeUserSetting } from '@lib/UserSettings';
 
 /**
+ * Zod transformer validating that the input conforms to `Temporal.PlainDateTime` constraints,
+ * matching the pattern in `app/admin/lib/ZodTransformers.ts`.
+ */
+const kTemporalPlainDateTime = z.string().transform((value, context) => {
+    try {
+        return Temporal.PlainDateTime.from(value);
+    } catch (error: any) {
+        context.addIssue({
+            code: 'custom',
+            message: `Only plain date-times are accepted (YYYY-MM-DDTHH:mm), got "${value}"`,
+            _error: error,
+        });
+    }
+
+    return z.NEVER;
+});
+
+/**
  * Zod schema describing the data accepted by `updateScheduleTimeOffset`.
  */
 const kUpdateScheduleTimeOffsetData = z.object({
-    dateTime: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/).nullable(),
-    event: z.string(),
+    dateTime: kTemporalPlainDateTime.nullable(),
+    event: z.string().nonempty(),
 });
 
 /**
@@ -27,15 +45,11 @@ export async function updateScheduleTimeOffset(event: string, dateTime: string |
         const { event } = await requireVolunteerAuthenticationWithEvent(
             props.authenticationContext, data.event, 'event.settings');
 
-        if (data.dateTime === null) {
-            await writeUserSetting(props.user.id, 'user-schedule-time-offset-seconds', undefined);
-            return { success: true };
-        }
-
-        const targetTime =
-            Temporal.PlainDateTime.from(data.dateTime).toZonedDateTime(event.timeZone);
-        const offsetSeconds = Math.round(
-            (targetTime.epochMilliseconds - Temporal.Now.instant().epochMilliseconds) / 1000);
+        const offsetSeconds = data.dateTime !== null
+            ? Math.round(
+                (data.dateTime.toZonedDateTime(event.timeZone).epochMilliseconds -
+                    Temporal.Now.instant().epochMilliseconds) / 1000)
+            : undefined;
 
         await writeUserSetting(props.user.id, 'user-schedule-time-offset-seconds', offsetSeconds);
         return { success: true };

@@ -26,7 +26,11 @@ export type ExpandableNavigationSectionId = keyof typeof kNavigationSectionSetti
  * Zod schema describing the data accepted by `updateNavigationSectionExpanded`.
  */
 const kUpdateNavigationSectionExpandedData = z.object({
-    section: z.enum([ 'duty-book', 'events' ]),
+    section: z.enum(
+        Object.keys(kNavigationSectionSettings) as [
+            ExpandableNavigationSectionId,
+            ...ExpandableNavigationSectionId[],
+        ]),
     expanded: z.boolean(),
 });
 
