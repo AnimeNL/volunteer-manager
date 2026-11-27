@@ -10,6 +10,8 @@ import List from '@mui/material/List';
 import type { NavigationData } from '../lib/navigationTypes';
 import { SecondaryNavigationItems } from './NavigationList';
 
+import { kPillBorderRadius } from '../Constants';
+
 /**
  * Props accepted by the <MobileMoreSheet> component.
  */
@@ -52,7 +54,7 @@ export function MobileMoreSheet(props: MobileMoreSheetProps) {
             }}>
                 <Box sx={{
                     bgcolor: 'divider',
-                    borderRadius: 99,
+                    borderRadius: kPillBorderRadius,
                     height: 4,
                     mb: 1.5,
                     mx: 'auto',

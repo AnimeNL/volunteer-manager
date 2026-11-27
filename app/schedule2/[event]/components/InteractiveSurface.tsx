@@ -11,6 +11,8 @@ import type { SxProps, Theme } from '@mui/material/styles';
 import ButtonBase from '@mui/material/ButtonBase';
 import { styled } from '@mui/material/styles';
 
+import { cardHoverSurface } from '../ScheduleTheme';
+
 /**
  * Returns a key that increments when a route is hidden via Next.js `<Activity mode="hidden">`,
  * remounting MUI `<TouchRipple>` surfaces so in-flight ripples are not stranded and replayed on
@@ -89,9 +91,7 @@ const SurfaceButton = styled(ButtonBase, {
                     overflow: 'hidden',
 
                     '&:hover': {
-                        backgroundColor:
-                            `color-mix(in srgb, ${palette.background.paper} 94%, ` +
-                            `${palette.text.primary})`,
+                        backgroundColor: cardHoverSurface(theme),
                     },
                 },
             },

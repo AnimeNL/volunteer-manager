@@ -20,6 +20,7 @@ import Typography from '@mui/material/Typography';
 
 import { EmptyStateCard } from '../components/EmptyStateCard';
 import { Header } from '../components/Header';
+import { MonospaceText } from '../components/MonospaceText';
 import { Page, SuspenseReveal } from '../components/Page';
 import { createScheduleMetadataFn } from '../lib/generateScheduleMetadata';
 import { formatDate } from '@lib/Temporal';
@@ -65,12 +66,9 @@ function HotelBookingDetails(props: { booking: HotelBooking }) {
             icon: <TagOutlinedIcon fontSize="small" />,
             primary: 'Reservation number',
             secondary: (
-                <Typography component="span" variant="body2" sx={{
-                    fontFamily: 'monospace',
-                    letterSpacing: 1,
-                }}>
+                <MonospaceText component="span">
                     {booking.reservation}
-                </Typography>
+                </MonospaceText>
             ),
         });
     }

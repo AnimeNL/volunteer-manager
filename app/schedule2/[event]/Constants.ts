@@ -41,3 +41,8 @@ export const kCardBorderRadiusPx = 12;
  * Height, in pixels, of the outer title/search pill dock and its paired circular account button.
  */
 export const kHeaderBarHeightPx = 38;
+
+/**
+ * Full-pill corner radius used by capsules, chips, badges, and rounded progress bars.
+ */
+export const kPillBorderRadius = 9999;

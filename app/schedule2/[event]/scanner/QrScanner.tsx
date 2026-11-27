@@ -12,6 +12,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import VideocamOffOutlinedIcon from '@mui/icons-material/VideocamOffOutlined';
 
+import { MonospaceText } from '../components/MonospaceText';
 import { ScannerBlockedState } from './ScannerBlockedState';
 import { ScannerViewfinder } from './ScannerViewfinder';
 import { useQrScanner } from './useQrScanner';
@@ -152,12 +153,9 @@ export function QrScanner(props: QrScannerProps) {
                     <Typography component="span" variant="body2">
                         { feedback.pending ? 'Processing code: ' : 'Scanned code: ' }
                     </Typography>
-                    <Typography
-                        component="span"
-                        variant="body2"
-                        sx={{ fontFamily: 'monospace', letterSpacing: 1 }}>
+                    <MonospaceText component="span">
                         {feedback.barcode}
-                    </Typography>
+                    </MonospaceText>
                 </Alert> }
         </Stack>
     );

@@ -2,14 +2,10 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
-/**
- * Warm-amber pill background colour mixed from the theme's warning accent.
- */
-const kWarningTintBg = 'color-mix(in srgb, var(--mui-palette-warning-main) 13%, transparent)';
+import { PillBadge } from './PillBadge';
 
 /**
  * Props accepted by the `<RestrictedBadge>` component.
@@ -50,31 +46,16 @@ export function RestrictedBadge(props: RestrictedBadgeProps) {
 
     if (pillLabel) {
         return (
-            <Tooltip title={title}>
-                <Stack
-                    component="span"
-                    direction="row"
-                    spacing={0.5}
-                    useFlexGap
-                    aria-label={title}
-                    sx={{
-                        alignItems: 'center',
-                        bgcolor: kWarningTintBg,
-                        borderRadius: 99,
-                        color: 'warning.main',
-                        display: 'inline-flex',
-                        flexShrink: 0,
-                        mx,
-                        px: 1,
-                        py: 0.25,
-                        typography: 'caption',
-                    }}>
-                    {icon}
+            <PillBadge
+                icon={icon}
+                label={
                     <Typography component="span" variant="caption" sx={{ fontWeight: 500 }}>
                         {pillLabel}
                     </Typography>
-                </Stack>
-            </Tooltip>
+                }
+                mx={mx}
+                title={title}
+                tone="warning" />
         );
     }
 

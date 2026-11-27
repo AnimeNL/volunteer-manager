@@ -22,8 +22,11 @@ import { styled } from '@mui/material/styles';
 
 import type { MobileNavigationTab, NavigationData } from '../lib/navigationTypes';
 import { MobileMoreSheet } from './MobileMoreSheet';
+import { floatingPillShadow } from '../ScheduleTheme';
 import { getActiveMobileTab, getRelativeNavigationPath,
     getSchedulePath } from '../lib/navigationTypes';
+
+import { kPillBorderRadius } from '../Constants';
 
 /**
  * Props accepted by the route-aware <MobileNavigationBar> client component.
@@ -180,16 +183,12 @@ const FloatingPill = styled(Paper)(({ theme }) => {
     return {
         alignItems: 'center',
         backgroundColor: palette.m3.floatingNav,
-        borderRadius: 9999,
-        boxShadow: '0 6px 20px rgba(24, 29, 21, 0.14), inset 0 0 0 1px rgba(0, 0, 0, 0.05)',
+        borderRadius: kPillBorderRadius,
         display: 'inline-flex',
         gap: theme.spacing(0.5),
         padding: theme.spacing(0.75),
         pointerEvents: 'auto',
-
-        ...theme.applyStyles('dark', {
-            boxShadow: '0 6px 20px rgba(0, 0, 0, 0.48), inset 0 0 0 1px rgba(255, 255, 255, 0.07)',
-        }),
+        ...floatingPillShadow(theme, 'nav'),
     };
 }) as typeof Paper;
 
@@ -204,7 +203,7 @@ const NavPillButton = styled(ButtonBase, {
 
     return {
         alignItems: 'center',
-        borderRadius: 9999,
+        borderRadius: kPillBorderRadius,
         color: palette.text.secondary,
         display: 'inline-flex',
         gap: theme.spacing(0.75),

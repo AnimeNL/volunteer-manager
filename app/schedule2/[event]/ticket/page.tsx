@@ -11,6 +11,7 @@ import Typography from '@mui/material/Typography';
 
 import { EmptyStateCard } from '../components/EmptyStateCard';
 import { Header } from '../components/Header';
+import { MonospaceText } from '../components/MonospaceText';
 import { Page, SuspenseReveal } from '../components/Page';
 import { QrCode } from '@components/QrCode';
 import { createScheduleMetadataFn } from '../lib/generateScheduleMetadata';
@@ -45,18 +46,12 @@ async function TicketContent(props: { params: Promise<{ event: string }> }) {
                 </Typography>
                 <QrCode content={ticket.barcode} framed sx={{ maxWidth: 400, width: '80%' }} />
                 <Stack spacing={0.25} sx={{ alignItems: 'center' }}>
-                    <Typography color="textSecondary" variant="body2" sx={{
-                        fontFamily: 'monospace',
-                        letterSpacing: 1,
-                    }}>
+                    <MonospaceText color="textSecondary">
                         {ticket.barcode}
-                    </Typography>
-                    <Typography color="textSecondary" variant="body2" sx={{
-                        fontFamily: 'monospace',
-                        letterSpacing: 1,
-                    }}>
+                    </MonospaceText>
+                    <MonospaceText color="textSecondary">
                         Order: {ticket.orderNumber}
-                    </Typography>
+                    </MonospaceText>
                 </Stack>
             </Stack>
         </CardContent>

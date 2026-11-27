@@ -9,6 +9,8 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 
+import { mixColor, mutedRowSurface, subtleDividerBorder } from '../ScheduleTheme';
+
 export { ScheduleListRow } from './ScheduleListRow';
 
 /**
@@ -78,12 +80,11 @@ const ConjoinedListRoot = styled(Box, {
         overflow: 'hidden',
 
         '& > :not(:first-of-type)': {
-            borderTop: `1px solid color-mix(in srgb, ${palette.divider} 65%, transparent)`,
+            borderTop: subtleDividerBorder(theme),
         },
 
         '& > [data-active="true"] + [data-active="true"]': {
-            borderTop:
-                `1px solid color-mix(in srgb, ${palette.secondary.contrastText} 12%, transparent)`,
+            borderTop: `1px solid ${mixColor(palette.secondary.contrastText, 12)}`,
         },
 
         '& > :not([data-active="true"]) + [data-active="true"]': {
@@ -94,8 +95,7 @@ const ConjoinedListRoot = styled(Box, {
             {
                 props: { muted: true },
                 style: {
-                    backgroundColor:
-                        `color-mix(in srgb, ${palette.text.primary} 4.5%, ${palette.m3.sheet})`,
+                    backgroundColor: mutedRowSurface(theme),
                 },
             },
         ],

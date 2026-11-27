@@ -7,8 +7,8 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 
+import { BannerHeading, BannerScrim, BannerSubtitle } from './EventBannerChrome';
 import { formatDate } from '@lib/Temporal';
 import { getEvent } from '@lib/cache';
 
@@ -90,13 +90,7 @@ async function SidebarEventBannerContent(props: EventBannerProps) {
     return (
         <>
             <BannerImage alt={title} src={imageUrl} />
-            <Box aria-hidden="true" sx={{
-                background: 'linear-gradient(180deg, transparent 25%, ' +
-                    'rgba(0, 0, 0, 0.52) 65%, rgba(0, 0, 0, 0.88) 100%)',
-                inset: 0,
-                pointerEvents: 'none',
-                position: 'absolute',
-            }} />
+            <BannerScrim aria-hidden="true" surface="dark" />
             <Stack spacing={0.25} sx={{
                 bottom: 0,
                 left: 0,
@@ -106,26 +100,13 @@ async function SidebarEventBannerContent(props: EventBannerProps) {
                 py: 1.25,
                 right: 0,
             }}>
-                <Typography
-                    noWrap
-                    sx={{
-                        color: 'common.white',
-                        letterSpacing: '-0.01em',
-                        textShadow: '0 1px 3px rgba(0, 0, 0, 0.85), 0 0 8px rgba(0, 0, 0, 0.45)',
-                    }}
-                    variant="subtitle2">
+                <BannerHeading noWrap surface="dark" variant="subtitle2">
                     {title}
-                </Typography>
+                </BannerHeading>
                 { !!subtitle &&
-                    <Typography
-                        noWrap
-                        sx={{
-                            color: 'rgba(255, 255, 255, 0.82)',
-                            textShadow: '0 1px 3px rgba(0, 0, 0, 0.75)',
-                        }}
-                        variant="caption">
+                    <BannerSubtitle noWrap surface="dark" variant="caption">
                         {subtitle}
-                    </Typography> }
+                    </BannerSubtitle> }
             </Stack>
         </>
     );
@@ -140,14 +121,7 @@ async function MobileEventBannerContent(props: EventBannerProps) {
     return (
         <>
             <BannerImage alt={title} src={imageUrl} />
-            <Box aria-hidden="true" sx={{
-                background: 'linear-gradient(180deg, transparent 45%, ' +
-                    'color-mix(in srgb, var(--mui-palette-m3-sheet) 55%, transparent) 76%, ' +
-                    'var(--mui-palette-m3-sheet) 100%)',
-                inset: 0,
-                pointerEvents: 'none',
-                position: 'absolute',
-            }} />
+            <BannerScrim aria-hidden="true" surface="sheet" />
             <Stack spacing={0.25} sx={{
                 bottom: 0,
                 left: 0,
@@ -157,24 +131,13 @@ async function MobileEventBannerContent(props: EventBannerProps) {
                 py: 1.5,
                 right: 0,
             }}>
-                <Typography
-                    color="textPrimary"
-                    noWrap
-                    sx={{
-                        letterSpacing: '-0.01em',
-                        textShadow: '0 1px 6px var(--mui-palette-m3-sheet)',
-                    }}
-                    variant="h6">
+                <BannerHeading noWrap surface="sheet" variant="h6">
                     {title}
-                </Typography>
+                </BannerHeading>
                 { !!subtitle &&
-                    <Typography
-                        color="textSecondary"
-                        noWrap
-                        sx={{ textShadow: '0 1px 4px var(--mui-palette-m3-sheet)' }}
-                        variant="body2">
+                    <BannerSubtitle noWrap surface="sheet" variant="body2">
                         {subtitle}
-                    </Typography> }
+                    </BannerSubtitle> }
             </Stack>
         </>
     );

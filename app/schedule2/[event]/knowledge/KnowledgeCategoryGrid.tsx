@@ -9,6 +9,7 @@ import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { styled } from '@mui/material/styles';
 
 import type { KnowledgeBaseCategorySummary } from '../lib/data/knowledgeData';
 import { IconBadge } from '../components/IconBadge';
@@ -17,6 +18,7 @@ import { KnowledgeBaseIcon } from '@components/KnowledgeBaseIcon';
 import { RestrictedBadge } from '../components/RestrictedBadge';
 import { getSchedulePath } from '../lib/navigationTypes';
 import { pluralize } from '../lib/format';
+import { subtleDividerBorder } from '../ScheduleTheme';
 
 /**
  * Props accepted by the <KnowledgeCategoryGrid> component.
@@ -116,14 +118,7 @@ function KnowledgeCategoryCard(props: KnowledgeCategoryCardProps) {
                         </Box>
                     </Stack>
 
-                    <Stack direction="row" sx={{
-                        alignItems: 'center',
-                        borderTop: 1,
-                        borderColor:
-                            'color-mix(in srgb, var(--mui-palette-divider) 65%, transparent)',
-                        justifyContent: 'space-between',
-                        pt: 1,
-                    }}>
+                    <CategoryFooter direction="row">
                         <Typography variant="caption" color="textSecondary" sx={{
                             fontVariantNumeric: 'tabular-nums',
                         }}>
@@ -138,9 +133,19 @@ function KnowledgeCategoryCard(props: KnowledgeCategoryCardProps) {
                             </Typography>
                             <ChevronRightIcon fontSize="small" sx={{ mr: -0.5 }} />
                         </Stack>
-                    </Stack>
+                    </CategoryFooter>
                 </Stack>
             </InteractiveSurface>
         </Grid>
     );
 }
+
+/**
+ * Footer row displaying question count and browse cue separated by a subtle hairline divider.
+ */
+const CategoryFooter = styled(Stack)(({ theme }) => ({
+    alignItems: 'center',
+    borderTop: subtleDividerBorder(theme),
+    justifyContent: 'space-between',
+    paddingTop: theme.spacing(1),
+}));

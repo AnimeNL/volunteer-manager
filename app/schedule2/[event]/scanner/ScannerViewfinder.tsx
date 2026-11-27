@@ -13,6 +13,8 @@ import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined';
 import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 
+import { mixColor } from '../ScheduleTheme';
+
 /**
  * Props accepted by the <ScannerViewfinder> component.
  */
@@ -64,17 +66,9 @@ export function ScannerViewfinder(props: ScannerViewfinderProps) {
                 sx={{ display: 'block', height: '100%', objectFit: 'cover', width: '100%' }} />
 
             { initializing &&
-                <Stack
-                    sx={{
-                        alignItems: 'center',
-                        bgcolor: 'rgba(0, 0, 0, 0.45)',
-                        color: 'common.white',
-                        inset: 0,
-                        justifyContent: 'center',
-                        position: 'absolute',
-                    }}>
+                <InitializingOverlay>
                     <CircularProgress color="inherit" size={32} />
-                </Stack> }
+                </InitializingOverlay> }
 
             { !initializing &&
                 <>
@@ -113,41 +107,62 @@ export function ScannerViewfinder(props: ScannerViewfinderProps) {
     );
 }
 
+const InitializingOverlay = styled(Stack)(({ theme }) => {
+    const palette = (theme.vars || theme).palette;
+
+    return {
+        alignItems: 'center',
+        backgroundColor: mixColor(palette.common.black, 45),
+        color: palette.common.white,
+        inset: 0,
+        justifyContent: 'center',
+        position: 'absolute',
+    };
+});
+
 const ReticleFrame = styled(Box, {
     shouldForwardProp: prop => prop !== 'active',
-})<{ active: boolean }>(({ theme }) => ({
-    border: '2px solid rgba(255, 255, 255, 0.72)',
-    borderRadius: theme.spacing(2),
-    boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.28)',
-    height: '62%',
-    left: '50%',
-    maxHeight: 240,
-    maxWidth: 240,
-    pointerEvents: 'none',
-    position: 'absolute',
-    top: '50%',
-    transform: 'translate(-50%, -50%)',
-    transition: theme.transitions.create('border-color', {
-        duration: theme.transitions.duration.shorter,
-    }),
-    width: '62%',
+})<{ active: boolean }>(({ theme }) => {
+    const palette = (theme.vars || theme).palette;
 
-    variants: [
-        {
-            props: { active: true },
-            style: {
-                borderColor: (theme.vars || theme).palette.primary.main,
+    return {
+        border: `2px solid ${mixColor(palette.common.white, 72)}`,
+        borderRadius: theme.spacing(2),
+        boxShadow: `0 0 0 9999px ${mixColor(palette.common.black, 28)}`,
+        height: '62%',
+        left: '50%',
+        maxHeight: 240,
+        maxWidth: 240,
+        pointerEvents: 'none',
+        position: 'absolute',
+        top: '50%',
+        transform: 'translate(-50%, -50%)',
+        transition: theme.transitions.create('border-color', {
+            duration: theme.transitions.duration.shorter,
+        }),
+        width: '62%',
+
+        variants: [
+            {
+                props: { active: true },
+                style: {
+                    borderColor: palette.primary.main,
+                },
             },
+        ],
+    };
+});
+
+const OverlayIconButton = styled(IconButton)(({ theme }) => {
+    const palette = (theme.vars || theme).palette;
+
+    return {
+        backgroundColor: mixColor(palette.common.black, 56),
+        color: palette.common.white,
+        padding: theme.spacing(1),
+
+        '&:hover': {
+            backgroundColor: mixColor(palette.common.black, 76),
         },
-    ],
-}));
-
-const OverlayIconButton = styled(IconButton)(({ theme }) => ({
-    backgroundColor: 'rgba(0, 0, 0, 0.56)',
-    color: (theme.vars || theme).palette.common.white,
-    padding: theme.spacing(1),
-
-    '&:hover': {
-        backgroundColor: 'rgba(0, 0, 0, 0.76)',
-    },
-}));
+    };
+});

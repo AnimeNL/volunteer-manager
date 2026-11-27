@@ -1,13 +1,12 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import Box from '@mui/material/Box';
 import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
-import Tooltip from '@mui/material/Tooltip';
 
 import { EmptyStateCard } from '../components/EmptyStateCard';
 import { Header } from '../components/Header';
 import { Page, SuspenseReveal } from '../components/Page';
+import { PillBadge } from '../components/PillBadge';
 import { ScheduleList, ScheduleListRow } from '../components/ScheduleList';
 import { SegmentedListSkeleton } from '../components/ScheduleListSkeleton';
 import { createScheduleMetadataFn } from '../lib/generateScheduleMetadata';
@@ -58,25 +57,7 @@ async function AreasListContent(props: { params: Promise<{ event: string }> }) {
                         subtitle={subtitle}
                         title={area.name}
                         trailing={activeCount > 0 ? (
-                            <Tooltip title={activeLabel}>
-                                <Box
-                                    component="span"
-                                    aria-label={activeLabel}
-                                    sx={{
-                                        alignItems: 'center',
-                                        bgcolor: 'secondary.main',
-                                        borderRadius: 99,
-                                        color: 'secondary.contrastText',
-                                        display: 'inline-flex',
-                                        fontWeight: 600,
-                                        height: 22,
-                                        justifyContent: 'center',
-                                        minWidth: 22,
-                                        px: 0.75,
-                                    }}>
-                                    {activeCount}
-                                </Box>
-                            </Tooltip>
+                            <PillBadge label={activeCount} title={activeLabel} />
                         ) : undefined} />
                 );
             }) }

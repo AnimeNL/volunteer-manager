@@ -7,7 +7,10 @@ import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import { styled } from '@mui/material/styles';
 
+import { floatingPillShadow } from '../ScheduleTheme';
 import { usePullToRefresh } from './usePullToRefresh';
+
+import { kPillBorderRadius } from '../Constants';
 
 /**
  * Material Design 3 pull-to-refresh gesture handler and floating circular progress indicator for
@@ -62,8 +65,7 @@ const IndicatorHost = styled(Box, {
     return {
         alignItems: 'center',
         backgroundColor: palette.m3.floatingNav,
-        borderRadius: 9999,
-        boxShadow: '0 4px 14px rgba(24, 29, 21, 0.18), inset 0 0 0 1px rgba(0, 0, 0, 0.05)',
+        borderRadius: kPillBorderRadius,
         display: 'flex',
         height: 40,
         justifyContent: 'center',
@@ -77,10 +79,7 @@ const IndicatorHost = styled(Box, {
         width: 40,
         willChange: 'transform, opacity',
         zIndex: theme.zIndex.appBar,
-
-        ...theme.applyStyles('dark', {
-            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.48), inset 0 0 0 1px rgba(255, 255, 255, 0.08)',
-        }),
+        ...floatingPillShadow(theme, 'indicator'),
 
         [theme.breakpoints.up('md')]: {
             display: 'none',

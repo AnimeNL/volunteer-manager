@@ -13,7 +13,9 @@ import SearchIcon from '@mui/icons-material/Search';
 import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 
-import { kHeaderBarHeightPx } from '../Constants';
+import { mixColor } from '../ScheduleTheme';
+
+import { kHeaderBarHeightPx, kPillBorderRadius } from '../Constants';
 
 /**
  * Props accepted by the <ApplicationBar> component.
@@ -101,8 +103,8 @@ const SearchDock = styled(Box)(({ theme }) => {
     return {
         alignItems: 'center',
         backgroundColor: palette.m3.dock,
-        borderRadius: 9999,
-        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+        borderRadius: kPillBorderRadius,
+        boxShadow: `0 1px 2px ${mixColor(palette.common.black, 5)}`,
         color: palette.text.primary,
         cursor: 'text',
         display: 'flex',
@@ -118,18 +120,15 @@ const SearchDock = styled(Box)(({ theme }) => {
         }),
 
         ...theme.applyStyles('dark', {
-            boxShadow:
-                `0 0 0 1px color-mix(in srgb, ${palette.divider} 65%, transparent)`,
+            boxShadow: `0 0 0 1px ${mixColor(palette.divider, 65)}`,
         }),
 
         '&:hover': {
-            backgroundColor:
-                `color-mix(in srgb, ${palette.m3.dock} 95%, ${palette.text.primary})`,
-            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.08)',
+            backgroundColor: mixColor(palette.m3.dock, 95, palette.text.primary),
+            boxShadow: `0 2px 6px ${mixColor(palette.common.black, 8)}`,
 
             ...theme.applyStyles('dark', {
-                backgroundColor:
-                    `color-mix(in srgb, ${palette.m3.dock} 92%, ${palette.text.primary})`,
+                backgroundColor: mixColor(palette.m3.dock, 92, palette.text.primary),
                 boxShadow: `0 0 0 1px ${palette.divider}`,
             }),
         },

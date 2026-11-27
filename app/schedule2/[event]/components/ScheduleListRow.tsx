@@ -17,6 +17,7 @@ import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined
 import { styled } from '@mui/material/styles';
 
 import { RestrictedBadge } from './RestrictedBadge';
+import { cardHoverSurface, mixColor, mutedRowSurface } from '../ScheduleTheme';
 import { useActivityRippleKey } from './InteractiveSurface';
 import { useScheduleListVariant } from './ScheduleList';
 
@@ -166,14 +167,8 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
                     </Stack> }
             </Stack>
             { clampedProgress !== undefined &&
-                <LinearProgress
+                <RowProgress
                     color={progressColor}
-                    sx={{
-                        bgcolor:
-                            'color-mix(in srgb, var(--mui-palette-text-primary) 10%, transparent)',
-                        height: 2,
-                        mt: 0.75,
-                    }}
                     value={clampedProgress}
                     variant="determinate" /> }
         </Box>
@@ -238,10 +233,10 @@ function debossedHatch(color: string): string {
 function rowSurfaceStyles(theme: Theme) {
     const palette = (theme.vars || theme).palette;
 
-    const lightStripe = `color-mix(in srgb, ${palette.text.primary} 3.2%, transparent)`;
-    const darkStripe = `color-mix(in srgb, ${palette.common.black} 7.5%, transparent)`;
-    const lightPastStripe = `color-mix(in srgb, ${palette.text.primary} 2%, transparent)`;
-    const darkPastStripe = `color-mix(in srgb, ${palette.common.black} 4.5%, transparent)`;
+    const lightStripe = mixColor(palette.text.primary, 3.2);
+    const darkStripe = mixColor(palette.common.black, 7.5);
+    const lightPastStripe = mixColor(palette.text.primary, 2);
+    const darkPastStripe = mixColor(palette.common.black, 4.5);
 
     return {
         display: 'flex',
@@ -259,16 +254,13 @@ function rowSurfaceStyles(theme: Theme) {
             {
                 props: { rowState: 'active' as ScheduleListRowState },
                 style: {
-                    backgroundColor:
-                        `color-mix(in srgb, ${palette.secondary.main} 65%, ` +
-                        `${palette.background.paper})`,
+                    backgroundColor: mixColor(palette.secondary.main, 65, palette.background.paper),
                 },
             },
             {
                 props: { rowState: 'past' as ScheduleListRowState },
                 style: {
-                    backgroundColor:
-                        `color-mix(in srgb, ${palette.text.primary} 4.5%, ${palette.m3.sheet})`,
+                    backgroundColor: mutedRowSurface(theme),
                 },
             },
             {
@@ -316,9 +308,7 @@ const RowButton = styled(ButtonBase, {
                 props: { rowState: 'default', segmented: true },
                 style: {
                     '&:hover': {
-                        backgroundColor:
-                            `color-mix(in srgb, ${palette.background.paper} 94%, ` +
-                            `${palette.text.primary})`,
+                        backgroundColor: cardHoverSurface(theme),
                     },
                 },
             },
@@ -327,8 +317,7 @@ const RowButton = styled(ButtonBase, {
                 style: {
                     '&:hover': {
                         backgroundColor:
-                            `color-mix(in srgb, ${palette.secondary.main} 80%, ` +
-                            `${palette.background.paper})`,
+                            mixColor(palette.secondary.main, 80, palette.background.paper),
                     },
                 },
             },
@@ -336,14 +325,22 @@ const RowButton = styled(ButtonBase, {
                 props: { rowState: 'past' },
                 style: {
                     '&:hover': {
-                        backgroundColor:
-                            `color-mix(in srgb, ${palette.text.primary} 8%, ${palette.m3.sheet})`,
+                        backgroundColor: mixColor(palette.text.primary, 8, palette.m3.sheet),
                     },
                 },
             },
         ],
     };
 }) as ExtendButtonBase<ButtonBaseTypeMap<RowSurfaceProps>>;
+
+/**
+ * Hairline progress track displayed beneath active or bounded schedule rows.
+ */
+const RowProgress = styled(LinearProgress)(({ theme }) => ({
+    backgroundColor: mixColor((theme.vars || theme).palette.text.primary, 10),
+    height: 2,
+    marginTop: theme.spacing(0.75),
+}));
 
 /**
  * Non-interactive row container matching `<RowButton>` geometry and state surface.

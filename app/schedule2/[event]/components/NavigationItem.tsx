@@ -20,6 +20,9 @@ import { styled } from '@mui/material/styles';
 
 import type { ExpandableNavigationSectionId } from './NavigationActions';
 import { getSchedulePath, isNavigationPathActive } from '../lib/navigationTypes';
+import { mixColor } from '../ScheduleTheme';
+
+import { kPillBorderRadius } from '../Constants';
 
 import { updateNavigationSectionExpanded } from './NavigationActions';
 
@@ -217,7 +220,7 @@ const NavigationPill = styled(ListItemButton, {
     const palette = (theme.vars || theme).palette;
 
     return {
-        borderRadius: 9999,
+        borderRadius: kPillBorderRadius,
         color: palette.text.primary,
         marginBottom: theme.spacing(0.25),
         minHeight: 38,
@@ -235,9 +238,7 @@ const NavigationPill = styled(ListItemButton, {
             backgroundColor: palette.secondary.main,
             color: palette.secondary.contrastText,
             '&:hover': {
-                backgroundColor:
-                    `color-mix(in srgb, ${palette.secondary.main} 88%, ` +
-                    `${palette.secondary.contrastText})`,
+                backgroundColor: mixColor(palette.secondary.main, 88, palette.secondary.contrastText),
             },
             [`& .${listItemIconClasses.root}`]: {
                 color: 'inherit',
