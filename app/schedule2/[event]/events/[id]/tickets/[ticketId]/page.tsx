@@ -1,7 +1,6 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { cache } from 'react';
 import { forbidden, notFound } from 'next/navigation';
 
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
@@ -15,29 +14,8 @@ import { ScheduleList, ScheduleListRow } from '../../../../components/ScheduleLi
 import { ScheduleListSkeleton } from '../../../../components/ScheduleListSkeleton';
 import { SectionHeader } from '../../../../components/SectionHeader';
 import { getEventTicketHolders } from '../../../../lib/data/ticketData';
+import { getProgramEventSummary } from '../../../../lib/data/programData';
 import { requireScheduleAccess } from '../../../../lib/getScheduleAccess';
-import db, { tActivities } from '@lib/database';
-
-import { kActivityType } from '@lib/database/Types';
-
-/**
- * Request-cached loader fetching the program event title for `activityParam` in `festivalId`.
- */
-const loadEventSummary = cache(async (festivalId: number | undefined, activityParam: string) => {
-    const activityId = Number(activityParam);
-    if (!festivalId || !Number.isInteger(activityId))
-        return undefined;
-
-    const title = await db.selectFrom(tActivities)
-        .where(tActivities.activityFestivalId.equals(festivalId))
-            .and(tActivities.activityType.equals(kActivityType.Program))
-            .and(tActivities.activityDeleted.isNull())
-            .and(tActivities.activityId.equals(activityId))
-        .selectOneColumn(tActivities.activityTitle)
-        .executeSelectNoneOrOne();
-
-    return title ? { activityId, title } : undefined;
-});
 
 /**
  * Resolves access, permission, event summary, and ticket holders for the current route params.
@@ -54,7 +32,7 @@ async function resolveEventTicketHolders(
     if (!Number.isInteger(eventTicketId))
         return undefined;
 
-    const activity = await loadEventSummary(event.integrations?.anPlanFestivalId, id);
+    const activity = await getProgramEventSummary(event.integrations?.anPlanFestivalId, id);
     if (!activity)
         return undefined;
 

@@ -1,7 +1,6 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { cache } from 'react';
 import { notFound } from 'next/navigation';
 
 import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
@@ -15,59 +14,10 @@ import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
 import { SectionHeader } from '../../components/SectionHeader';
 import { formatDate } from '@lib/Temporal';
 import { getLogicalDate, getTimeslotTiming } from '../../lib/programTime';
+import { getProgramAreaDetail } from '../../lib/data/programData';
 import { getSchedulePath } from '../../lib/navigationTypes';
 import { readSetting } from '@lib/Settings';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
-import db, { tActivities, tActivitiesAreas, tActivitiesLocations,
-    tActivitiesTimeslots } from '@lib/database';
-
-import { kActivityType } from '@lib/database/Types';
-
-/**
- * Request-cached loader fetching all scheduled program timeslots for `areaParam` in `festivalId`.
- */
-const loadAreaData = cache(async (festivalId: number | undefined, areaParam: string) => {
-    const areaId = Number(areaParam);
-    if (!festivalId || !Number.isInteger(areaId))
-        return undefined;
-
-    const rows = await db.selectFrom(tActivities)
-        .innerJoin(tActivitiesTimeslots)
-            .on(tActivitiesTimeslots.activityId.equals(tActivities.activityId))
-                .and(tActivitiesTimeslots.timeslotDeleted.isNull())
-        .innerJoin(tActivitiesLocations)
-            .on(tActivitiesLocations.locationId.equals(tActivitiesTimeslots.timeslotLocationId))
-                .and(tActivitiesLocations.locationDeleted.isNull())
-        .innerJoin(tActivitiesAreas)
-            .on(tActivitiesAreas.areaId.equals(tActivitiesLocations.locationAreaId))
-                .and(tActivitiesAreas.areaDeleted.isNull())
-        .where(tActivities.activityFestivalId.equals(festivalId))
-            .and(tActivities.activityType.equals(kActivityType.Program))
-            .and(tActivities.activityDeleted.isNull())
-            .and(tActivitiesAreas.areaId.equals(areaId))
-        .select({
-            activityId: tActivities.activityId,
-            areaName: tActivitiesAreas.areaDisplayName.valueWhenNull(tActivitiesAreas.areaName),
-            end: tActivitiesTimeslots.timeslotEndTime,
-            hidden: tActivities.activityVisible.equals(/* false= */ 0),
-            locationId: tActivitiesLocations.locationId,
-            locationName: tActivitiesLocations.locationDisplayName.valueWhenNull(
-                tActivitiesLocations.locationName),
-            start: tActivitiesTimeslots.timeslotStartTime,
-            timeslotId: tActivitiesTimeslots.timeslotId,
-            title: tActivities.activityTitle,
-        })
-        .executeSelectMany();
-
-    if (!rows.length)
-        return undefined;
-
-    return {
-        locationCount: new Set(rows.map(row => row.locationId)).size,
-        name: rows[0].areaName,
-        rows,
-    };
-});
 
 /**
  * Streams the resolved area title into the page `<Header>`.
@@ -75,7 +25,8 @@ const loadAreaData = cache(async (festivalId: number | undefined, areaParam: str
 async function AreaTitle(props: { params: Promise<{ area: string; event: string }> }) {
     const { area, event: eventSlug } = await props.params;
     const { event } = await requireScheduleAccess(eventSlug);
-    const data = await loadAreaData(event.integrations?.anPlanFestivalId, area);
+    const data = await getProgramAreaDetail(
+        event.integrations?.anPlanFestivalId, area, event.timeZone);
 
     return data?.name ?? null;
 }
@@ -86,7 +37,8 @@ async function AreaTitle(props: { params: Promise<{ area: string; event: string 
 async function AreaDescription(props: { params: Promise<{ area: string; event: string }> }) {
     const { area, event: eventSlug } = await props.params;
     const { event } = await requireScheduleAccess(eventSlug);
-    const data = await loadAreaData(event.integrations?.anPlanFestivalId, area);
+    const data = await getProgramAreaDetail(
+        event.integrations?.anPlanFestivalId, area, event.timeZone);
     if (!data)
         return null;
 
@@ -102,7 +54,7 @@ async function AreaLocationsContent(props: { params: Promise<{ area: string; eve
     const { currentTime, event } = await requireScheduleAccess(eventSlug);
 
     const [ data, listLimit ] = await Promise.all([
-        loadAreaData(event.integrations?.anPlanFestivalId, area),
+        getProgramAreaDetail(event.integrations?.anPlanFestivalId, area, event.timeZone),
         readSetting('schedule-activity-list-limit'),
     ]);
 
@@ -168,16 +120,14 @@ async function AreaLocationsContent(props: { params: Promise<{ area: string; eve
                             { isEmpty &&
                                 <ScheduleListRow title="No upcoming events" /> }
                             { location.events.map(row => {
-                                const start = row.start.withTimeZone(event.timeZone);
-                                const end = row.end.withTimeZone(event.timeZone);
                                 const timing = getTimeslotTiming(
                                     row.start.epochMilliseconds, row.end.epochMilliseconds, nowMs);
 
-                                const sameDay = today.equals(getLogicalDate(start));
+                                const sameDay = today.equals(getLogicalDate(row.start));
                                 const trailing = timing.isActive
-                                    ? `until ${formatDate(end, 'HH:mm')}`
-                                    : `${formatDate(start, sameDay ? 'HH:mm' : 'ddd, HH:mm')}` +
-                                      `–${formatDate(end, 'HH:mm')}`;
+                                    ? `until ${formatDate(row.end, 'HH:mm')}`
+                                    : `${formatDate(row.start, sameDay ? 'HH:mm' : 'ddd, HH:mm')}` +
+                                      `–${formatDate(row.end, 'HH:mm')}`;
 
                                 return (
                                     <ScheduleListRow

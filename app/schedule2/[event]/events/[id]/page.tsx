@@ -1,7 +1,6 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { cache } from 'react';
 import { notFound } from 'next/navigation';
 
 import Box from '@mui/material/Box';
@@ -18,63 +17,11 @@ import { SectionHeader } from '../../components/SectionHeader';
 import { compareTimeslots, formatEuroPrice, getTimeslotTiming } from '../../lib/programTime';
 import { formatDate } from '@lib/Temporal';
 import { getEventTicketSales } from '../../lib/data/ticketData';
+import { getProgramEventDetail } from '../../lib/data/programData';
 import { getSchedulePath } from '../../lib/navigationTypes';
 import { readCachedSetting } from '@lib/Settings';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
-import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots,
-    tUsersEventsFavourites } from '@lib/database';
-
-import { kActivityType } from '@lib/database/Types';
-
-/**
- * Request-cached loader fetching program event details and scheduled timeslots for `activityParam`
- * in `festivalId`.
- */
-const loadEventData = cache(async (festivalId: number | undefined, activityParam: string) => {
-    const activityId = Number(activityParam);
-    if (!festivalId || !Number.isInteger(activityId))
-        return undefined;
-
-    const rows = await db.selectFrom(tActivities)
-        .innerJoin(tActivitiesTimeslots)
-            .on(tActivitiesTimeslots.activityId.equals(tActivities.activityId))
-                .and(tActivitiesTimeslots.timeslotDeleted.isNull())
-        .innerJoin(tActivitiesLocations)
-            .on(tActivitiesLocations.locationId.equals(tActivitiesTimeslots.timeslotLocationId))
-                .and(tActivitiesLocations.locationDeleted.isNull())
-        .innerJoin(tActivitiesAreas)
-            .on(tActivitiesAreas.areaId.equals(tActivitiesLocations.locationAreaId))
-                .and(tActivitiesAreas.areaDeleted.isNull())
-        .where(tActivities.activityFestivalId.equals(festivalId))
-            .and(tActivities.activityType.equals(kActivityType.Program))
-            .and(tActivities.activityDeleted.isNull())
-            .and(tActivities.activityId.equals(activityId))
-        .select({
-            end: tActivitiesTimeslots.timeslotEndTime,
-            locationId: tActivitiesLocations.locationId,
-            locationName: tActivitiesLocations.locationDisplayName.valueWhenNull(
-                tActivitiesLocations.locationName),
-            start: tActivitiesTimeslots.timeslotStartTime,
-            timeslotId: tActivitiesTimeslots.timeslotId,
-            title: tActivities.activityTitle,
-        })
-        .executeSelectMany();
-
-    if (!rows.length)
-        return undefined;
-
-    const locationNames = new Set(rows.map(row => row.locationName));
-    const location = locationNames.size === 1
-        ? rows[0].locationName
-        : 'Multiple locations…';
-
-    return {
-        activityId,
-        location,
-        timeslots: rows,
-        title: rows[0].title,
-    };
-});
+import db, { tUsersEventsFavourites } from '@lib/database';
 
 /**
  * Streams the resolved program event title into the page `<Header>`.
@@ -82,7 +29,8 @@ const loadEventData = cache(async (festivalId: number | undefined, activityParam
 async function EventTitle(props: { params: Promise<{ event: string; id: string }> }) {
     const { event: eventSlug, id } = await props.params;
     const { event } = await requireScheduleAccess(eventSlug);
-    const data = await loadEventData(event.integrations?.anPlanFestivalId, id);
+    const data = await getProgramEventDetail(
+        event.integrations?.anPlanFestivalId, id, event.timeZone);
 
     return data?.title ?? null;
 }
@@ -93,7 +41,8 @@ async function EventTitle(props: { params: Promise<{ event: string; id: string }
 async function EventDescription(props: { params: Promise<{ event: string; id: string }> }) {
     const { event: eventSlug, id } = await props.params;
     const { event } = await requireScheduleAccess(eventSlug);
-    const data = await loadEventData(event.integrations?.anPlanFestivalId, id);
+    const data = await getProgramEventDetail(
+        event.integrations?.anPlanFestivalId, id, event.timeZone);
 
     return data?.location ?? null;
 }
@@ -104,7 +53,8 @@ async function EventDescription(props: { params: Promise<{ event: string; id: st
 async function EventFavouriteAction(props: { params: Promise<{ event: string; id: string }> }) {
     const { event: eventSlug, id } = await props.params;
     const { event, user } = await requireScheduleAccess(eventSlug);
-    const data = await loadEventData(event.integrations?.anPlanFestivalId, id);
+    const data = await getProgramEventDetail(
+        event.integrations?.anPlanFestivalId, id, event.timeZone);
     if (!data)
         return null;
 
@@ -132,7 +82,7 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
     const { access, currentTime, event } = await requireScheduleAccess(eventSlug);
 
     const [ data, showSales ] = await Promise.all([
-        loadEventData(event.integrations?.anPlanFestivalId, id),
+        getProgramEventDetail(event.integrations?.anPlanFestivalId, id, event.timeZone),
         readCachedSetting('schedule-show-sales-information', /* fallback= */ false),
     ]);
 
@@ -147,8 +97,6 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
     const nowMs = currentTime.epochMilliseconds;
     const timeslots = data.timeslots
         .map(row => {
-            const start = row.start.withTimeZone(event.timeZone);
-            const end = row.end.withTimeZone(event.timeZone);
             const startMs = row.start.epochMilliseconds;
             const endMs = row.end.epochMilliseconds;
             const { isPast, progress, state } = getTimeslotTiming(startMs, endMs, nowMs);
@@ -161,7 +109,7 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
                 progress,
                 startMs,
                 state,
-                time: `${formatDate(start, 'ddd, HH:mm')}–${formatDate(end, 'HH:mm')}`,
+                time: `${formatDate(row.start, 'ddd, HH:mm')}–${formatDate(row.end, 'HH:mm')}`,
                 timeslotId: row.timeslotId,
             };
         })

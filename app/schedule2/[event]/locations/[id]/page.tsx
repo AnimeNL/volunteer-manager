@@ -1,7 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { Fragment, cache } from 'react';
+import { Fragment } from 'react';
 import { notFound } from 'next/navigation';
 
 import Divider from '@mui/material/Divider';
@@ -16,58 +16,9 @@ import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
 import { SectionHeader } from '../../components/SectionHeader';
 import { compareTimeslots, getLogicalDate, getTimeslotTiming } from '../../lib/programTime';
 import { formatDate } from '@lib/Temporal';
+import { getProgramLocationDetail } from '../../lib/data/programData';
 import { getSchedulePath } from '../../lib/navigationTypes';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
-import db, { tActivities, tActivitiesAreas, tActivitiesLocations,
-    tActivitiesTimeslots } from '@lib/database';
-
-import { kActivityType } from '@lib/database/Types';
-
-/**
- * Request-cached loader fetching all scheduled program timeslots for `locationParam` in
- * `festivalId`.
- */
-const loadLocationData = cache(async (festivalId: number | undefined, locationParam: string) => {
-    const locationId = Number(locationParam);
-    if (!festivalId || !Number.isInteger(locationId))
-        return undefined;
-
-    const rows = await db.selectFrom(tActivities)
-        .innerJoin(tActivitiesTimeslots)
-            .on(tActivitiesTimeslots.activityId.equals(tActivities.activityId))
-                .and(tActivitiesTimeslots.timeslotDeleted.isNull())
-        .innerJoin(tActivitiesLocations)
-            .on(tActivitiesLocations.locationId.equals(tActivitiesTimeslots.timeslotLocationId))
-                .and(tActivitiesLocations.locationDeleted.isNull())
-        .innerJoin(tActivitiesAreas)
-            .on(tActivitiesAreas.areaId.equals(tActivitiesLocations.locationAreaId))
-                .and(tActivitiesAreas.areaDeleted.isNull())
-        .where(tActivities.activityFestivalId.equals(festivalId))
-            .and(tActivities.activityType.equals(kActivityType.Program))
-            .and(tActivities.activityDeleted.isNull())
-            .and(tActivitiesLocations.locationId.equals(locationId))
-        .select({
-            activityId: tActivities.activityId,
-            areaName: tActivitiesAreas.areaDisplayName.valueWhenNull(tActivitiesAreas.areaName),
-            end: tActivitiesTimeslots.timeslotEndTime,
-            hidden: tActivities.activityVisible.equals(/* false= */ 0),
-            locationName: tActivitiesLocations.locationDisplayName.valueWhenNull(
-                tActivitiesLocations.locationName),
-            start: tActivitiesTimeslots.timeslotStartTime,
-            timeslotId: tActivitiesTimeslots.timeslotId,
-            title: tActivities.activityTitle,
-        })
-        .executeSelectMany();
-
-    if (!rows.length)
-        return undefined;
-
-    return {
-        areaName: rows[0].areaName,
-        name: rows[0].locationName,
-        rows,
-    };
-});
 
 /**
  * Streams the resolved location title into the page `<Header>`.
@@ -75,7 +26,8 @@ const loadLocationData = cache(async (festivalId: number | undefined, locationPa
 async function LocationTitle(props: { params: Promise<{ event: string; id: string }> }) {
     const { event: eventSlug, id } = await props.params;
     const { event } = await requireScheduleAccess(eventSlug);
-    const data = await loadLocationData(event.integrations?.anPlanFestivalId, id);
+    const data = await getProgramLocationDetail(
+        event.integrations?.anPlanFestivalId, id, event.timeZone);
 
     return data?.name ?? null;
 }
@@ -86,7 +38,8 @@ async function LocationTitle(props: { params: Promise<{ event: string; id: strin
 async function LocationDescription(props: { params: Promise<{ event: string; id: string }> }) {
     const { event: eventSlug, id } = await props.params;
     const { event } = await requireScheduleAccess(eventSlug);
-    const data = await loadLocationData(event.integrations?.anPlanFestivalId, id);
+    const data = await getProgramLocationDetail(
+        event.integrations?.anPlanFestivalId, id, event.timeZone);
 
     return data?.areaName ?? null;
 }
@@ -97,7 +50,8 @@ async function LocationDescription(props: { params: Promise<{ event: string; id:
 async function LocationScheduleContent(props: { params: Promise<{ event: string; id: string }> }) {
     const { event: eventSlug, id } = await props.params;
     const { currentTime, event } = await requireScheduleAccess(eventSlug);
-    const data = await loadLocationData(event.integrations?.anPlanFestivalId, id);
+    const data = await getProgramLocationDetail(
+        event.integrations?.anPlanFestivalId, id, event.timeZone);
     if (!data)
         notFound();
 
@@ -120,13 +74,11 @@ async function LocationScheduleContent(props: { params: Promise<{ event: string;
     }>();
 
     for (const row of data.rows) {
-        const start = row.start.withTimeZone(event.timeZone);
-        const end = row.end.withTimeZone(event.timeZone);
         const startMs = row.start.epochMilliseconds;
         const endMs = row.end.epochMilliseconds;
         const { isPast, progress, state } = getTimeslotTiming(startMs, endMs, nowMs);
 
-        const logicalDate = getLogicalDate(start);
+        const logicalDate = getLogicalDate(row.start);
         const dateKey = logicalDate.toString();
 
         let day = dayMap.get(dateKey);
@@ -143,7 +95,7 @@ async function LocationScheduleContent(props: { params: Promise<{ event: string;
             progress,
             startMs,
             state,
-            time: `${formatDate(start, 'HH:mm')}–${formatDate(end, 'HH:mm')}`,
+            time: `${formatDate(row.start, 'HH:mm')}–${formatDate(row.end, 'HH:mm')}`,
             timeslotId: row.timeslotId,
             title: row.title,
         });

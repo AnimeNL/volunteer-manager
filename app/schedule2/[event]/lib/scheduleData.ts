@@ -5,14 +5,12 @@ import 'server-only';
 import { cache } from 'react';
 import { cacheLife, cacheTag } from 'next/cache';
 
-import type { NavigationArea, NavigationData } from './navigationTypes';
+import type { NavigationData } from './navigationTypes';
+import { getProgramAreas } from './data/programData';
 import { getScheduleAccess } from './getScheduleAccess';
 import { hasKnowledgeBaseAccess } from './data/knowledgeData';
 import { readUserSettings } from '@lib/UserSettings';
-import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots,
-    tEventsTeams, tTeams } from '@lib/database';
-
-import { kActivityType } from '@lib/database/Types';
+import db, { tEventsTeams, tTeams } from '@lib/database';
 
 /**
  * Serializable Duty Book-enabled team record cached per event.
@@ -90,36 +88,4 @@ async function getEventDutyBookTeams(eventId: number): Promise<DutyBookTeamRecor
         })
         .orderBy(tTeams.teamName, 'asc')
         .executeSelectMany();
-}
-
-/**
- * Loads all program areas for `festivalId` that have at least one scheduled timeslot, sorted
- * alphabetically by display name.
- */
-async function getProgramAreas(festivalId: number): Promise<NavigationArea[]> {
-    'use cache';
-    cacheLife('minutes');
-    cacheTag('schedule-program', `schedule-program:${festivalId}`);
-
-    const rows = await db.selectFrom(tActivities)
-        .innerJoin(tActivitiesTimeslots)
-            .on(tActivitiesTimeslots.activityId.equals(tActivities.activityId))
-                .and(tActivitiesTimeslots.timeslotDeleted.isNull())
-        .innerJoin(tActivitiesLocations)
-            .on(tActivitiesLocations.locationId.equals(tActivitiesTimeslots.timeslotLocationId))
-                .and(tActivitiesLocations.locationDeleted.isNull())
-        .innerJoin(tActivitiesAreas)
-            .on(tActivitiesAreas.areaId.equals(tActivitiesLocations.locationAreaId))
-                .and(tActivitiesAreas.areaDeleted.isNull())
-        .where(tActivities.activityFestivalId.equals(festivalId))
-            .and(tActivities.activityType.equals(kActivityType.Program))
-            .and(tActivities.activityDeleted.isNull())
-        .select({
-            id: tActivitiesAreas.areaId,
-            name: tActivitiesAreas.areaDisplayName.valueWhenNull(tActivitiesAreas.areaName),
-        })
-        .groupBy(tActivitiesAreas.areaId)
-        .executeSelectMany();
-
-    return rows.sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
 }
