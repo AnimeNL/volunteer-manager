@@ -10,13 +10,13 @@ import { useParams, usePathname } from 'next/navigation';
 import type { ButtonBaseTypeMap, ExtendButtonBase } from '@mui/material/ButtonBase';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AppsIcon from '@mui/icons-material/Apps';
-import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
 import HomeIcon from '@mui/icons-material/Home';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import Paper from '@mui/material/Paper';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
@@ -118,7 +118,16 @@ export function MobileFloatingPill(props: MobileFloatingPillProps) {
     ];
 
     return (
-        <FloatingNavHost>
+        <Stack direction="row" sx={{
+            bottom: 'calc(12px + env(safe-area-inset-bottom, 0px))',
+            justifyContent: 'center',
+            left: 0,
+            pointerEvents: 'none',
+            position: 'fixed',
+            right: 0,
+            viewTransitionName: 'schedule-mobile-nav',
+            zIndex: 'appBar',
+        }}>
             <FloatingPill component="nav" aria-label="Primary navigation" elevation={0}>
                 { tabs.map(tab => {
                     const active = activeTab === tab.id;
@@ -158,25 +167,9 @@ export function MobileFloatingPill(props: MobileFloatingPillProps) {
                     );
                 }) }
             </FloatingPill>
-        </FloatingNavHost>
+        </Stack>
     );
 }
-
-/**
- * Fixed bottom wrapper centering the M3 Expressive floating navigation pill across view
- * transitions.
- */
-const FloatingNavHost = styled(Box)(({ theme }) => ({
-    bottom: `calc(${theme.spacing(1.5)} + env(safe-area-inset-bottom, 0px))`,
-    display: 'flex',
-    justifyContent: 'center',
-    left: 0,
-    pointerEvents: 'none',
-    position: 'fixed',
-    right: 0,
-    viewTransitionName: 'schedule-mobile-nav',
-    zIndex: theme.zIndex.appBar,
-}));
 
 /**
  * Elevated M3 Expressive floating navigation pill container.

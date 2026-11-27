@@ -14,8 +14,9 @@ import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import List from '@mui/material/List';
 
 import type { NavigationData } from '../lib/navigationTypes';
-import { ExpandableNavigationSection, NavigationLink, SecondaryNavigationItems,
-    createNavigationSubItem } from './NavigationList';
+import { ExpandableNavigationSection, NavigationLink,
+    createNavigationSubItem } from './NavigationItem';
+import { SecondaryNavigationItems } from './NavigationList';
 import { getRelativeNavigationPath, getSchedulePath,
     isNavigationPathActive } from '../lib/navigationTypes';
 
