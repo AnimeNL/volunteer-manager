@@ -1,20 +1,197 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
+import { cache } from 'react';
+import { notFound } from 'next/navigation';
 
-import { PlaceholderPage } from '../../components/PlaceholderPage';
+import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
+import Skeleton from '@mui/material/Skeleton';
+import Stack from '@mui/material/Stack';
+
+import { Header } from '../../components/Header';
+import { Page, SuspenseReveal } from '../../components/Page';
+import { ScheduleList, ScheduleListRow } from '../../components/ScheduleList';
+import { SectionHeader } from '../../components/SectionHeader';
+import { formatDate } from '@lib/Temporal';
+import { getSchedulePath } from '../../lib/navigationTypes';
+import { requireScheduleAccess } from '../../lib/getScheduleAccess';
+import db, { tActivities, tActivitiesAreas, tActivitiesLocations,
+    tActivitiesTimeslots } from '@lib/database';
+
+import { kActivityType } from '@lib/database/Types';
 
 /**
- * Placeholder program event detail page for the schedule portal.
+ * Request-cached loader fetching program event details and scheduled timeslots for `activityParam`
+ * in `festivalId`.
+ */
+const loadEventData = cache(async (festivalId: number | undefined, activityParam: string) => {
+    const activityId = Number(activityParam);
+    if (!festivalId || !Number.isInteger(activityId))
+        return undefined;
+
+    const rows = await db.selectFrom(tActivities)
+        .innerJoin(tActivitiesTimeslots)
+            .on(tActivitiesTimeslots.activityId.equals(tActivities.activityId))
+                .and(tActivitiesTimeslots.timeslotDeleted.isNull())
+        .innerJoin(tActivitiesLocations)
+            .on(tActivitiesLocations.locationId.equals(tActivitiesTimeslots.timeslotLocationId))
+                .and(tActivitiesLocations.locationDeleted.isNull())
+        .innerJoin(tActivitiesAreas)
+            .on(tActivitiesAreas.areaId.equals(tActivitiesLocations.locationAreaId))
+                .and(tActivitiesAreas.areaDeleted.isNull())
+        .where(tActivities.activityFestivalId.equals(festivalId))
+            .and(tActivities.activityType.equals(kActivityType.Program))
+            .and(tActivities.activityDeleted.isNull())
+            .and(tActivities.activityId.equals(activityId))
+        .select({
+            end: tActivitiesTimeslots.timeslotEndTime,
+            locationId: tActivitiesLocations.locationId,
+            locationName: tActivitiesLocations.locationDisplayName.valueWhenNull(
+                tActivitiesLocations.locationName),
+            start: tActivitiesTimeslots.timeslotStartTime,
+            timeslotId: tActivitiesTimeslots.timeslotId,
+            title: tActivities.activityTitle,
+        })
+        .orderBy(tActivitiesTimeslots.timeslotStartTime, 'asc')
+        .orderBy(tActivitiesTimeslots.timeslotEndTime, 'asc')
+        .executeSelectMany();
+
+    if (!rows.length)
+        return undefined;
+
+    const locationNames = new Set(rows.map(row => row.locationName));
+    const location = locationNames.size === 1
+        ? rows[0].locationName
+        : 'Multiple locations…';
+
+    return {
+        location,
+        timeslots: rows,
+        title: rows[0].title,
+    };
+});
+
+/**
+ * Streams the resolved program event title into the page `<Header>`.
+ */
+async function EventTitle(props: { params: Promise<{ event: string; id: string }> }) {
+    const { event: eventSlug, id } = await props.params;
+    const { event } = await requireScheduleAccess(eventSlug);
+    const data = await loadEventData(event.integrations?.anPlanFestivalId, id);
+
+    return data?.title ?? null;
+}
+
+/**
+ * Streams the resolved event location summary into the page `<Header>` description.
+ */
+async function EventDescription(props: { params: Promise<{ event: string; id: string }> }) {
+    const { event: eventSlug, id } = await props.params;
+    const { event } = await requireScheduleAccess(eventSlug);
+    const data = await loadEventData(event.integrations?.anPlanFestivalId, id);
+
+    return data?.location ?? null;
+}
+
+/**
+ * Authenticates the request behind `<Suspense>` and renders scheduled timeslots for the event.
+ */
+async function EventContent(props: { params: Promise<{ event: string; id: string }> }) {
+    const { event: eventSlug, id } = await props.params;
+    const { currentTime, event } = await requireScheduleAccess(eventSlug);
+    const data = await loadEventData(event.integrations?.anPlanFestivalId, id);
+    if (!data)
+        notFound();
+
+    const nowMs = currentTime.epochMilliseconds;
+    const timeslots = data.timeslots.map(row => {
+        const start = row.start.withTimeZone(event.timeZone);
+        const end = row.end.withTimeZone(event.timeZone);
+        const startMs = row.start.epochMilliseconds;
+        const endMs = row.end.epochMilliseconds;
+        const isPast = endMs <= nowMs;
+
+        return {
+            endMs,
+            isActive: !isPast && startMs <= nowMs,
+            isPast,
+            locationId: row.locationId,
+            locationName: row.locationName,
+            startMs,
+            time: `${formatDate(start, 'ddd, HH:mm')}–${formatDate(end, 'HH:mm')}`,
+            timeslotId: row.timeslotId,
+        };
+    });
+
+    const allPast = timeslots.every(timeslot => timeslot.isPast);
+
+    return (
+        <Stack spacing={0.75} useFlexGap>
+            <SectionHeader muted={allPast} title="Timeslots" />
+            <ScheduleList muted={allPast}>
+                { timeslots.map(timeslot =>
+                    <ScheduleListRow
+                        key={timeslot.timeslotId}
+                        href={getSchedulePath(event.slug, `/locations/${timeslot.locationId}`)}
+                        progress={timeslot.isActive
+                            ? Math.round(((nowMs - timeslot.startMs) /
+                                (timeslot.endMs - timeslot.startMs)) * 100)
+                            : undefined}
+                        state={timeslot.isPast
+                            ? 'past'
+                            : (timeslot.isActive ? 'active' : 'default')}
+                        title={timeslot.locationName}
+                        trailing={timeslot.time}
+                        transitionTypes={[ 'nav-forward' ]} /> ) }
+            </ScheduleList>
+        </Stack>
+    );
+}
+
+/**
+ * Skeleton placeholder mirroring the timeslots section while event data is streaming.
+ */
+function EventContentSkeleton() {
+    const rows = [ 140, 120 ];
+
+    return (
+        <Stack spacing={0.75} useFlexGap>
+            <SectionHeader title={ <Skeleton variant="text" width={68} /> } />
+            <ScheduleList>
+                { rows.map((rowWidth, index) =>
+                    <ScheduleListRow
+                        key={index}
+                        title={ <Skeleton variant="text" width={rowWidth} /> }
+                        trailing={ <Skeleton variant="text" width={96} /> } /> ) }
+            </ScheduleList>
+        </Stack>
+    );
+}
+
+/**
+ * Program event detail page displaying event details and scheduled timeslots.
  */
 export default function ScheduleEventPage(props: PageProps<'/schedule2/[event]/events/[id]'>) {
     return (
-        <PlaceholderPage
-            description="Details and schedule for this program event."
-            icon={ <EventNoteOutlinedIcon /> }
-            params={props.params}
-            title="Events" />
+        <Page
+            header={
+                <Header
+                    description={
+                        <SuspenseReveal fallback={ <Skeleton variant="text" width={112} /> }>
+                            <EventDescription params={props.params} />
+                        </SuspenseReveal>
+                    }
+                    icon={ <EventNoteOutlinedIcon /> }
+                    title={
+                        <SuspenseReveal fallback={ <Skeleton variant="text" width={160} /> }>
+                            <EventTitle params={props.params} />
+                        </SuspenseReveal>
+                    } />
+            }>
+            <SuspenseReveal fallback={ <EventContentSkeleton /> }>
+                <EventContent params={props.params} />
+            </SuspenseReveal>
+        </Page>
     );
 }
 
