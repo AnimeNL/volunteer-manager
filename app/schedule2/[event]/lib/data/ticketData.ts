@@ -7,6 +7,7 @@ import { cache } from 'react';
 import type { CachedEvent } from '@lib/cache';
 import type { TicketConfiguration } from '@lib/tickets/Types';
 import { createTicketService, isTicketServiceConfigured } from '@lib/tickets';
+import { formatTicketProductName } from '../format';
 
 /**
  * Individual ticket holder entry for a program event's ticket product.
@@ -84,26 +85,6 @@ const loadTicketConfigurations = cache(
     });
 
 /**
- * Strips the redundant `activityTitle` prefix and leading `"on "` from a ticket product name.
- */
-function formatProductName(productName: string, activityTitle: string): string {
-    const trimmedProduct = productName.trim();
-    const trimmedTitle = activityTitle.trim();
-
-    let label = trimmedProduct;
-    if (trimmedTitle && label.toLowerCase().startsWith(trimmedTitle.toLowerCase())) {
-        label = label.slice(trimmedTitle.length)
-            .replace(/^[\s\-–—:]+/, '')
-            .replace(/^on\s+/i, '')
-            .trim();
-    } else {
-        label = label.replace(/^on\s+/i, '').trim();
-    }
-
-    return label || trimmedProduct;
-}
-
-/**
  * Request-cached query loading active ticket holders for a configured event ticket product.
  */
 const loadEventTicketHolders = cache(
@@ -137,7 +118,7 @@ const loadEventTicketHolders = cache(
 
         return {
             holders,
-            productName: formatProductName(config.name, activityTitle),
+            productName: formatTicketProductName(config.name, activityTitle),
         };
     });
 
@@ -175,7 +156,7 @@ export async function getEventTicketSales(
         .map(config => ({
             id: config.id,
             limit: config.amount !== undefined && config.amount > 0 ? config.amount : undefined,
-            name: formatProductName(config.name!, activityTitle),
+            name: formatTicketProductName(config.name!, activityTitle),
             price: config.price !== undefined && config.price > 0 ? config.price : undefined,
             sold: config.sold ?? 0,
         }))
