@@ -80,21 +80,14 @@ async function EventBannerImage(props: EventBannerProps) {
                  sx={{ display: 'block', height: '100%', objectFit: 'cover', width: '100%' }} />
             <Box aria-hidden="true" sx={{
                 background: isWidescreen
-                    ? 'linear-gradient(180deg, transparent 30%, ' +
-                      'rgba(0, 0, 0, 0.52) 72%, rgba(0, 0, 0, 0.82) 100%)'
+                    ? 'linear-gradient(180deg, transparent 45%, ' +
+                      'color-mix(in srgb, var(--mui-palette-m3-sheet) 55%, transparent) 76%, ' +
+                      'var(--mui-palette-m3-sheet) 100%)'
                     : 'linear-gradient(180deg, transparent 25%, ' +
                       'rgba(0, 0, 0, 0.52) 65%, rgba(0, 0, 0, 0.88) 100%)',
                 inset: 0,
                 pointerEvents: 'none',
                 position: 'absolute',
-                ...(isWidescreen && {
-                    '.dark &': {
-                        background:
-                            'linear-gradient(180deg, transparent 20%, ' +
-                            'color-mix(in srgb, var(--mui-palette-m3-sheet) 58%, transparent) ' +
-                            '66%, var(--mui-palette-m3-sheet) 100%)',
-                    },
-                }),
             }} />
             <Stack spacing={0.25} sx={{
                 bottom: 0,
@@ -106,21 +99,27 @@ async function EventBannerImage(props: EventBannerProps) {
                 right: 0,
             }}>
                 <Typography noWrap sx={{
-                    color: '#ffffff',
+                    color: isWidescreen ? 'var(--mui-palette-m3-onSurface)' : '#ffffff',
                     fontSize: isWidescreen ? '1.2rem' : '0.875rem',
                     fontWeight: isWidescreen ? 700 : 600,
                     letterSpacing: '-0.01em',
                     lineHeight: 1.25,
-                    textShadow: '0 1px 3px rgba(0, 0, 0, 0.85), 0 0 8px rgba(0, 0, 0, 0.45)',
+                    textShadow: isWidescreen
+                        ? '0 1px 6px var(--mui-palette-m3-sheet)'
+                        : '0 1px 3px rgba(0, 0, 0, 0.85), 0 0 8px rgba(0, 0, 0, 0.45)',
                 }}>
                     {title}
                 </Typography>
                 { !!subtitle &&
                     <Typography noWrap sx={{
-                        color: 'rgba(255, 255, 255, 0.82)',
+                        color: isWidescreen
+                            ? 'var(--mui-palette-m3-onSurfaceVariant)'
+                            : 'rgba(255, 255, 255, 0.82)',
                         fontSize: isWidescreen ? '0.8rem' : '0.72rem',
                         lineHeight: 1.3,
-                        textShadow: '0 1px 3px rgba(0, 0, 0, 0.75)',
+                        textShadow: isWidescreen
+                            ? '0 1px 4px var(--mui-palette-m3-sheet)'
+                            : '0 1px 3px rgba(0, 0, 0, 0.75)',
                     }}>
                         {subtitle}
                     </Typography> }
