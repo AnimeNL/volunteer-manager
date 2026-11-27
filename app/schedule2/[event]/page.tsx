@@ -8,11 +8,11 @@ import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 
-import type { OverviewTileId } from './components/OverviewTiles';
-import type { OverviewVendorEntry } from './components/OverviewVendorCard';
+import type { OverviewTileId } from './overview/OverviewTiles';
+import type { OverviewVendorEntry } from './overview/OverviewVendorCard';
 import { MobileEventBanner } from './components/EventBanner';
-import { OverviewTiles } from './components/OverviewTiles';
-import { OverviewVendorCard } from './components/OverviewVendorCard';
+import { OverviewTiles } from './overview/OverviewTiles';
+import { OverviewVendorCard } from './overview/OverviewVendorCard';
 import { Page, SuspenseReveal } from './components/Page';
 import { getActiveVendors, hasVendorSchedule } from './lib/data/vendorData';
 import { getVolunteerHotelBookings } from './lib/data/hotelData';

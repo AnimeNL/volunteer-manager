@@ -13,11 +13,10 @@ import LocalHospitalOutlinedIcon from '@mui/icons-material/LocalHospitalOutlined
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { styled } from '@mui/material/styles';
 
 import type { VendorTeam } from '@lib/database/Types';
-import { IconBadge } from './IconBadge';
-import { InteractiveSurface } from './InteractiveSurface';
+import { IconBadge } from '../components/IconBadge';
+import { InteractiveSurface } from '../components/InteractiveSurface';
 import { getSchedulePath } from '../lib/navigationTypes';
 
 import { kVendorTeam } from '@lib/database/Types';
@@ -125,9 +124,9 @@ export function OverviewVendorCard(props: OverviewVendorCardProps) {
                                 {content}
                             </InteractiveSurface>
                         ) : (
-                            <VendorRowStatic>
+                            <Box sx={{ display: 'flex', px: 2, py: 1.25, width: '100%' }}>
                                 {content}
-                            </VendorRowStatic>
+                            </Box>
                         ) }
                     </Fragment>
                 );
@@ -135,12 +134,3 @@ export function OverviewVendorCard(props: OverviewVendorCardProps) {
         </Card>
     );
 }
-
-/**
- * Non-interactive row container sharing identical padding with interactive vendor rows.
- */
-const VendorRowStatic = styled(Box)(({ theme }) => ({
-    display: 'flex',
-    padding: theme.spacing(1.25, 2),
-    width: '100%',
-}));

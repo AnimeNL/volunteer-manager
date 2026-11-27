@@ -3,6 +3,7 @@
 
 'use client';
 
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 
 import type { ButtonBaseTypeMap, ExtendButtonBase } from '@mui/material/ButtonBase';
@@ -17,9 +18,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
-import { useActivityRippleKey } from './InteractiveSurface';
-
-import { kCardBorderRadiusPx } from '../Constants';
+import { useActivityRippleKey } from '../components/InteractiveSurface';
 
 /**
  * Accent slot key identifying which analogous palette tone a supporting tile uses.
@@ -44,18 +43,13 @@ function resolveTileTone(theme: Theme, accent?: TileAccentKey) {
 }
 
 /**
- * Props accepted by the `<OverviewTile>` component.
+ * Shared props accepted by overview tile components.
  */
-interface OverviewTileProps {
+interface OverviewTileBaseProps {
     /**
      * Analogous M3 accent tone. Omit to render using the primary accent colour.
      */
     accent?: TileAccentKey;
-
-    /**
-     * When set, renders the horizontal hero layout with an optional subtitle.
-     */
-    hero?: boolean;
 
     /**
      * Destination URL navigated to when the tile is activated.
@@ -76,19 +70,31 @@ interface OverviewTileProps {
      * Optional dismissal handler; when provided, renders a top-right close button.
      */
     onDismiss?: () => void;
+}
 
+/**
+ * Props accepted by the `<OverviewHeroTile>` component.
+ */
+interface OverviewHeroTileProps extends OverviewTileBaseProps {
     /**
-     * Secondary caption displayed beneath `label` when `hero` is set.
+     * Secondary caption displayed beneath `label`.
      */
     subtitle?: string;
 }
 
 /**
- * Single flat matte tonal tile rendered inside `<OverviewTiles>`. Supports both the wider
- * horizontal `hero` layout and the compact vertical supporting layout on a shared surface.
+ * Props accepted by the internal `<OverviewTileFrame>` surface wrapper.
  */
-export function OverviewTile(props: OverviewTileProps) {
-    const { accent, hero, href, icon: Icon, label, onDismiss, subtitle } = props;
+interface OverviewTileFrameProps extends OverviewTileBaseProps {
+    children: ReactNode;
+}
+
+/**
+ * Shared interactive surface owning the tile background, corner watermark, and optional dismiss
+ * button for both hero and supporting action tiles.
+ */
+function OverviewTileFrame(props: OverviewTileFrameProps) {
+    const { accent, children, href, icon: Icon, label, onDismiss } = props;
     const rippleKey = useActivityRippleKey();
 
     return (
@@ -97,59 +103,111 @@ export function OverviewTile(props: OverviewTileProps) {
                 <Box aria-hidden className="tile-watermark">
                     <Icon sx={{ fontSize: 'inherit' }} />
                 </Box>
-                <Stack direction={hero ? 'row' : 'column'} spacing={hero ? 1.5 : 1.25} sx={{
-                    alignItems: hero ? 'center' : 'flex-start',
-                    height: '100%',
-                    justifyContent: hero ? 'flex-start' : 'space-between',
-                    minWidth: 0,
-                    position: 'relative',
-                    width: '100%',
-                    zIndex: 1,
-                }}>
-                    <Box className="tile-badge">
-                        <Icon fontSize="small" />
-                    </Box>
-                    <Box sx={{ maxWidth: '100%', minWidth: 0, pr: hero && onDismiss ? 4 : 0 }}>
-                        <Stack direction="row" spacing={0.5}
-                               sx={{ alignItems: 'center', minWidth: 0 }}>
-                            <Typography variant={hero ? 'subtitle1' : 'subtitle2'} noWrap
-                                        sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                                {label}
-                            </Typography>
-                            <ArrowForwardIcon className="tile-arrow" fontSize="inherit" />
-                        </Stack>
-                        { hero && subtitle &&
-                            <Typography variant="caption" noWrap
-                                        sx={{ display: 'block', opacity: 0.82 }}>
-                                {subtitle}
-                            </Typography> }
-                    </Box>
-                </Stack>
+                {children}
             </TileSurface>
             { onDismiss &&
-                <IconButton
+                <DismissButton
+                    accent={accent}
                     aria-label={`Dismiss ${label}`}
                     onClick={onDismiss}
-                    size="small"
-                    sx={theme => ({
-                        color: resolveTileTone(theme, accent).text,
-                        opacity: 0.65,
-                        p: 0.5,
-                        position: 'absolute',
-                        right: theme.spacing(1),
-                        top: theme.spacing(1),
-                        zIndex: 1,
-
-                        '&:hover': {
-                            bgcolor: 'action.hover',
-                            opacity: 1,
-                        },
-                    })}>
+                    size="small">
                     <CloseIcon fontSize="small" />
-                </IconButton> }
+                </DismissButton> }
         </Box>
     );
 }
+
+/**
+ * Horizontal hero tile rendered inside `<OverviewTiles>` with an optional subtitle.
+ */
+export function OverviewHeroTile(props: OverviewHeroTileProps) {
+    const { icon: Icon, label, onDismiss, subtitle, ...frameProps } = props;
+
+    return (
+        <OverviewTileFrame {...frameProps} icon={Icon} label={label} onDismiss={onDismiss}>
+            <Stack direction="row" spacing={1.5} sx={{
+                alignItems: 'center',
+                height: '100%',
+                minWidth: 0,
+                position: 'relative',
+                width: '100%',
+                zIndex: 1,
+            }}>
+                <Box className="tile-badge">
+                    <Icon fontSize="small" />
+                </Box>
+                <Box sx={{ maxWidth: '100%', minWidth: 0, pr: onDismiss ? 4 : 0 }}>
+                    <Stack direction="row" spacing={0.5}
+                           sx={{ alignItems: 'center', minWidth: 0 }}>
+                        <Typography variant="subtitle1" noWrap sx={{ lineHeight: 1.2 }}>
+                            {label}
+                        </Typography>
+                        <ArrowForwardIcon className="tile-arrow" fontSize="inherit" />
+                    </Stack>
+                    { subtitle &&
+                        <Typography variant="caption" noWrap
+                                    sx={{ display: 'block', opacity: 0.82 }}>
+                            {subtitle}
+                        </Typography> }
+                </Box>
+            </Stack>
+        </OverviewTileFrame>
+    );
+}
+
+/**
+ * Compact vertical supporting action tile rendered inside `<OverviewTiles>`.
+ */
+export function OverviewActionTile(props: OverviewTileBaseProps) {
+    const { icon: Icon, label, ...frameProps } = props;
+
+    return (
+        <OverviewTileFrame {...frameProps} icon={Icon} label={label}>
+            <Stack spacing={1.25} sx={{
+                alignItems: 'flex-start',
+                height: '100%',
+                justifyContent: 'space-between',
+                minWidth: 0,
+                position: 'relative',
+                width: '100%',
+                zIndex: 1,
+            }}>
+                <Box className="tile-badge">
+                    <Icon fontSize="small" />
+                </Box>
+                <Box sx={{ maxWidth: '100%', minWidth: 0 }}>
+                    <Stack direction="row" spacing={0.5}
+                           sx={{ alignItems: 'center', minWidth: 0 }}>
+                        <Typography variant="subtitle2" noWrap sx={{ lineHeight: 1.2 }}>
+                            {label}
+                        </Typography>
+                        <ArrowForwardIcon className="tile-arrow" fontSize="inherit" />
+                    </Stack>
+                </Box>
+            </Stack>
+        </OverviewTileFrame>
+    );
+}
+
+/**
+ * Top-right dismiss icon button inheriting the tile's tonal foreground colour.
+ */
+const DismissButton = styled(IconButton, {
+    shouldForwardProp: prop => prop !== 'accent',
+})<{ accent?: TileAccentKey }>(({ accent, theme }) => ({
+    color: resolveTileTone(theme, accent).text,
+    opacity: 0.65,
+    padding: theme.spacing(0.5),
+    position: 'absolute',
+    right: theme.spacing(1),
+    top: theme.spacing(1),
+    zIndex: 1,
+
+    '&:hover': {
+        backgroundColor: (theme.vars || theme).palette.action.hover,
+        opacity: 1,
+    },
+}));
 
 /**
  * Interactive flat tonal tile surface owning the hover tint, icon badge, watermark, and arrow
@@ -163,7 +221,7 @@ const TileSurface = styled(ButtonBase, {
 
     return {
         backgroundColor: tone.background,
-        borderRadius: kCardBorderRadiusPx,
+        borderRadius: theme.shape.borderRadius,
         color: tone.text,
         height: '100%',
         minHeight: 80,

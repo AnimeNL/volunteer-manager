@@ -14,7 +14,7 @@ import HotelOutlinedIcon from '@mui/icons-material/HotelOutlined';
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 
 import type { TileAccentKey } from './OverviewTile';
-import { OverviewTile } from './OverviewTile';
+import { OverviewActionTile, OverviewHeroTile } from './OverviewTile';
 import { getSchedulePath } from '../lib/navigationTypes';
 
 import { type DismissibleOverviewActionTileId,
@@ -124,32 +124,31 @@ export function OverviewTiles(props: OverviewTilesProps) {
     const supportingIds = visibleIds.filter(id => id !== 'ticket');
     const supportingGridSize = supportingIds.length > 3 ? { xs: 6, sm: 'grow' as const } : 'grow';
 
-    function renderTile(tileId: OverviewTileId, hero?: boolean) {
+    function getTileProps(tileId: OverviewTileId) {
         const tile = kOverviewTiles[tileId];
-        return (
-            <OverviewTile
-                accent={tile.accent}
-                hero={hero}
-                href={getSchedulePath(eventSlug, tile.segment)}
-                icon={tile.icon}
-                label={tile.label}
-                onDismiss={isDismissibleTile(tileId) ? () => handleDismiss(tileId) : undefined}
-                subtitle={tile.subtitle} />
-        );
+        return {
+            accent: tile.accent,
+            href: getSchedulePath(eventSlug, tile.segment),
+            icon: tile.icon,
+            label: tile.label,
+            onDismiss: isDismissibleTile(tileId) ? () => handleDismiss(tileId) : undefined,
+        };
     }
 
     return (
         <Grid container spacing={1.25}>
             { showTicket &&
                 <Grid size={{ xs: 12, md: supportingIds.length > 0 ? 5 : 12 }}>
-                    {renderTile('ticket', /* hero= */ true)}
+                    <OverviewHeroTile
+                        {...getTileProps('ticket')}
+                        subtitle={kOverviewTiles.ticket.subtitle} />
                 </Grid> }
 
             { supportingIds.length > 0 &&
                 <Grid container spacing={1.25} size={showTicket ? { xs: 12, md: 7 } : 12}>
                     { supportingIds.map(tileId => (
                         <Grid key={tileId} size={supportingGridSize}>
-                            {renderTile(tileId)}
+                            <OverviewActionTile {...getTileProps(tileId)} />
                         </Grid>
                     )) }
                 </Grid> }
