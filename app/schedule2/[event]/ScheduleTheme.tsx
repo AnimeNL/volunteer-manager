@@ -62,13 +62,22 @@ export function ScheduleTheme(props: React.PropsWithChildren<ScheduleThemeProps>
 /**
  * Maps an M3 tonal palette into a MUI color-scheme palette definition.
  */
-function createSchemePalette(palette: M3TonalPalette): PaletteOptions {
+function createSchemePalette(palette: M3TonalPalette, dark: boolean): PaletteOptions {
     return {
+        action: {
+            hover: dark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
+        },
         background: {
             default: palette.shell,
             paper: palette.card,
         },
         divider: palette.outlineVariant,
+        error: {
+            main: dark ? '#f09494' : '#c62828',
+        },
+        info: {
+            main: dark ? '#94c0f7' : '#1565c0',
+        },
         m3: palette,
         primary: {
             contrastText: palette.onPrimary,
@@ -81,6 +90,9 @@ function createSchemePalette(palette: M3TonalPalette): PaletteOptions {
         text: {
             primary: palette.onSurface,
             secondary: palette.onSurfaceVariant,
+        },
+        warning: {
+            main: dark ? '#d9b87c' : '#8c5a12',
         },
     } as PaletteOptions;
 }
@@ -122,20 +134,20 @@ function createScheduleTheme(themeColor: string) {
                     },
                     '*::-webkit-scrollbar-thumb': {
                         backgroundClip: 'content-box',
-                        backgroundColor: palette.m3.outlineVariant,
+                        backgroundColor: palette.divider,
                         border: '3px solid transparent',
                         borderRadius: 999,
                     },
                     '*::-webkit-scrollbar-thumb:hover': {
                         backgroundColor:
-                            `color-mix(in srgb, ${palette.m3.onSurfaceVariant} 50%, transparent)`,
+                            `color-mix(in srgb, ${palette.text.secondary} 50%, transparent)`,
                     },
                     '*::-webkit-scrollbar-corner': {
                         backgroundColor: 'transparent',
                     },
                     '@supports not selector(::-webkit-scrollbar)': {
                         '*': {
-                            scrollbarColor: `${palette.m3.outlineVariant} transparent`,
+                            scrollbarColor: `${palette.divider} transparent`,
                             scrollbarWidth: 'thin',
                         },
                     },
@@ -144,14 +156,29 @@ function createScheduleTheme(themeColor: string) {
         },
         MuiDrawer: {
             styleOverrides: {
-                paper: ({ theme }) => ({
-                    '&.MuiDrawer-paperAnchorBottom': {
-                        backgroundColor: (theme.vars || theme).palette.background.default,
-                        backgroundImage: 'none',
-                        borderTopLeftRadius: kSheetBorderRadiusPx,
-                        borderTopRightRadius: kSheetBorderRadiusPx,
-                    },
-                }),
+                paper: ({ ownerState, theme }) => ownerState.anchor === 'bottom' ? {
+                    backgroundColor: (theme.vars || theme).palette.background.default,
+                    backgroundImage: 'none',
+                    borderTopLeftRadius: kSheetBorderRadiusPx,
+                    borderTopRightRadius: kSheetBorderRadiusPx,
+                } : {},
+            },
+        },
+        MuiLinearProgress: {
+            styleOverrides: {
+                bar: {
+                    borderRadius: 999,
+                },
+                root: {
+                    borderRadius: 999,
+                },
+            },
+        },
+        MuiListItemIcon: {
+            styleOverrides: {
+                root: {
+                    minWidth: 36,
+                },
             },
         },
         MuiMenu: {
@@ -182,8 +209,8 @@ function createScheduleTheme(themeColor: string) {
             },
         },
         colorSchemes: {
-            dark: { palette: createSchemePalette(scheme.dark) },
-            light: { palette: createSchemePalette(scheme.light) },
+            dark: { palette: createSchemePalette(scheme.dark, /* dark= */ true) },
+            light: { palette: createSchemePalette(scheme.light, /* dark= */ false) },
         },
         components: components as Components<Theme>,
         cssVariables: {
@@ -194,6 +221,12 @@ function createScheduleTheme(themeColor: string) {
         },
         typography: {
             fontFamily: kInterFont.style.fontFamily,
+            h6: { fontWeight: 600, lineHeight: 1.3 },
+            subtitle1: { fontWeight: 600, lineHeight: 1.3 },
+            subtitle2: { fontWeight: 600, lineHeight: 1.35 },
+            body2: { lineHeight: 1.45 },
+            caption: { lineHeight: 1.4 },
+            overline: { fontWeight: 600, lineHeight: 1.5 },
         },
     });
 }
