@@ -76,18 +76,12 @@ interface AccountMenuButtonProps {
  */
 export function AccountMenuButton(props: AccountMenuButtonProps) {
     const { avatarUrl, eventSlug, hasDevelopment, hasHotelRoom, hasTicket, userName } = props;
-    const { mode, setMode } = useColorScheme();
     const { canInstall, install } = useInstallPrompt();
     const [ anchorEl, setAnchorEl ] = useState<HTMLElement | null>(null);
 
     function handleInstall() {
         setAnchorEl(null);
         void install();
-    }
-
-    function handleModeChange(_event: unknown, value: string | null) {
-        if (value === 'dark' || value === 'light' || value === 'system')
-            setMode(value);
     }
 
     async function handleSignOut() {
@@ -173,20 +167,7 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                   onClose={() => setAnchorEl(null)}
                   open={!!anchorEl}
                   slotProps={{ list: { dense: true }, paper: { sx: { minWidth: 175 } } }}>
-                <Box sx={{ px: 2, pt: 0.5 }}>
-                    <ToggleButtonGroup exclusive fullWidth onChange={handleModeChange} size="small"
-                                       value={mode ?? 'system'}>
-                        <ToggleButton aria-label="Light mode" value="light">
-                            <LightModeIcon fontSize="small" />
-                        </ToggleButton>
-                        <ToggleButton aria-label="System colour scheme" value="system">
-                            <SettingsBrightnessIcon fontSize="small" />
-                        </ToggleButton>
-                        <ToggleButton aria-label="Dark mode" value="dark">
-                            <DarkModeIcon fontSize="small" />
-                        </ToggleButton>
-                    </ToggleButtonGroup>
-                </Box>
+                <ColorSchemeToggle />
                 <Divider sx={{ my: 1 }} />
                 { !!eventSlug ? (
                     <>
@@ -208,6 +189,35 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
                 </MenuItem>
             </Menu>
         </>
+    );
+}
+
+/**
+ * Segmented Light / System / Dark colour-scheme toggle rendered at the top of the account menu.
+ */
+function ColorSchemeToggle() {
+    const { mode, setMode } = useColorScheme();
+
+    function handleModeChange(_event: unknown, value: string | null) {
+        if (value === 'dark' || value === 'light' || value === 'system')
+            setMode(value);
+    }
+
+    return (
+        <Box sx={{ px: 2, pt: 0.5 }}>
+            <ToggleButtonGroup exclusive fullWidth onChange={handleModeChange} size="small"
+                               value={mode ?? 'system'}>
+                <ToggleButton aria-label="Light mode" value="light">
+                    <LightModeIcon fontSize="small" />
+                </ToggleButton>
+                <ToggleButton aria-label="System colour scheme" value="system">
+                    <SettingsBrightnessIcon fontSize="small" />
+                </ToggleButton>
+                <ToggleButton aria-label="Dark mode" value="dark">
+                    <DarkModeIcon fontSize="small" />
+                </ToggleButton>
+            </ToggleButtonGroup>
+        </Box>
     );
 }
 
