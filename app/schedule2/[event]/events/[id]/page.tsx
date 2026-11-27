@@ -16,46 +16,80 @@ import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
 import { ScheduleSection } from '../../components/ScheduleSection';
 import { compareTimeslots, formatTimeRange, getTimeslotTiming } from '../../lib/programTime';
 import { createScheduleMetadataFn } from '../../lib/generateScheduleMetadata';
+import { getEventState } from '@lib/event';
 import { getEventTicketSales } from '../../lib/data/ticketData';
-import { getProgramEventDetail } from '../../lib/data/programData';
+import { getFavouritedActivityIds } from '../../lib/data/programData';
 import { getSchedulePath } from '../../lib/navigationTypes';
 import { readCachedSetting } from '@lib/Settings';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
-import db, { tUsersEventsFavourites } from '@lib/database';
+
+import { kActivityType } from '@lib/database/Types';
 
 /**
- * Loads the resolved program event details for the requested route parameters.
+ * Resolves a program activity and its scheduled timeslots from `EventState`.
  */
 async function loadEventDetail(params: Promise<{ event: string; id: string }>) {
     const { event: eventSlug, id } = await params;
+    const activityId = Number(id);
+    if (!Number.isInteger(activityId) || activityId <= 0)
+        return undefined;
+
     const { event } = await requireScheduleAccess(eventSlug);
-    return await getProgramEventDetail(
-        event.integrations?.anPlanFestivalId, id, event.timeZone);
+    const eventState = await getEventState(event);
+    const activity = eventState?.program.getActivity(activityId);
+    if (!eventState || !activity || activity.type !== kActivityType.Program)
+        return undefined;
+
+    const rawTimeslots = eventState.program.getTimeslotsForActivity(activityId);
+    if (!rawTimeslots.length)
+        return undefined;
+
+    const locationNames = new Set<string>();
+    const timeslots = rawTimeslots.map(slot => {
+        const locationName = eventState.program.getLocation(slot.locationId)?.name ?? '';
+        if (locationName)
+            locationNames.add(locationName);
+
+        return {
+            endMs: slot.endMs,
+            locationId: slot.locationId,
+            locationName,
+            startMs: slot.startMs,
+            timeslotId: slot.id,
+        };
+    });
+
+    const location = locationNames.size === 1
+        ? [ ...locationNames ][0]
+        : 'Multiple locations…';
+
+    return {
+        activityId,
+        location,
+        timeslots,
+        title: activity.title,
+    };
 }
 
 /**
  * Streams the volunteer's favourite toggle button into the page `<Header>` actions.
  */
 async function EventFavouriteAction(props: { params: Promise<{ event: string; id: string }> }) {
-    const { event: eventSlug, id } = await props.params;
-    const { event, user } = await requireScheduleAccess(eventSlug);
-    const data = await getProgramEventDetail(
-        event.integrations?.anPlanFestivalId, id, event.timeZone);
+    const { event: eventSlug } = await props.params;
+    const [ { event, user }, data ] = await Promise.all([
+        requireScheduleAccess(eventSlug),
+        loadEventDetail(props.params),
+    ]);
     if (!data)
         return null;
 
-    const favourited = await db.selectFrom(tUsersEventsFavourites)
-        .where(tUsersEventsFavourites.userId.equals(user.id))
-            .and(tUsersEventsFavourites.eventId.equals(event.id))
-            .and(tUsersEventsFavourites.activityId.equals(data.activityId))
-        .selectCountAll()
-        .executeSelectOne() > 0;
+    const favouritedActivityIds = await getFavouritedActivityIds(event.id, user.id);
 
     return (
         <EventFavouriteButton
             activityId={data.activityId}
             eventSlug={event.slug}
-            initialFavourited={favourited} />
+            initialFavourited={favouritedActivityIds.has(data.activityId)} />
     );
 }
 
@@ -64,11 +98,10 @@ async function EventFavouriteAction(props: { params: Promise<{ event: string; id
  * for the event.
  */
 async function EventContent(props: { params: Promise<{ event: string; id: string }> }) {
-    const { event: eventSlug, id } = await props.params;
-    const { access, currentTime, event } = await requireScheduleAccess(eventSlug);
-
-    const [ data, showSales ] = await Promise.all([
-        getProgramEventDetail(event.integrations?.anPlanFestivalId, id, event.timeZone),
+    const { event: eventSlug } = await props.params;
+    const [ { access, currentTime, event }, data, showSales ] = await Promise.all([
+        requireScheduleAccess(eventSlug),
+        loadEventDetail(props.params),
         readCachedSetting('schedule-show-sales-information', /* fallback= */ false),
     ]);
 
@@ -83,19 +116,21 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
     const nowMs = currentTime.epochMilliseconds;
     const timeslots = data.timeslots
         .map(row => {
-            const startMs = row.start.epochMilliseconds;
-            const endMs = row.end.epochMilliseconds;
-            const { isPast, progress, state } = getTimeslotTiming(startMs, endMs, nowMs);
+            const start = Temporal.Instant.fromEpochMilliseconds(row.startMs)
+                .toZonedDateTimeISO(event.timeZone);
+            const end = Temporal.Instant.fromEpochMilliseconds(row.endMs)
+                .toZonedDateTimeISO(event.timeZone);
+            const { isPast, progress, state } = getTimeslotTiming(row.startMs, row.endMs, nowMs);
 
             return {
-                endMs,
+                endMs: row.endMs,
                 isPast,
                 locationId: row.locationId,
                 locationName: row.locationName,
                 progress,
-                startMs,
+                startMs: row.startMs,
                 state,
-                time: formatTimeRange(row.start, row.end, { includeDay: true }),
+                time: formatTimeRange(start, end, { includeDay: true }),
                 timeslotId: row.timeslotId,
             };
         })

@@ -12,10 +12,12 @@ import { ScheduleListRow } from '../../../../components/ScheduleList';
 import { ScheduleListSkeleton } from '../../../../components/ScheduleListSkeleton';
 import { ScheduleSection } from '../../../../components/ScheduleSection';
 import { createScheduleMetadataFn } from '../../../../lib/generateScheduleMetadata';
+import { getEventState } from '@lib/event';
 import { getEventTicketHolders } from '../../../../lib/data/ticketData';
-import { getProgramEventSummary } from '../../../../lib/data/programData';
 import { pluralize } from '../../../../lib/format';
 import { requireScheduleAccess } from '../../../../lib/getScheduleAccess';
+
+import { kActivityType } from '@lib/database/Types';
 
 /**
  * Resolves access, permission, event summary, and ticket holders for the current route params.
@@ -28,16 +30,18 @@ async function resolveEventTicketHolders(
     if (!access.can('event.tickets', 'read', { event: event.slug }))
         forbidden();
 
+    const activityId = Number(id);
     const eventTicketId = Number(ticketIdParam);
-    if (!Number.isInteger(eventTicketId))
+    if (!Number.isInteger(activityId) || activityId <= 0 || !Number.isInteger(eventTicketId))
         return undefined;
 
-    const activity = await getProgramEventSummary(event.integrations?.anPlanFestivalId, id);
-    if (!activity)
+    const eventState = await getEventState(event);
+    const activity = eventState?.program.getActivity(activityId);
+    if (!activity || activity.type !== kActivityType.Program)
         return undefined;
 
     const ticketHolders = await getEventTicketHolders(
-        event, activity.activityId, activity.title, eventTicketId);
+        event, activity.id, activity.title, eventTicketId);
     if (!ticketHolders)
         return undefined;
 
