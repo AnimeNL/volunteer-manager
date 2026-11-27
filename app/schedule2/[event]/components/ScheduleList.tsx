@@ -69,7 +69,7 @@ interface ScheduleListRowProps {
     chevron?: boolean;
 
     /**
-     * Whether the item is hidden from regular volunteers, displaying a slashed-eye indicator.
+     * Whether the item is hidden from visitors, displaying a slashed-eye indicator.
      */
     hidden?: boolean;
 
@@ -152,9 +152,9 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
                             {title}
                         </RowTitle>
                         { hidden &&
-                            <Tooltip title="Hidden from regular volunteers">
+                            <Tooltip title="Hidden from visitors">
                                 <HiddenIconBadge
-                                    aria-label="Hidden from regular volunteers"
+                                    aria-label="Hidden from visitors"
                                     muted={isPast}>
                                     <VisibilityOffOutlinedIcon fontSize="inherit" />
                                 </HiddenIconBadge>
@@ -407,7 +407,7 @@ const RowTrailing = styled(Typography, {
 });
 
 /**
- * Warm-amber slashed-eye indicator denoting events hidden from regular volunteers.
+ * Warm-amber slashed-eye indicator denoting events hidden from visitors.
  */
 const HiddenIconBadge = styled('span', {
     shouldForwardProp: prop => prop !== 'muted',
