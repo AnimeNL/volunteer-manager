@@ -3,26 +3,17 @@
 
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import CameraswitchOutlinedIcon from '@mui/icons-material/CameraswitchOutlined';
-import CircularProgress from '@mui/material/CircularProgress';
 import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined';
-import FlashlightOffOutlinedIcon from '@mui/icons-material/FlashlightOffOutlined';
-import FlashlightOnOutlinedIcon from '@mui/icons-material/FlashlightOnOutlined';
-import IconButton from '@mui/material/IconButton';
-import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined';
 import NoPhotographyOutlinedIcon from '@mui/icons-material/NoPhotographyOutlined';
-import RefreshIcon from '@mui/icons-material/Refresh';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import VideocamOffOutlinedIcon from '@mui/icons-material/VideocamOffOutlined';
-import { styled } from '@mui/material/styles';
 
-import { IconBadge } from '../components/IconBadge';
+import { ScannerBlockedState } from './ScannerBlockedState';
+import { ScannerViewfinder } from './ScannerViewfinder';
 import { useQrScanner } from './useQrScanner';
 
 import { recordScannedBarcode } from './ScannerActions';
@@ -53,16 +44,20 @@ interface ScanFeedback {
 export function QrScanner(props: QrScannerProps) {
     const { eventSlug } = props;
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const flashTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     const [ feedback, setFeedback ] = useState<ScanFeedback | undefined>();
     const [ flashActive, setFlashActive ] = useState<boolean>(false);
+
+    useEffect(() => () => clearTimeout(flashTimerRef.current), []);
 
     const handleScan = useCallback(async (barcode: string) => {
         if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function')
             navigator.vibrate(50);
 
+        clearTimeout(flashTimerRef.current);
         setFlashActive(true);
-        setTimeout(() => setFlashActive(false), 350);
+        flashTimerRef.current = setTimeout(() => setFlashActive(false), 350);
 
         setFeedback({ barcode, pending: true });
 
@@ -135,51 +130,16 @@ export function QrScanner(props: QrScannerProps) {
                     } /> }
 
             { (scanner.status === 'initializing' || scanner.status === 'scanning') &&
-                <Viewfinder>
-                    <VideoPreview
-                        ref={scanner.videoRef}
-                        autoPlay
-                        muted
-                        playsInline />
-
-                    { scanner.status === 'initializing' &&
-                        <ViewfinderOverlay>
-                            <CircularProgress color="inherit" size={32} />
-                        </ViewfinderOverlay> }
-
-                    { scanner.status === 'scanning' &&
-                        <>
-                            <ReticleFrame active={flashActive} aria-hidden="true" />
-                            <ControlsBar direction="row" spacing={1}>
-                                { scanner.hasTorch &&
-                                    <OverlayIconButton
-                                        aria-label={
-                                            scanner.torchEnabled
-                                                ? 'Turn off flashlight'
-                                                : 'Turn on flashlight'
-                                        }
-                                        onClick={() => void scanner.toggleTorch()}
-                                        size="small">
-                                        { scanner.torchEnabled
-                                            ? <FlashlightOffOutlinedIcon fontSize="small" />
-                                            : <FlashlightOnOutlinedIcon fontSize="small" /> }
-                                    </OverlayIconButton> }
-                                { scanner.canSwitchCamera &&
-                                    <OverlayIconButton
-                                        aria-label="Switch camera"
-                                        onClick={scanner.switchCamera}
-                                        size="small">
-                                        <CameraswitchOutlinedIcon fontSize="small" />
-                                    </OverlayIconButton> }
-                                <OverlayIconButton
-                                    aria-label="Scan from photo"
-                                    onClick={triggerFilePicker}
-                                    size="small">
-                                    <ImageOutlinedIcon fontSize="small" />
-                                </OverlayIconButton>
-                            </ControlsBar>
-                        </> }
-                </Viewfinder> }
+                <ScannerViewfinder
+                    canSwitchCamera={scanner.canSwitchCamera}
+                    flashActive={flashActive}
+                    hasTorch={scanner.hasTorch}
+                    initializing={scanner.status === 'initializing'}
+                    onPickPhoto={triggerFilePicker}
+                    onSwitchCamera={scanner.switchCamera}
+                    onToggleTorch={() => void scanner.toggleTorch()}
+                    torchEnabled={scanner.torchEnabled}
+                    videoRef={scanner.videoRef} /> }
 
             { feedback?.error &&
                 <Alert severity="error" onClose={() => setFeedback(undefined)}>
@@ -202,124 +162,3 @@ export function QrScanner(props: QrScannerProps) {
         </Stack>
     );
 }
-
-/**
- * Empty/blocked state shown when camera permission is declined or no camera is available.
- */
-function ScannerBlockedState(props: {
-    description: string;
-    icon: React.ReactNode;
-    onPickPhoto: () => void;
-    onRetry: () => void;
-    title: string;
-}) {
-    return (
-        <BlockedContainer spacing={2}>
-            <IconBadge size="xl">
-                {props.icon}
-            </IconBadge>
-            <Stack spacing={0.5} sx={{ maxWidth: 380 }}>
-                <Typography variant="subtitle1">
-                    {props.title}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                    {props.description}
-                </Typography>
-            </Stack>
-            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', justifyContent: 'center' }}>
-                <Button onClick={props.onRetry} startIcon={ <RefreshIcon /> } variant="contained">
-                    Try again
-                </Button>
-                <Button onClick={props.onPickPhoto} startIcon={ <ImageOutlinedIcon /> }
-                        variant="outlined">
-                    Scan from photo
-                </Button>
-            </Stack>
-        </BlockedContainer>
-    );
-}
-
-const Viewfinder = styled(Box)(({ theme }) => ({
-    aspectRatio: '1 / 1',
-    backgroundColor: '#000000',
-    borderRadius: theme.shape.borderRadius,
-    maxHeight: 440,
-    overflow: 'hidden',
-    position: 'relative',
-    width: '100%',
-
-    [theme.breakpoints.up('sm')]: {
-        aspectRatio: '4 / 3',
-    },
-}));
-
-const VideoPreview = styled('video')({
-    display: 'block',
-    height: '100%',
-    objectFit: 'cover',
-    width: '100%',
-});
-
-const ViewfinderOverlay = styled(Box)({
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
-    color: '#ffffff',
-    display: 'flex',
-    inset: 0,
-    justifyContent: 'center',
-    position: 'absolute',
-});
-
-const ReticleFrame = styled(Box, {
-    shouldForwardProp: prop => prop !== 'active',
-})<{ active: boolean }>(({ active, theme }) => {
-    const borderColor = active
-        ? (theme.vars || theme).palette.primary.main
-        : 'rgba(255, 255, 255, 0.72)';
-
-    return {
-        border: `2px solid ${borderColor}`,
-        borderRadius: theme.spacing(2),
-        boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.28)',
-        height: '62%',
-        left: '50%',
-        maxHeight: 240,
-        maxWidth: 240,
-        pointerEvents: 'none',
-        position: 'absolute',
-        top: '50%',
-        transform: 'translate(-50%, -50%)',
-        transition: theme.transitions.create('border-color', {
-            duration: theme.transitions.duration.shorter,
-        }),
-        width: '62%',
-    };
-});
-
-const ControlsBar = styled(Stack)(({ theme }) => ({
-    bottom: theme.spacing(1.5),
-    position: 'absolute',
-    right: theme.spacing(1.5),
-    zIndex: 1,
-}));
-
-const OverlayIconButton = styled(IconButton)(({ theme }) => ({
-    backgroundColor: 'rgba(0, 0, 0, 0.56)',
-    color: '#ffffff',
-    padding: theme.spacing(1),
-
-    '&:hover': {
-        backgroundColor: 'rgba(0, 0, 0, 0.76)',
-    },
-}));
-
-const BlockedContainer = styled(Stack)(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
-    return {
-        alignItems: 'center',
-        backgroundColor: palette.background.default,
-        borderRadius: theme.shape.borderRadius,
-        padding: theme.spacing(4, 2.5),
-        textAlign: 'center',
-    };
-});
