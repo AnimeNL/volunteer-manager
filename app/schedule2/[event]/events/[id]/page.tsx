@@ -203,11 +203,7 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
             </Stack>
             { sales.length > 0 &&
                 <Stack spacing={0.75} useFlexGap>
-                    <SectionHeader
-                        actionLabel={ticketsHref ? 'View tickets' : undefined}
-                        href={ticketsHref}
-                        title="Tickets sold"
-                        transitionTypes={ticketsHref ? [ 'nav-forward' ] : undefined} />
+                    <SectionHeader title="Tickets sold" />
                     <ScheduleList>
                         { sales.map(entry => {
                             const isSoldOut = entry.limit !== undefined &&
@@ -215,6 +211,9 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
                             const progress = entry.limit !== undefined
                                 ? Math.min(100, Math.round((entry.sold / entry.limit) * 100))
                                 : undefined;
+                            const progressColor = isSoldOut
+                                ? 'error'
+                                : ((progress ?? 0) < 75 ? 'success' : 'warning');
                             const price = entry.price !== undefined
                                 ? ` · ${formatPrice(entry.price)}`
                                 : '';
@@ -245,9 +244,10 @@ async function EventContent(props: { params: Promise<{ event: string; id: string
                             return (
                                 <ScheduleListRow
                                     key={entry.id}
+                                    chevron={!!ticketsHref}
                                     href={ticketsHref}
                                     progress={progress}
-                                    progressColor={isSoldOut ? 'error' : 'warning'}
+                                    progressColor={progressColor}
                                     title={entry.name}
                                     trailing={trailing}
                                     transitionTypes={ticketsHref ? [ 'nav-forward' ] : undefined} />

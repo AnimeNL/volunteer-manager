@@ -87,7 +87,7 @@ interface ScheduleListRowProps {
     /**
      * Colour role for `<ProgressTrack>` when `progress` is set. Defaults to `'primary'`.
      */
-    progressColor?: 'error' | 'primary' | 'warning';
+    progressColor?: 'error' | 'primary' | 'success' | 'warning';
 
     /**
      * Visual state of the row: `'default'`, `'active'` (live), or `'past'` (finished).
@@ -456,7 +456,7 @@ const ProgressTrack = styled(Box)(({ theme }) => ({
  */
 const ProgressFill = styled(Box, {
     shouldForwardProp: prop => prop !== 'color',
-})<{ color: 'error' | 'primary' | 'warning' }>(({ theme }) => {
+})<{ color: 'error' | 'primary' | 'success' | 'warning' }>(({ theme }) => {
     const palette = (theme.vars || theme).palette;
 
     return {
@@ -467,6 +467,10 @@ const ProgressFill = styled(Box, {
             {
                 props: { color: 'error' },
                 style: { backgroundColor: palette.error.main },
+            },
+            {
+                props: { color: 'success' },
+                style: { backgroundColor: palette.success.main },
             },
             {
                 props: { color: 'warning' },
