@@ -46,14 +46,14 @@ function HotelBookingDetails(props: { booking: HotelBooking }) {
                 <Typography variant="h6">
                     {booking.hotelName}
                 </Typography>
-                <Typography variant="body2" color="textSecondary">
+                <Typography variant="body2" color="text.secondary">
                     {booking.roomName}
                 </Typography>
             </CardContent>
             <Divider />
             <List dense disablePadding>
                 <ListItem>
-                    <ListItemIcon sx={{ minWidth: 40 }}>
+                    <ListItemIcon>
                         <LoginOutlinedIcon fontSize="small" />
                     </ListItemIcon>
                     <ListItemText
@@ -61,7 +61,7 @@ function HotelBookingDetails(props: { booking: HotelBooking }) {
                         secondary={formatDate(booking.checkIn, 'dddd, MMMM D')} />
                 </ListItem>
                 <ListItem>
-                    <ListItemIcon sx={{ minWidth: 40 }}>
+                    <ListItemIcon>
                         <LogoutOutlinedIcon fontSize="small" />
                     </ListItemIcon>
                     <ListItemText
@@ -69,7 +69,7 @@ function HotelBookingDetails(props: { booking: HotelBooking }) {
                         secondary={formatDate(booking.checkOut, 'dddd, MMMM D')} />
                 </ListItem>
                 <ListItem>
-                    <ListItemIcon sx={{ minWidth: 40 }}>
+                    <ListItemIcon>
                         <PeopleOutlinedIcon fontSize="small" />
                     </ListItemIcon>
                     <ListItemText
@@ -78,7 +78,7 @@ function HotelBookingDetails(props: { booking: HotelBooking }) {
                 </ListItem>
                 { !!booking.reservation &&
                     <ListItem>
-                        <ListItemIcon sx={{ minWidth: 40 }}>
+                        <ListItemIcon>
                             <TagOutlinedIcon fontSize="small" />
                         </ListItemIcon>
                         <ListItemText
@@ -112,7 +112,7 @@ async function PrimaryHotelBooking(props: { params: Promise<{ event: string }> }
                 <Typography variant="h6" gutterBottom>
                     No hotel room assigned
                 </Typography>
-                <Typography variant="body2" color="textSecondary">
+                <Typography variant="body2" color="text.secondary">
                     No confirmed hotel booking has been assigned to your account for{' '}
                     {event.shortName} yet.
                 </Typography>
@@ -169,7 +169,7 @@ function HotelSkeleton() {
             <List dense disablePadding>
                 { rows.map(({ primaryWidth, secondaryWidth }, index) =>
                     <ListItem key={index}>
-                        <ListItemIcon sx={{ minWidth: 40 }}>
+                        <ListItemIcon>
                             <Skeleton variant="circular" width={20} height={20} />
                         </ListItemIcon>
                         <ListItemText

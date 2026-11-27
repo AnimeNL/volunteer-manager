@@ -29,7 +29,7 @@ async function TicketContent(props: { params: Promise<{ event: string }> }) {
                 <Typography variant="h6" gutterBottom>
                     No ticket available
                 </Typography>
-                <Typography variant="body2" color="textSecondary">
+                <Typography variant="body2" color="text.secondary">
                     No ticket has been issued to your account for {event.shortName} yet.
                 </Typography>
             </>
@@ -44,15 +44,13 @@ async function TicketContent(props: { params: Promise<{ event: string }> }) {
             </Typography>
             <QrCode content={ticket.barcode} framed sx={{ maxWidth: 400, width: '80%' }} />
             <Stack spacing={0.25} sx={{ alignItems: 'center' }}>
-                <Typography variant="body2" sx={{
-                    color: 'text.secondary',
+                <Typography color="text.secondary" variant="body2" sx={{
                     fontFamily: 'monospace',
                     letterSpacing: 1,
                 }}>
                     {ticket.barcode}
                 </Typography>
-                <Typography variant="body2" sx={{
-                    color: 'text.secondary',
+                <Typography color="text.secondary" variant="body2" sx={{
                     fontFamily: 'monospace',
                     letterSpacing: 1,
                 }}>
@@ -76,7 +74,7 @@ function TicketSkeleton() {
             <Box sx={{ maxWidth: 400, width: '80%' }}>
                 <Skeleton variant="rounded" sx={{
                     aspectRatio: '1',
-                    borderRadius: 2,
+                    borderRadius: 1,
                     height: 'auto',
                     width: '100%',
                 }} />

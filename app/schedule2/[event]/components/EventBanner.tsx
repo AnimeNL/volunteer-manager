@@ -98,29 +98,29 @@ async function EventBannerImage(props: EventBannerProps) {
                 py: isWidescreen ? 1.5 : 1.25,
                 right: 0,
             }}>
-                <Typography noWrap sx={{
-                    color: isWidescreen ? 'var(--mui-palette-m3-onSurface)' : '#ffffff',
-                    fontSize: isWidescreen ? '1.2rem' : '0.875rem',
-                    fontWeight: isWidescreen ? 700 : 600,
-                    letterSpacing: '-0.01em',
-                    lineHeight: 1.25,
-                    textShadow: isWidescreen
-                        ? '0 1px 6px var(--mui-palette-m3-sheet)'
-                        : '0 1px 3px rgba(0, 0, 0, 0.85), 0 0 8px rgba(0, 0, 0, 0.45)',
-                }}>
+                <Typography
+                    color={isWidescreen ? 'text.primary' : 'common.white'}
+                    noWrap
+                    sx={{
+                        letterSpacing: '-0.01em',
+                        textShadow: isWidescreen
+                            ? '0 1px 6px var(--mui-palette-m3-sheet)'
+                            : '0 1px 3px rgba(0, 0, 0, 0.85), 0 0 8px rgba(0, 0, 0, 0.45)',
+                    }}
+                    variant={isWidescreen ? 'h6' : 'subtitle2'}>
                     {title}
                 </Typography>
                 { !!subtitle &&
-                    <Typography noWrap sx={{
-                        color: isWidescreen
-                            ? 'var(--mui-palette-m3-onSurfaceVariant)'
-                            : 'rgba(255, 255, 255, 0.82)',
-                        fontSize: isWidescreen ? '0.8rem' : '0.72rem',
-                        lineHeight: 1.3,
-                        textShadow: isWidescreen
-                            ? '0 1px 4px var(--mui-palette-m3-sheet)'
-                            : '0 1px 3px rgba(0, 0, 0, 0.75)',
-                    }}>
+                    <Typography
+                        color={isWidescreen ? 'text.secondary' : undefined}
+                        noWrap
+                        sx={{
+                            ...(isWidescreen ? {} : { color: 'rgba(255, 255, 255, 0.82)' }),
+                            textShadow: isWidescreen
+                                ? '0 1px 4px var(--mui-palette-m3-sheet)'
+                                : '0 1px 3px rgba(0, 0, 0, 0.75)',
+                        }}
+                        variant={isWidescreen ? 'body2' : 'caption'}>
                         {subtitle}
                     </Typography> }
             </Stack>

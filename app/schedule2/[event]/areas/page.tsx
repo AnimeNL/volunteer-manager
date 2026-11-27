@@ -63,7 +63,7 @@ async function AreasListContent(props: { params: Promise<{ event: string }> }) {
         return (
             <Card>
                 <CardContent>
-                    <Typography variant="body2" color="textSecondary">
+                    <Typography variant="body2" color="text.secondary">
                         No program areas have been announced for {event.shortName} yet.
                     </Typography>
                 </CardContent>

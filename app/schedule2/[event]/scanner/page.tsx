@@ -38,7 +38,7 @@ function ScannerSkeleton() {
     return (
         <Skeleton variant="rounded" sx={{
             aspectRatio: { xs: '1 / 1', sm: '4 / 3' },
-            borderRadius: 1.5,
+            borderRadius: 1,
             height: 'auto',
             maxHeight: 440,
             width: '100%',

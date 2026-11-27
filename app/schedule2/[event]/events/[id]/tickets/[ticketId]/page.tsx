@@ -109,7 +109,7 @@ async function EventTicketsContent(
         return (
             <Card>
                 <CardContent>
-                    <Typography variant="body2" color="textSecondary">
+                    <Typography variant="body2" color="text.secondary">
                         No active tickets have been issued for {data.productName} yet.
                     </Typography>
                 </CardContent>

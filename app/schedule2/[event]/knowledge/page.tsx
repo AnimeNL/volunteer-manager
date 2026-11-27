@@ -29,7 +29,7 @@ async function KnowledgeCategoriesContent(props: { params: Promise<{ event: stri
         return (
             <Card>
                 <CardContent>
-                    <Typography variant="body2" color="textSecondary">
+                    <Typography variant="body2" color="text.secondary">
                         The knowledge base for this event is not available yet.
                     </Typography>
                 </CardContent>

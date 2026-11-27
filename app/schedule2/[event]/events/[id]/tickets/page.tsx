@@ -30,7 +30,7 @@ async function EventTicketsPlaceholderContent(
                 <Typography variant="h6" gutterBottom>
                     Event tickets
                 </Typography>
-                <Typography variant="body2" color="textSecondary">
+                <Typography variant="body2" color="text.secondary">
                     Not yet implemented.
                 </Typography>
             </CardContent>

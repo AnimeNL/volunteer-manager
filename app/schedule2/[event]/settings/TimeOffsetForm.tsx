@@ -51,10 +51,10 @@ export function TimeOffsetForm(props: TimeOffsetFormProps) {
     return (
         <Stack spacing={2}>
             <Stack spacing={0.5}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                <Typography variant="subtitle1">
                     Simulated date and time
                 </Typography>
-                <Typography variant="body2" color="textSecondary">
+                <Typography variant="body2" color="text.secondary">
                     Offset the schedule clock for your account ({props.timeZone}) to test the
                     portal as if the event were active.
                 </Typography>
