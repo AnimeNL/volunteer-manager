@@ -349,6 +349,16 @@ export default async function SettingsPage() {
                         'be shown for',
                 },
                 {
+                    setting: 'schedule-enable-scanner',
+                    type: 'boolean',
+                    defaultValue: false,
+
+                    label: 'Enable scanner',
+                    description:
+                        'Whether volunteers can access the QR code scanner from the schedule ' +
+                        'portal',
+                },
+                {
                     setting: 'schedule-logical-days',
                     type: 'boolean',
                     defaultValue: false,

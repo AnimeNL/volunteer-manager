@@ -178,6 +178,7 @@ export type Settings = {
     'schedule-del-a-rie-advies': boolean;
     'schedule-del-a-rie-advies-genai': boolean;
     'schedule-del-a-rie-advies-time-limit': number;
+    'schedule-enable-scanner': boolean;
     'schedule-logical-days': boolean;
     'schedule-sales-product-panel': boolean;
     'schedule-sales-sold-out': boolean;
@@ -206,6 +207,7 @@ export type Setting = keyof Settings;
  */
 const kCacheTaggedSettings = [
     'schedule-check-in-rate-seconds',
+    'schedule-enable-scanner',
     'theme-color',
     'web-vitals-reporting',
 ] as const satisfies readonly Setting[];
