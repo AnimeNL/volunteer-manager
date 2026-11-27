@@ -11,6 +11,11 @@ import { PullToRefresh } from './PullToRefresh';
 import { kSheetBorderRadiusPx } from '../Constants';
 
 /**
+ * Bottom padding clearing the mobile floating navigation pill and safe-area inset.
+ */
+const kMobileSheetBottomPadding = 'calc(80px + env(safe-area-inset-bottom, 0px))';
+
+/**
  * Props accepted by the <Page> component.
  */
 interface PageProps {
@@ -44,40 +49,26 @@ export function Page(props: React.PropsWithChildren<PageProps>) {
                     md: 0,
                 },
                 flex: '1 1 auto',
+                gap: hasBanner ? { xs: 1.5, md: 0 } : 0,
                 minHeight: { xs: 0, md: 'auto' },
                 minWidth: 0,
                 overflowY: { xs: 'auto', md: 'visible' },
                 overscrollBehaviorY: { xs: 'contain', md: 'auto' },
                 position: { xs: 'relative', md: 'static' },
-                ...(hasBanner
-                    ? { gap: { xs: 1.5, md: 0 }, p: 0 }
-                    : {
-                        gap: 1.5,
-                        p: { xs: 1.5, md: 0 },
-                        pb: {
-                            xs: 'calc(80px + env(safe-area-inset-bottom, 0px))',
-                            md: 0,
-                        },
-                    }),
             }}>
                 <PullToRefresh />
                 <Suspense fallback={null}>
                     <PageScrollReset />
                 </Suspense>
-                { hasBanner ? (
-                    <>
-                        {props.banner}
-                        <Stack spacing={1.5} useFlexGap sx={{
-                            pb: {
-                                xs: 'calc(80px + env(safe-area-inset-bottom, 0px))',
-                                md: 0,
-                            },
-                            px: { xs: 1.5, md: 0 },
-                        }}>
-                            {props.children}
-                        </Stack>
-                    </>
-                ) : props.children }
+                {props.banner}
+                <Stack spacing={1.5} useFlexGap sx={{
+                    flex: '1 1 auto',
+                    pb: { xs: kMobileSheetBottomPadding, md: 0 },
+                    pt: hasBanner ? 0 : { xs: 1.5, md: 0 },
+                    px: { xs: 1.5, md: 0 },
+                }}>
+                    {props.children}
+                </Stack>
             </Stack>
         </ViewTransition>
     );

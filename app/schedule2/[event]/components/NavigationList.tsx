@@ -25,7 +25,6 @@ interface SecondaryNavigationItemsProps {
     data: NavigationData;
     onNavigate?: () => void;
     relativePathname: string;
-    sheet?: boolean;
 }
 
 /**
@@ -33,7 +32,7 @@ interface SecondaryNavigationItemsProps {
  * shared between the desktop sidebar and mobile More bottom sheet.
  */
 export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
-    const { data, onNavigate, relativePathname, sheet } = props;
+    const { data, onNavigate, relativePathname } = props;
     const { dutyBooks, eventSlug, hasHelpRequests, hasKnowledgeBase } = data;
 
     const hasMultipleDutyBooks = dutyBooks.length > 1;
@@ -87,8 +86,7 @@ export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
                     label="Duty book"
                     onNavigate={onNavigate}
                     sectionId="duty-book"
-                    selected={isDutyBookActive}
-                    sheet={sheet} /> }
+                    selected={isDutyBookActive} /> }
 
             { secondaryLinks.filter(link => link.visible).map(link => (
                 <NavigationLink
@@ -98,8 +96,7 @@ export function SecondaryNavigationItems(props: SecondaryNavigationItemsProps) {
                     icon={link.icon}
                     label={link.label}
                     onClick={onNavigate}
-                    selected={isNavigationPathActive(relativePathname, link.segment)}
-                    sheet={sheet} />
+                    selected={isNavigationPathActive(relativePathname, link.segment)} />
             )) }
         </>
     );

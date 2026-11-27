@@ -6,6 +6,8 @@
 import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 
+import Box from '@mui/material/Box';
+
 /**
  * Resets the scroll position of its enclosing scroll container whenever the active pathname
  * changes. Required on mobile where `<Page>` renders an inner `overflow-y: auto` sheet that
@@ -27,5 +29,5 @@ export function PageScrollReset() {
             container.scrollTop = 0;
     }, [ pathname ]);
 
-    return <span aria-hidden="true" ref={markerRef} style={{ display: 'none' }} />;
+    return <Box component="span" aria-hidden="true" ref={markerRef} sx={{ display: 'none' }} />;
 }

@@ -5,9 +5,9 @@
 
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
-import List from '@mui/material/List';
 
 import type { NavigationData } from '../lib/navigationTypes';
+import { NavigationSheetList } from './NavigationItem';
 import { SecondaryNavigationItems } from './NavigationList';
 
 import { kPillBorderRadius } from '../Constants';
@@ -61,13 +61,12 @@ export function MobileMoreSheet(props: MobileMoreSheetProps) {
                     width: 36,
                 }} />
 
-                <List disablePadding>
+                <NavigationSheetList>
                     <SecondaryNavigationItems
                         data={data}
                         onNavigate={onClose}
-                        relativePathname={relativePathname}
-                        sheet />
-                </List>
+                        relativePathname={relativePathname} />
+                </NavigationSheetList>
             </Box>
         </Drawer>
     );

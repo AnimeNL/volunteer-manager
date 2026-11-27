@@ -4,7 +4,7 @@
 'use client';
 
 import Link from '@app/LinkProxy';
-import { useState } from 'react';
+import { createContext, useContext, useState } from 'react';
 
 import type { ExtendButtonBase } from '@mui/material/ButtonBase';
 import type { ListItemButtonTypeMap } from '@mui/material/ListItemButton';
@@ -25,6 +25,25 @@ import { mixColor } from '../ScheduleTheme';
 import { kPillBorderRadius } from '../Constants';
 
 import { updateNavigationSectionExpanded } from './NavigationActions';
+
+/**
+ * Context indicating whether navigation items are rendered inside the mobile More bottom sheet.
+ */
+const NavigationSheetContext = createContext<boolean>(false);
+
+/**
+ * Wraps navigation items rendered inside the mobile More bottom sheet so children receive taller
+ * touch targets without threading a `sheet` prop through every intermediate component.
+ */
+export function NavigationSheetList(props: React.PropsWithChildren) {
+    return (
+        <NavigationSheetContext.Provider value={true}>
+            <List disablePadding>
+                {props.children}
+            </List>
+        </NavigationSheetContext.Provider>
+    );
+}
 
 /**
  * Props accepted by the <NavigationLink> component.
@@ -64,22 +83,18 @@ interface NavigationLinkProps {
      * Whether this navigation item corresponds to the active route.
      */
     selected?: boolean;
-
-    /**
-     * Whether the item is rendered inside the mobile More bottom sheet (slightly taller touch
-     * targets).
-     */
-    sheet?: boolean;
 }
 
 /**
  * Single full-pill navigation link shared across the desktop sidebar and mobile More sheet.
  */
 export function NavigationLink(props: NavigationLinkProps) {
+    const sheet = useContext(NavigationSheetContext);
+
     return (
         <NavigationPill component={props.href ? Link : 'div'} hasAction={props.hasAction}
                         href={props.href} onClick={props.onClick} selected={props.selected}
-                        sheet={props.sheet}>
+                        sheet={sheet}>
             <ListItemIcon>
                 { props.selected && props.activeIcon ? props.activeIcon : props.icon }
             </ListItemIcon>
@@ -127,7 +142,6 @@ interface ExpandableNavigationSectionProps {
     onNavigate?: () => void;
     sectionId: ExpandableNavigationSectionId;
     selected: boolean;
-    sheet?: boolean;
 }
 
 /**
@@ -135,6 +149,7 @@ interface ExpandableNavigationSectionProps {
  * in the desktop sidebar and Duty books in both the desktop sidebar and mobile More sheet.
  */
 export function ExpandableNavigationSection(props: ExpandableNavigationSectionProps) {
+    const sheet = useContext(NavigationSheetContext);
     const [ expanded, setExpanded ] = useState<boolean>(props.defaultExpanded ?? false);
     if (!props.items.length) {
         return (
@@ -144,8 +159,7 @@ export function ExpandableNavigationSection(props: ExpandableNavigationSectionPr
                 icon={props.icon}
                 label={props.label}
                 onClick={props.onNavigate}
-                selected={props.selected}
-                sheet={props.sheet} />
+                selected={props.selected} />
         );
     }
 
@@ -163,7 +177,7 @@ export function ExpandableNavigationSection(props: ExpandableNavigationSectionPr
         <>
             <ListItem
                 disablePadding
-                sx={{ mb: props.sheet ? 0.5 : 0.25 }}
+                sx={{ mb: sheet ? 0.5 : 0.25 }}
                 secondaryAction={
                     <ExpandButton
                         aria-expanded={expanded}
@@ -171,7 +185,7 @@ export function ExpandableNavigationSection(props: ExpandableNavigationSectionPr
                         edge="end"
                         expanded={expanded}
                         onClick={handleToggleExpanded}
-                        sheet={props.sheet}
+                        sheet={sheet}
                         size="small">
                         <ExpandMoreIcon fontSize="small" />
                     </ExpandButton>
@@ -183,8 +197,7 @@ export function ExpandableNavigationSection(props: ExpandableNavigationSectionPr
                     icon={props.icon}
                     label={props.label}
                     onClick={props.onNavigate}
-                    selected={props.selected}
-                    sheet={props.sheet} />
+                    selected={props.selected} />
             </ListItem>
 
             <Collapse in={expanded} unmountOnExit>
@@ -198,7 +211,7 @@ export function ExpandableNavigationSection(props: ExpandableNavigationSectionPr
                     { props.items.map(item => (
                         <NavigationPill key={item.key} component={Link} href={item.href} nested
                                         onClick={props.onNavigate} selected={item.selected}
-                                        sheet={props.sheet}>
+                                        sheet={sheet}>
                             <ListItemText
                                 primary={item.label}
                                 slotProps={{ primary: { noWrap: true, variant: 'body2' } }} />
