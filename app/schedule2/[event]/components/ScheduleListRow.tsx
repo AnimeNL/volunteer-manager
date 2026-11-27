@@ -10,8 +10,10 @@ import type { Theme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import LinearProgress from '@mui/material/LinearProgress';
 import Stack from '@mui/material/Stack';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 import { styled } from '@mui/material/styles';
@@ -68,6 +70,12 @@ interface ScheduleListRowProps {
     subtitle?: React.ReactNode;
 
     /**
+     * Whether the item represents a ticketed event, displaying a ticket icon beside the trailing
+     * metadata.
+     */
+    ticketed?: boolean;
+
+    /**
      * Primary single-line label for the row.
      */
     title: React.ReactNode;
@@ -91,6 +99,7 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
         progressColor = 'primary',
         state = 'default',
         subtitle,
+        ticketed = false,
         title,
         trailing,
     } = props;
@@ -142,11 +151,30 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
                             {subtitle}
                         </Typography> }
                 </Box>
-                { (!!trailing || chevron) &&
+                { (ticketed || !!trailing || chevron) &&
                     <Stack
                         direction="row"
-                        spacing={0.5}
+                        spacing={0.75}
                         sx={{ alignItems: 'center', flexShrink: 0 }}>
+                        { ticketed &&
+                            <Tooltip title="Ticketed event">
+                                <Box
+                                    component="span"
+                                    aria-label="Ticketed event"
+                                    sx={{
+                                        alignItems: 'center',
+                                        color: state === 'active'
+                                            ? 'primary.main'
+                                            : (isPast ? 'text.disabled' : 'text.secondary'),
+                                        display: 'inline-flex',
+                                        flexShrink: 0,
+                                        opacity: state === 'default' ? 0.85 : 1,
+                                        transform: 'translateY(-1px)',
+                                        typography: 'body2',
+                                    }}>
+                                    <ConfirmationNumberOutlinedIcon fontSize="inherit" />
+                                </Box>
+                            </Tooltip> }
                         { !!trailing &&
                             <Typography
                                 color={state === 'active'

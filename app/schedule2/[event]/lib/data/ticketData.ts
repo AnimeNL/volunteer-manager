@@ -183,6 +183,26 @@ export async function getEventTicketSales(
 }
 
 /**
+ * Returns the set of AnPlan activity IDs that have at least one configured ticket product linked
+ * in `event`, or an empty set when ticketing is not configured.
+ */
+export async function getTicketedActivityIds(
+    event: Pick<CachedEvent, 'id' | 'integrations' | 'tickets'>): Promise<Set<number>>
+{
+    if (!isTicketServiceConfigured(event))
+        return new Set();
+
+    const configurations = await loadTicketConfigurations(event.id);
+    const activityIds = new Set<number>();
+    for (const config of configurations) {
+        if (config.activityId !== undefined && !!config.name)
+            activityIds.add(config.activityId);
+    }
+
+    return activityIds;
+}
+
+/**
  * Returns the barcode and formatted order number of the valid, non-cancelled festival ticket
  * assigned to `userId` for `event`, or `undefined` when ticketing is not configured or no ticket
  * has been issued.

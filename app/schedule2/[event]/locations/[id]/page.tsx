@@ -19,6 +19,7 @@ import { createScheduleMetadataFn } from '../../lib/generateScheduleMetadata';
 import { formatDate } from '@lib/Temporal';
 import { getProgramLocationDetail } from '../../lib/data/programData';
 import { getSchedulePath } from '../../lib/navigationTypes';
+import { getTicketedActivityIds } from '../../lib/data/ticketData';
 import { requireScheduleAccess } from '../../lib/getScheduleAccess';
 
 /**
@@ -38,8 +39,10 @@ async function loadLocationDetail(params: Promise<{ event: string; id: string }>
 async function LocationScheduleContent(props: { params: Promise<{ event: string; id: string }> }) {
     const { event: eventSlug, id } = await props.params;
     const { currentTime, event } = await requireScheduleAccess(eventSlug);
-    const data = await getProgramLocationDetail(
-        event.integrations?.anPlanFestivalId, id, event.timeZone);
+    const [ data, ticketedActivityIds ] = await Promise.all([
+        getProgramLocationDetail(event.integrations?.anPlanFestivalId, id, event.timeZone),
+        getTicketedActivityIds(event),
+    ]);
     if (!data)
         notFound();
 
@@ -117,6 +120,7 @@ async function LocationScheduleContent(props: { params: Promise<{ event: string;
                                     event.slug, `/events/${programEvent.activityId}`)}
                                 progress={programEvent.progress}
                                 state={programEvent.state}
+                                ticketed={ticketedActivityIds.has(programEvent.activityId)}
                                 title={programEvent.title}
                                 trailing={programEvent.time} /> ) }
                     </ScheduleSection>
