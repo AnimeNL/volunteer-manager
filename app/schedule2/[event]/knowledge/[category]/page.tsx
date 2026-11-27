@@ -74,13 +74,7 @@ async function CategoryHeaderActions(
             <LockOutlinedIcon
                 aria-label="Access is limited"
                 fontSize="small"
-                sx={{
-                    color: '#8c5a12',
-                    mx: 0.75,
-                    '.dark &': {
-                        color: '#d9b87c',
-                    },
-                }} />
+                sx={{ color: 'warning.main', mx: 0.75 }} />
         </Tooltip>
     );
 }

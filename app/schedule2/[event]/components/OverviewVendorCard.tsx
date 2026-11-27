@@ -101,12 +101,12 @@ export function OverviewVendorCard(props: OverviewVendorCardProps) {
                             {icon}
                         </VendorIconBadge>
                         <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>
-                            <Typography variant="subtitle2" color="textPrimary"
-                                        sx={{ fontWeight: 600, lineHeight: 1.25 }}>
+                            <Typography variant="subtitle2" color="text.primary"
+                                        sx={{ lineHeight: 1.25 }}>
                                 {title}
                             </Typography>
                             <Typography variant="body2"
-                                        color={isEmpty ? 'textDisabled' : 'textSecondary'}
+                                        color={isEmpty ? 'text.disabled' : 'text.secondary'}
                                         sx={{ lineHeight: 1.35 }}>
                                 { isEmpty ? 'Nobody is currently on site' : entry.names.join(', ') }
                             </Typography>
@@ -160,33 +160,22 @@ const VendorIconBadge = styled(Box, {
             {
                 props: { inactive: true },
                 style: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                    backgroundColor: palette.action.hover,
                     color: palette.text.disabled,
-                    ...theme.applyStyles('dark', {
-                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                    }),
                 },
             },
             {
                 props: { inactive: false, team: kVendorTeam.FirstAid },
                 style: {
-                    backgroundColor: 'rgba(211, 47, 47, 0.12)',
-                    color: '#c62828',
-                    ...theme.applyStyles('dark', {
-                        backgroundColor: 'rgba(239, 68, 68, 0.16)',
-                        color: '#f09494',
-                    }),
+                    backgroundColor: `color-mix(in srgb, ${palette.error.main} 14%, transparent)`,
+                    color: palette.error.main,
                 },
             },
             {
                 props: { inactive: false, team: kVendorTeam.Security },
                 style: {
-                    backgroundColor: 'rgba(25, 118, 210, 0.12)',
-                    color: '#1565c0',
-                    ...theme.applyStyles('dark', {
-                        backgroundColor: 'rgba(96, 165, 250, 0.16)',
-                        color: '#94c0f7',
-                    }),
+                    backgroundColor: `color-mix(in srgb, ${palette.info.main} 14%, transparent)`,
+                    color: palette.info.main,
                 },
             },
         ],
@@ -207,10 +196,7 @@ const VendorRowButton = styled(ButtonBase)(({ theme }) => ({
     width: '100%',
 
     '&:hover': {
-        backgroundColor: 'rgba(0, 0, 0, 0.04)',
-        ...theme.applyStyles('dark', {
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        }),
+        backgroundColor: (theme.vars || theme).palette.action.hover,
     },
 })) as ExtendButtonBase<ButtonBaseTypeMap>;
 

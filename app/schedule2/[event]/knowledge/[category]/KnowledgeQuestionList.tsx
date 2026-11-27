@@ -91,7 +91,7 @@ const QuestionListRoot = styled(Box)(({ theme }) => {
     const palette = (theme.vars || theme).palette;
 
     return {
-        backgroundColor: palette.m3.card,
+        backgroundColor: palette.background.paper,
         borderRadius: kCardBorderRadiusPx,
         overflow: 'hidden',
 
@@ -118,8 +118,8 @@ const QuestionItemRoot = styled(Box, {
                 props: { expanded: true },
                 style: {
                     backgroundColor:
-                        `color-mix(in srgb, ${palette.m3.secondaryContainer} 42%, ` +
-                        `${palette.m3.card})`,
+                        `color-mix(in srgb, ${palette.secondary.main} 42%, ` +
+                        `${palette.background.paper})`,
                 },
             },
         ],
@@ -142,10 +142,7 @@ const QuestionSummaryButton = styled(ButtonBase)(({ theme }) => ({
     width: '100%',
 
     '&:hover': {
-        backgroundColor: 'rgba(0, 0, 0, 0.04)',
-        ...theme.applyStyles('dark', {
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        }),
+        backgroundColor: (theme.vars || theme).palette.action.hover,
     },
 }));
 
@@ -181,6 +178,6 @@ const QuestionAnswerPanel = styled(Box)(({ theme }) => ({
  * Primary-coloured left accent bar framing the rendered Markdown answer.
  */
 const QuestionAnswerAccent = styled(Box)(({ theme }) => ({
-    borderLeft: `2px solid ${(theme.vars || theme).palette.m3.primary}`,
+    borderLeft: `2px solid ${(theme.vars || theme).palette.primary.main}`,
     paddingLeft: theme.spacing(1.5),
 }));

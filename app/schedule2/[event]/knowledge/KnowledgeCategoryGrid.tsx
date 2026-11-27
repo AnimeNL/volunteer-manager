@@ -88,10 +88,7 @@ export function KnowledgeCategoryGrid(props: KnowledgeCategoryGridProps) {
                                     </Stack>
 
                                     <Box sx={{ minWidth: 0 }}>
-                                        <Typography variant="subtitle2" sx={{
-                                            fontWeight: 600,
-                                            lineHeight: 1.35,
-                                        }}>
+                                        <Typography variant="subtitle2">
                                             {category.title}
                                         </Typography>
                                         { !!category.description &&
@@ -102,7 +99,7 @@ export function KnowledgeCategoryGrid(props: KnowledgeCategoryGridProps) {
                                 </Stack>
 
                                 <CategoryFooter>
-                                    <Typography variant="caption" color="textSecondary" sx={{
+                                    <Typography variant="caption" color="text.secondary" sx={{
                                         fontVariantNumeric: 'tabular-nums',
                                     }}>
                                         {countLabel}
@@ -136,7 +133,7 @@ const CategoryCardButton = styled(ButtonBase)(({ theme }) => {
 
     return {
         alignItems: 'stretch',
-        backgroundColor: palette.m3.card,
+        backgroundColor: palette.background.paper,
         borderRadius: kCardBorderRadiusPx,
         color: palette.text.primary,
         display: 'flex',
@@ -151,7 +148,8 @@ const CategoryCardButton = styled(ButtonBase)(({ theme }) => {
         width: '100%',
 
         '&:hover': {
-            backgroundColor: `color-mix(in srgb, ${palette.m3.card} 94%, ${palette.text.primary})`,
+            backgroundColor:
+                `color-mix(in srgb, ${palette.background.paper} 94%, ${palette.text.primary})`,
         },
     };
 }) as ExtendButtonBase<ButtonBaseTypeMap>;
@@ -164,9 +162,9 @@ const CategoryIconBadge = styled(Box)(({ theme }) => {
 
     return {
         alignItems: 'center',
-        backgroundColor: palette.m3.secondaryContainer,
+        backgroundColor: palette.secondary.main,
         borderRadius: 10,
-        color: palette.m3.onSecondaryContainer,
+        color: palette.secondary.contrastText,
         display: 'flex',
         flexShrink: 0,
         height: 40,
@@ -178,23 +176,23 @@ const CategoryIconBadge = styled(Box)(({ theme }) => {
 /**
  * Warm-amber pill indicator denoting categories with restricted role or team visibility.
  */
-const LimitedBadge = styled('span')(({ theme }) => ({
-    alignItems: 'center',
-    backgroundColor: 'rgba(140, 90, 18, 0.12)',
-    borderRadius: 9999,
-    color: '#8c5a12',
-    display: 'inline-flex',
-    flexShrink: 0,
-    fontSize: theme.typography.caption.fontSize,
-    fontWeight: 500,
-    gap: theme.spacing(0.5),
-    lineHeight: 1.4,
-    padding: theme.spacing(0.25, 1),
-    ...theme.applyStyles('dark', {
-        backgroundColor: 'rgba(217, 184, 124, 0.14)',
-        color: '#d9b87c',
-    }),
-}));
+const LimitedBadge = styled('span')(({ theme }) => {
+    const palette = (theme.vars || theme).palette;
+
+    return {
+        alignItems: 'center',
+        backgroundColor: `color-mix(in srgb, ${palette.warning.main} 13%, transparent)`,
+        borderRadius: 9999,
+        color: palette.warning.main,
+        display: 'inline-flex',
+        flexShrink: 0,
+        fontSize: theme.typography.caption.fontSize,
+        fontWeight: 500,
+        gap: theme.spacing(0.5),
+        lineHeight: 1.4,
+        padding: theme.spacing(0.25, 1),
+    };
+});
 
 /**
  * Muted category description clamped to two lines to keep Bento cards balanced in height.

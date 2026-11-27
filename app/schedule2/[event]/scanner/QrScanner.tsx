@@ -191,7 +191,10 @@ export function QrScanner(props: QrScannerProps) {
                     <Typography component="span" variant="body2">
                         { feedback.pending ? 'Processing code: ' : 'Scanned code: ' }
                     </Typography>
-                    <Typography component="span" variant="body2" sx={{ fontFamily: 'monospace' }}>
+                    <Typography
+                        component="span"
+                        variant="body2"
+                        sx={{ fontFamily: 'monospace', letterSpacing: 1 }}>
                         {feedback.barcode}
                     </Typography>
                 </Alert> }
@@ -215,10 +218,10 @@ function ScannerBlockedState(props: {
                 {props.icon}
             </BlockedIconBadge>
             <Stack spacing={0.5} sx={{ maxWidth: 380 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                <Typography variant="subtitle1">
                     {props.title}
                 </Typography>
-                <Typography variant="body2" color="textSecondary">
+                <Typography variant="body2" color="text.secondary">
                     {props.description}
                 </Typography>
             </Stack>
@@ -238,7 +241,7 @@ function ScannerBlockedState(props: {
 const Viewfinder = styled(Box)(({ theme }) => ({
     aspectRatio: '1 / 1',
     backgroundColor: '#000000',
-    borderRadius: theme.spacing(1.5),
+    borderRadius: theme.shape.borderRadius,
     maxHeight: 440,
     overflow: 'hidden',
     position: 'relative',
@@ -268,23 +271,29 @@ const ViewfinderOverlay = styled(Box)({
 
 const ReticleFrame = styled(Box, {
     shouldForwardProp: prop => prop !== 'active',
-})<{ active: boolean }>(({ active, theme }) => ({
-    border: `2px solid ${active ? (theme.vars || theme).palette.m3.primary : 'rgba(255, 255, 255, 0.72)'}`,
-    borderRadius: theme.spacing(2),
-    boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.28)',
-    height: '62%',
-    left: '50%',
-    maxHeight: 240,
-    maxWidth: 240,
-    pointerEvents: 'none',
-    position: 'absolute',
-    top: '50%',
-    transform: 'translate(-50%, -50%)',
-    transition: theme.transitions.create('border-color', {
-        duration: theme.transitions.duration.shorter,
-    }),
-    width: '62%',
-}));
+})<{ active: boolean }>(({ active, theme }) => {
+    const borderColor = active
+        ? (theme.vars || theme).palette.primary.main
+        : 'rgba(255, 255, 255, 0.72)';
+
+    return {
+        border: `2px solid ${borderColor}`,
+        borderRadius: theme.spacing(2),
+        boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.28)',
+        height: '62%',
+        left: '50%',
+        maxHeight: 240,
+        maxWidth: 240,
+        pointerEvents: 'none',
+        position: 'absolute',
+        top: '50%',
+        transform: 'translate(-50%, -50%)',
+        transition: theme.transitions.create('border-color', {
+            duration: theme.transitions.duration.shorter,
+        }),
+        width: '62%',
+    };
+});
 
 const ControlsBar = styled(Stack)(({ theme }) => ({
     bottom: theme.spacing(1.5),
@@ -307,8 +316,8 @@ const BlockedContainer = styled(Stack)(({ theme }) => {
     const palette = (theme.vars || theme).palette;
     return {
         alignItems: 'center',
-        backgroundColor: palette.m3.shell,
-        borderRadius: theme.spacing(1.5),
+        backgroundColor: palette.background.default,
+        borderRadius: theme.shape.borderRadius,
         padding: theme.spacing(4, 2.5),
         textAlign: 'center',
     };
@@ -318,9 +327,9 @@ const BlockedIconBadge = styled(Box)(({ theme }) => {
     const palette = (theme.vars || theme).palette;
     return {
         alignItems: 'center',
-        backgroundColor: palette.m3.secondaryContainer,
+        backgroundColor: palette.secondary.main,
         borderRadius: '50%',
-        color: palette.m3.onSecondaryContainer,
+        color: palette.secondary.contrastText,
         display: 'flex',
         height: 64,
         justifyContent: 'center',

@@ -164,7 +164,7 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
                             </Tooltip> }
                     </Stack>
                     { !!subtitle &&
-                        <Typography variant="body2" color="textSecondary" noWrap
+                        <Typography variant="body2" color="text.secondary" noWrap
                                     sx={{ lineHeight: 1.35 }}>
                             {subtitle}
                         </Typography> }
@@ -216,7 +216,7 @@ const ConjoinedListRoot = styled(Box, {
     const palette = (theme.vars || theme).palette;
 
     return {
-        backgroundColor: palette.m3.card,
+        backgroundColor: palette.background.paper,
         borderRadius: kCardBorderRadiusPx,
         overflow: 'hidden',
 
@@ -226,7 +226,7 @@ const ConjoinedListRoot = styled(Box, {
 
         '& > [data-state="active"] + [data-state="active"]': {
             borderTop:
-                `1px solid color-mix(in srgb, ${palette.m3.onSecondaryContainer} 12%, transparent)`,
+                `1px solid color-mix(in srgb, ${palette.secondary.contrastText} 12%, transparent)`,
         },
 
         '& > :not([data-state="active"]) + [data-state="active"]': {
@@ -237,11 +237,9 @@ const ConjoinedListRoot = styled(Box, {
             {
                 props: { muted: true },
                 style: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.025)',
+                    backgroundColor:
+                        `color-mix(in srgb, ${palette.text.primary} 2.5%, transparent)`,
                     border: `1px solid ${palette.divider}`,
-                    ...theme.applyStyles('dark', {
-                        backgroundColor: 'rgba(255, 255, 255, 0.025)',
-                    }),
                 },
             },
         ],
@@ -260,7 +258,7 @@ const SegmentedListRoot = styled(Box)(({ theme }) => {
         gap: 3,
 
         '& > [data-state]': {
-            backgroundColor: palette.m3.card,
+            backgroundColor: palette.background.paper,
             borderRadius: 4,
             overflow: 'hidden',
         },
@@ -276,7 +274,8 @@ const SegmentedListRoot = styled(Box)(({ theme }) => {
         },
 
         '& > a[data-state="default"]:hover': {
-            backgroundColor: `color-mix(in srgb, ${palette.m3.card} 94%, ${palette.text.primary})`,
+            backgroundColor:
+                `color-mix(in srgb, ${palette.background.paper} 94%, ${palette.text.primary})`,
         },
     };
 });
@@ -304,8 +303,8 @@ function rowSurfaceStyles(theme: Theme) {
                 props: { rowState: 'active' as ScheduleListRowState },
                 style: {
                     backgroundColor:
-                        `color-mix(in srgb, ${palette.m3.secondaryContainer} 65%, ` +
-                        `${palette.m3.card})`,
+                        `color-mix(in srgb, ${palette.secondary.main} 65%, ` +
+                        `${palette.background.paper})`,
                 },
             },
         ],
@@ -327,15 +326,12 @@ const RowButton = styled(ButtonBase, {
         }),
 
         '&:hover': {
-            backgroundColor: 'rgba(0, 0, 0, 0.04)',
-            ...theme.applyStyles('dark', {
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            }),
+            backgroundColor: palette.action.hover,
         },
 
         '&[data-state="active"]:hover': {
             backgroundColor:
-                `color-mix(in srgb, ${palette.m3.secondaryContainer} 80%, ${palette.m3.card})`,
+                `color-mix(in srgb, ${palette.secondary.main} 80%, ${palette.background.paper})`,
         },
     };
 }) as ExtendButtonBase<
@@ -371,7 +367,7 @@ const RowTitle = styled(Typography, {
             {
                 props: { state: 'active' },
                 style: {
-                    color: palette.m3.onSecondaryContainer,
+                    color: palette.secondary.contrastText,
                     fontWeight: 600,
                 },
             },
@@ -403,7 +399,7 @@ const RowTrailing = styled(Typography, {
             {
                 props: { state: 'active' },
                 style: {
-                    color: palette.m3.primary,
+                    color: palette.primary.main,
                     fontWeight: 600,
                 },
             },
@@ -425,14 +421,11 @@ const HiddenIconBadge = styled('span', {
     shouldForwardProp: prop => prop !== 'muted',
 })<{ muted: boolean }>(({ theme }) => ({
     alignItems: 'center',
-    color: '#8c5a12',
+    color: (theme.vars || theme).palette.warning.main,
     display: 'inline-flex',
     flexShrink: 0,
     fontSize: theme.typography.caption.fontSize,
     opacity: 0.92,
-    ...theme.applyStyles('dark', {
-        color: '#d9b87c',
-    }),
     variants: [
         {
             props: { muted: true },
@@ -446,17 +439,18 @@ const HiddenIconBadge = styled('span', {
 /**
  * Subtle 2px progress track tucked beneath active rows.
  */
-const ProgressTrack = styled(Box)(({ theme }) => ({
-    backgroundColor: 'rgba(0, 0, 0, 0.09)',
-    borderRadius: 999,
-    height: 2,
-    marginTop: theme.spacing(0.75),
-    overflow: 'hidden',
-    width: '100%',
-    ...theme.applyStyles('dark', {
-        backgroundColor: 'rgba(255, 255, 255, 0.11)',
-    }),
-}));
+const ProgressTrack = styled(Box)(({ theme }) => {
+    const palette = (theme.vars || theme).palette;
+
+    return {
+        backgroundColor: `color-mix(in srgb, ${palette.text.primary} 10%, transparent)`,
+        borderRadius: 999,
+        height: 2,
+        marginTop: theme.spacing(0.75),
+        overflow: 'hidden',
+        width: '100%',
+    };
+});
 
 /**
  * Filled portion of `<ProgressTrack>` coloured with the configured semantic accent.
@@ -467,7 +461,7 @@ const ProgressFill = styled(Box, {
     const palette = (theme.vars || theme).palette;
 
     return {
-        backgroundColor: palette.m3.primary,
+        backgroundColor: palette.primary.main,
         borderRadius: 999,
         height: '100%',
         variants: [
