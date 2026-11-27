@@ -59,7 +59,7 @@ export function ApplicationBar(props: ApplicationBarProps) {
             alignItems: 'center',
             flexShrink: 0,
             px: { xs: 1.5, md: 0 },
-            pt: { xs: 1.5, md: 0 },
+            pt: { xs: 'calc(12px + env(safe-area-inset-top, 0px))', md: 0 },
             viewTransitionName: 'schedule-header',
         }}>
             <SearchDock onClick={() => inputRef.current?.focus()} role="search">

@@ -110,7 +110,7 @@ export interface M3TonalPalette {
 /**
  * Complete light and dark Material Design 3 palettes computed from one seed colour.
  */
-interface M3ColorScheme {
+export interface M3ColorScheme {
     dark: M3TonalPalette;
     light: M3TonalPalette;
 }

@@ -4,14 +4,14 @@
 'use client';
 
 import { Inter } from 'next/font/google';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import type { Components, PaletteOptions, Theme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
-import { ThemeProvider, createTheme, styled } from '@mui/material/styles';
+import { ThemeProvider, createTheme, styled, useColorScheme } from '@mui/material/styles';
 
-import { type M3TonalPalette, computeM3ColorScheme } from './lib/m3ColorScheme';
+import { type M3ColorScheme, type M3TonalPalette, computeM3ColorScheme } from './lib/m3ColorScheme';
 
 import { kCardBorderRadiusPx, kSheetBorderRadiusPx } from './Constants';
 
@@ -47,16 +47,57 @@ interface ScheduleThemeProps {
  * Provides the SSR-safe MUI theme and background container for the schedule App Shell.
  */
 export function ScheduleTheme(props: React.PropsWithChildren<ScheduleThemeProps>) {
-    const theme = useMemo(() => createScheduleTheme(props.themeColor), [ props.themeColor ]);
+    const scheme = useMemo(() => computeM3ColorScheme(props.themeColor), [ props.themeColor ]);
+    const theme = useMemo(() => createScheduleTheme(scheme), [ scheme ]);
 
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
+            <ScheduleThemeColorSync darkColor={scheme.dark.shell} lightColor={scheme.light.shell} />
             <ScheduleBackground>
                 {props.children}
             </ScheduleBackground>
         </ThemeProvider>
     );
+}
+
+/**
+ * Attribute marking the client-managed `<meta name="theme-color">` override tag.
+ */
+const kThemeColorOverrideAttr = 'data-schedule-theme-color';
+
+/**
+ * Keeps `<meta name="theme-color">` aligned with explicit Light / Dark overrides chosen in the
+ * account menu. When the user is in `system` mode, the server-rendered `prefers-color-scheme` meta
+ * tags from `generateViewport()` take effect natively.
+ */
+function ScheduleThemeColorSync(props: { darkColor: string; lightColor: string }) {
+    const { mode } = useColorScheme();
+
+    useEffect(() => {
+        const selector = `meta[name="theme-color"][${kThemeColorOverrideAttr}]`;
+
+        if (mode !== 'dark' && mode !== 'light') {
+            document.head.querySelector(selector)?.remove();
+            return;
+        }
+
+        let meta = document.head.querySelector<HTMLMetaElement>(selector);
+        if (!meta) {
+            meta = document.createElement('meta');
+            meta.name = 'theme-color';
+            meta.setAttribute(kThemeColorOverrideAttr, 'true');
+            document.head.prepend(meta);
+        }
+
+        meta.content = mode === 'dark' ? props.darkColor : props.lightColor;
+
+        return () => {
+            document.head.querySelector(selector)?.remove();
+        };
+    }, [ mode, props.darkColor, props.lightColor ]);
+
+    return null;
 }
 
 /**
@@ -102,9 +143,7 @@ function createSchemePalette(palette: M3TonalPalette, dark: boolean): PaletteOpt
  * `class`-based colour schemes so the App Shell prerenders cleanly on the server and pairs with
  * the root `<InitColorSchemeScript />`.
  */
-function createScheduleTheme(themeColor: string) {
-    const scheme = computeM3ColorScheme(themeColor);
-
+function createScheduleTheme(scheme: M3ColorScheme) {
     const components: Partial<Components<Theme>> = {
         MuiCard: {
             defaultProps: {
