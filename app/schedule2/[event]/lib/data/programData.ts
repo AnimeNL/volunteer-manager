@@ -12,39 +12,18 @@ import db, { tActivities, tActivitiesAreas, tActivitiesLocations,
 import { kActivityType } from '@lib/database/Types';
 
 /**
- * Serializable area timeslot row stored inside `'use cache'` before timezone conversion.
+ * Scope filter supported by `loadCachedProgramTimeslots()`.
  */
-interface CachedAreaTimeslot {
+type ProgramTimeslotScope = 'activity' | 'area' | 'location';
+
+/**
+ * Serializable program timeslot row stored inside `'use cache'` before timezone conversion.
+ */
+interface CachedProgramTimeslot {
     activityId: number;
     areaName: string;
     end: string;
     hidden: boolean;
-    locationId: number;
-    locationName: string;
-    start: string;
-    timeslotId: number;
-    title: string;
-}
-
-/**
- * Serializable location timeslot row stored inside `'use cache'` before timezone conversion.
- */
-interface CachedLocationTimeslot {
-    activityId: number;
-    areaName: string;
-    end: string;
-    hidden: boolean;
-    locationName: string;
-    start: string;
-    timeslotId: number;
-    title: string;
-}
-
-/**
- * Serializable event timeslot row stored inside `'use cache'` before timezone conversion.
- */
-interface CachedEventTimeslot {
-    end: string;
     locationId: number;
     locationName: string;
     start: string;
@@ -71,76 +50,23 @@ interface ProgramAreaWithLocations {
 }
 
 /**
- * Scheduled program timeslot within an area, with bounds converted to the event's timezone.
+ * Parses a positive integer route parameter when `festivalId` is configured.
  */
-interface ProgramAreaTimeslot {
-    activityId: number;
-    end: Temporal.ZonedDateTime;
-    hidden: boolean;
-    locationId: number;
-    locationName: string;
-    start: Temporal.ZonedDateTime;
-    timeslotId: number;
-    title: string;
+function parseFestivalEntityId(
+    festivalId: number | undefined, param: string): number | undefined
+{
+    const id = Number(param);
+    return festivalId && Number.isInteger(id) && id > 0 ? id : undefined;
 }
 
 /**
- * Resolved area metadata and scheduled program timeslots for the area detail page.
+ * Converts cached ISO instant bounds on `row` to `Temporal.ZonedDateTime` values in `timeZone`.
  */
-interface ProgramAreaDetail {
-    locationCount: number;
-    name: string;
-    rows: ProgramAreaTimeslot[];
-}
-
-/**
- * Scheduled program timeslot at a location, with bounds converted to the event's timezone.
- */
-interface ProgramLocationTimeslot {
-    activityId: number;
-    end: Temporal.ZonedDateTime;
-    hidden: boolean;
-    start: Temporal.ZonedDateTime;
-    timeslotId: number;
-    title: string;
-}
-
-/**
- * Resolved location metadata and scheduled program timeslots for the location detail page.
- */
-interface ProgramLocationDetail {
-    areaName: string;
-    name: string;
-    rows: ProgramLocationTimeslot[];
-}
-
-/**
- * Scheduled timeslot for a program event, with bounds converted to the event's timezone.
- */
-interface ProgramEventTimeslot {
-    end: Temporal.ZonedDateTime;
-    locationId: number;
-    locationName: string;
-    start: Temporal.ZonedDateTime;
-    timeslotId: number;
-}
-
-/**
- * Resolved program event metadata and scheduled timeslots for the event detail page.
- */
-interface ProgramEventDetail {
-    activityId: number;
-    location: string;
-    timeslots: ProgramEventTimeslot[];
-    title: string;
-}
-
-/**
- * Minimal program event summary for ticket holder subpages.
- */
-interface ProgramEventSummary {
-    activityId: number;
-    title: string;
+function toZonedTimeslotBounds(row: CachedProgramTimeslot, timeZone: string) {
+    return {
+        end: Temporal.Instant.from(row.end).toZonedDateTimeISO(timeZone),
+        start: Temporal.Instant.from(row.start).toZonedDateTimeISO(timeZone),
+    };
 }
 
 /**
@@ -238,17 +164,30 @@ export async function getProgramAreasWithLocations(
 }
 
 /**
- * Loads cached program timeslots for `areaId` in `festivalId` with ISO instant timestamps.
+ * Loads cached program timeslots for a given `scope` and `id` in `festivalId` with ISO instant
+ * timestamps.
  */
-async function loadCachedAreaTimeslots(
-    festivalId: number, areaId: number): Promise<CachedAreaTimeslot[]>
+async function loadCachedProgramTimeslots(
+    festivalId: number, scope: ProgramTimeslotScope, id: number): Promise<CachedProgramTimeslot[]>
 {
     'use cache';
     cacheLife('minutes');
     cacheTag('schedule-program', `schedule-program:${festivalId}`);
 
-    const rows = await selectProgramTimeslots(festivalId)
-        .and(tActivitiesAreas.areaId.equals(areaId))
+    let query = selectProgramTimeslots(festivalId);
+    switch (scope) {
+        case 'activity':
+            query = query.and(tActivities.activityId.equals(id));
+            break;
+        case 'area':
+            query = query.and(tActivitiesAreas.areaId.equals(id));
+            break;
+        case 'location':
+            query = query.and(tActivitiesLocations.locationId.equals(id));
+            break;
+    }
+
+    const rows = await query
         .select({
             activityId: tActivities.activityId,
             areaName: tActivitiesAreas.areaDisplayName.valueWhenNull(tActivitiesAreas.areaName),
@@ -275,14 +214,12 @@ async function loadCachedAreaTimeslots(
  * with timestamps converted to `timeZone`.
  */
 export const getProgramAreaDetail = cache(
-    async (festivalId: number | undefined, areaParam: string, timeZone: string)
-        : Promise<ProgramAreaDetail | undefined> =>
-    {
-        const areaId = Number(areaParam);
-        if (!festivalId || !Number.isInteger(areaId))
+    async (festivalId: number | undefined, areaParam: string, timeZone: string) => {
+        const areaId = parseFestivalEntityId(festivalId, areaParam);
+        if (!areaId)
             return undefined;
 
-        const rows = await loadCachedAreaTimeslots(festivalId, areaId);
+        const rows = await loadCachedProgramTimeslots(festivalId!, 'area', areaId);
         if (!rows.length)
             return undefined;
 
@@ -291,62 +228,27 @@ export const getProgramAreaDetail = cache(
             name: rows[0].areaName,
             rows: rows.map(row => ({
                 activityId: row.activityId,
-                end: Temporal.Instant.from(row.end).toZonedDateTimeISO(timeZone),
                 hidden: row.hidden,
                 locationId: row.locationId,
                 locationName: row.locationName,
-                start: Temporal.Instant.from(row.start).toZonedDateTimeISO(timeZone),
                 timeslotId: row.timeslotId,
                 title: row.title,
+                ...toZonedTimeslotBounds(row, timeZone),
             })),
         };
     });
-
-/**
- * Loads cached program timeslots for `locationId` in `festivalId` with ISO instant timestamps.
- */
-async function loadCachedLocationTimeslots(
-    festivalId: number, locationId: number): Promise<CachedLocationTimeslot[]>
-{
-    'use cache';
-    cacheLife('minutes');
-    cacheTag('schedule-program', `schedule-program:${festivalId}`);
-
-    const rows = await selectProgramTimeslots(festivalId)
-        .and(tActivitiesLocations.locationId.equals(locationId))
-        .select({
-            activityId: tActivities.activityId,
-            areaName: tActivitiesAreas.areaDisplayName.valueWhenNull(tActivitiesAreas.areaName),
-            end: tActivitiesTimeslots.timeslotEndTime,
-            hidden: tActivities.activityVisible.equals(/* false= */ 0),
-            locationName: tActivitiesLocations.locationDisplayName.valueWhenNull(
-                tActivitiesLocations.locationName),
-            start: tActivitiesTimeslots.timeslotStartTime,
-            timeslotId: tActivitiesTimeslots.timeslotId,
-            title: tActivities.activityTitle,
-        })
-        .executeSelectMany();
-
-    return rows.map(row => ({
-        ...row,
-        end: row.end.toInstant().toString(),
-        start: row.start.toInstant().toString(),
-    }));
-}
 
 /**
  * Request-cached loader fetching all scheduled program timeslots for `locationParam` in
  * `festivalId` with timestamps converted to `timeZone`.
  */
 export const getProgramLocationDetail = cache(
-    async (festivalId: number | undefined, locationParam: string, timeZone: string)
-        : Promise<ProgramLocationDetail | undefined> =>
-    {
-        const locationId = Number(locationParam);
-        if (!festivalId || !Number.isInteger(locationId))
+    async (festivalId: number | undefined, locationParam: string, timeZone: string) => {
+        const locationId = parseFestivalEntityId(festivalId, locationParam);
+        if (!locationId)
             return undefined;
 
-        const rows = await loadCachedLocationTimeslots(festivalId, locationId);
+        const rows = await loadCachedProgramTimeslots(festivalId!, 'location', locationId);
         if (!rows.length)
             return undefined;
 
@@ -355,58 +257,25 @@ export const getProgramLocationDetail = cache(
             name: rows[0].locationName,
             rows: rows.map(row => ({
                 activityId: row.activityId,
-                end: Temporal.Instant.from(row.end).toZonedDateTimeISO(timeZone),
                 hidden: row.hidden,
-                start: Temporal.Instant.from(row.start).toZonedDateTimeISO(timeZone),
                 timeslotId: row.timeslotId,
                 title: row.title,
+                ...toZonedTimeslotBounds(row, timeZone),
             })),
         };
     });
-
-/**
- * Loads cached program timeslots for `activityId` in `festivalId` with ISO instant timestamps.
- */
-async function loadCachedEventTimeslots(
-    festivalId: number, activityId: number): Promise<CachedEventTimeslot[]>
-{
-    'use cache';
-    cacheLife('minutes');
-    cacheTag('schedule-program', `schedule-program:${festivalId}`);
-
-    const rows = await selectProgramTimeslots(festivalId)
-        .and(tActivities.activityId.equals(activityId))
-        .select({
-            end: tActivitiesTimeslots.timeslotEndTime,
-            locationId: tActivitiesLocations.locationId,
-            locationName: tActivitiesLocations.locationDisplayName.valueWhenNull(
-                tActivitiesLocations.locationName),
-            start: tActivitiesTimeslots.timeslotStartTime,
-            timeslotId: tActivitiesTimeslots.timeslotId,
-            title: tActivities.activityTitle,
-        })
-        .executeSelectMany();
-
-    return rows.map(row => ({
-        ...row,
-        end: row.end.toInstant().toString(),
-        start: row.start.toInstant().toString(),
-    }));
-}
 
 /**
  * Request-cached loader fetching program event details and scheduled timeslots for `activityParam`
  * in `festivalId` with timestamps converted to `timeZone`.
  */
 export const getProgramEventDetail = cache(
-    async (festivalId: number | undefined, activityParam: string, timeZone: string)
-        : Promise<ProgramEventDetail | undefined> =>
-    {
-        const activityId = Number(activityParam);
-        if (!festivalId || !Number.isInteger(activityId))
+    async (festivalId: number | undefined, activityParam: string, timeZone: string) => {
+        const activityId = parseFestivalEntityId(festivalId, activityParam);
+        if (!activityId)
             return undefined;
 
-        const rows = await loadCachedEventTimeslots(festivalId, activityId);
+        const rows = await loadCachedProgramTimeslots(festivalId!, 'activity', activityId);
         if (!rows.length)
             return undefined;
 
@@ -419,11 +288,10 @@ export const getProgramEventDetail = cache(
             activityId,
             location,
             timeslots: rows.map(row => ({
-                end: Temporal.Instant.from(row.end).toZonedDateTimeISO(timeZone),
                 locationId: row.locationId,
                 locationName: row.locationName,
-                start: Temporal.Instant.from(row.start).toZonedDateTimeISO(timeZone),
                 timeslotId: row.timeslotId,
+                ...toZonedTimeslotBounds(row, timeZone),
             })),
             title: rows[0].title,
         };
@@ -452,13 +320,11 @@ async function loadCachedEventSummary(
  * Request-cached loader fetching the program event title for `activityParam` in `festivalId`.
  */
 export const getProgramEventSummary = cache(
-    async (festivalId: number | undefined, activityParam: string)
-        : Promise<ProgramEventSummary | undefined> =>
-    {
-        const activityId = Number(activityParam);
-        if (!festivalId || !Number.isInteger(activityId))
+    async (festivalId: number | undefined, activityParam: string) => {
+        const activityId = parseFestivalEntityId(festivalId, activityParam);
+        if (!activityId)
             return undefined;
 
-        const title = await loadCachedEventSummary(festivalId, activityId);
+        const title = await loadCachedEventSummary(festivalId!, activityId);
         return title ? { activityId, title } : undefined;
     });
