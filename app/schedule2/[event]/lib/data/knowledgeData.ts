@@ -189,6 +189,17 @@ export async function getKnowledgeBaseCategories(
 }
 
 /**
+ * Returns whether `userId` can access at least one Knowledge Base category in `eventId`.
+ */
+export async function hasKnowledgeBaseAccess(
+    eventId: number, userId: number, hasUnrestrictedAccess: boolean): Promise<boolean>
+{
+    const categories =
+        await getKnowledgeBaseCategories(eventId, userId, hasUnrestrictedAccess);
+    return categories.length > 0;
+}
+
+/**
  * Loads a single non-empty Knowledge Base category and its visible FAQ questions for `eventId`.
  */
 async function loadCachedKnowledgeCategory(

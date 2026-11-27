@@ -7,11 +7,12 @@ import { cacheLife, cacheTag } from 'next/cache';
 
 import type { NavigationArea, NavigationData } from './navigationTypes';
 import { getScheduleAccess } from './getScheduleAccess';
+import { hasKnowledgeBaseAccess } from './data/knowledgeData';
 import { readUserSettings } from '@lib/UserSettings';
-import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots, tContent,
-    tContentCategories, tEventsTeams, tTeams, tUsersEvents } from '@lib/database';
+import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots,
+    tEventsTeams, tTeams } from '@lib/database';
 
-import { kActivityType, kRegistrationStatus } from '@lib/database/Types';
+import { kActivityType } from '@lib/database/Types';
 
 /**
  * Serializable Duty Book-enabled team record cached per event.
@@ -20,15 +21,6 @@ interface DutyBookTeamRecord {
     id: number;
     name: string;
     slug: string;
-}
-
-/**
- * Serializable Knowledge Base category visibility constraints cached per event.
- */
-interface KnowledgeCategoryRecord {
-    id: number;
-    roles: string;
-    teams: string;
 }
 
 /**
@@ -44,12 +36,13 @@ export const getNavigationData = cache(
         const { access: permissions, event, events, user } = access;
         const festivalId = event.integrations?.anPlanFestivalId;
         const memberTeams = events.get(event.slug);
+        const hasUnrestrictedKnowledge = permissions.can('event.knowledge', { event: event.slug });
 
-        const [ areas, dutyBookTeams, knowledgeCategories, userSettings ] =
+        const [ areas, dutyBookTeams, hasKnowledgeBase, userSettings ] =
             await Promise.all([
                 festivalId ? getProgramAreas(festivalId) : Promise.resolve([]),
                 getEventDutyBookTeams(event.id),
-                getEventKnowledgeCategories(event.id),
+                hasKnowledgeBaseAccess(event.id, user.id, hasUnrestrictedKnowledge),
                 readUserSettings(user.id, [
                     'user-schedule-expand-duty-book',
                     'user-schedule-expand-events',
@@ -63,10 +56,6 @@ export const getNavigationData = cache(
             .map(team => ({ name: team.name, team: team.slug }));
 
         const hasHelpRequests = permissions.can('event.help-requests', { event: event.slug });
-        const hasUnrestrictedKnowledge = permissions.can('event.knowledge', { event: event.slug });
-
-        const hasKnowledgeBase = await resolveKnowledgeBaseVisibility(
-            knowledgeCategories, event.id, user.id, hasUnrestrictedKnowledge, memberTeams);
 
         return {
             areas,
@@ -104,29 +93,6 @@ async function getEventDutyBookTeams(eventId: number): Promise<DutyBookTeamRecor
 }
 
 /**
- * Loads the visibility constraints of non-empty Knowledge Base categories for `eventId`.
- */
-async function getEventKnowledgeCategories(eventId: number): Promise<KnowledgeCategoryRecord[]> {
-    'use cache';
-    cacheLife('minutes');
-    cacheTag('schedule-knowledge', `schedule-knowledge:${eventId}`);
-
-    return await db.selectFrom(tContentCategories)
-        .innerJoin(tContent)
-            .on(tContent.contentCategoryId.equals(tContentCategories.categoryId))
-                .and(tContent.revisionVisible.equals(/* true= */ 1))
-        .where(tContentCategories.eventId.equals(eventId))
-            .and(tContentCategories.categoryDeleted.isNull())
-        .select({
-            id: tContentCategories.categoryId,
-            roles: tContentCategories.categoryRoles,
-            teams: tContentCategories.categoryTeams,
-        })
-        .groupBy(tContentCategories.categoryId)
-        .executeSelectMany();
-}
-
-/**
  * Loads all program areas for `festivalId` that have at least one scheduled timeslot, sorted
  * alphabetically by display name.
  */
@@ -156,40 +122,4 @@ async function getProgramAreas(festivalId: number): Promise<NavigationArea[]> {
         .executeSelectMany();
 
     return rows.sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
-}
-
-/**
- * Evaluates whether the signed-in user can see at least one Knowledge Base category, only querying
- * `tUsersEvents` for role IDs when role-restricted categories could grant visibility.
- */
-async function resolveKnowledgeBaseVisibility(
-    categories: KnowledgeCategoryRecord[], eventId: number, userId: number,
-    hasUnrestrictedAccess: boolean, memberTeams?: ReadonlySet<string>): Promise<boolean>
-{
-    if (!categories.length)
-        return false;
-
-    if (hasUnrestrictedAccess)
-        return true;
-
-    const teamMatches = (teams: string) =>
-        !teams.length || (!!memberTeams && teams.split(',').some(team => memberTeams.has(team)));
-
-    const teamEligible = categories.filter(category => teamMatches(category.teams));
-    if (!teamEligible.length)
-        return false;
-
-    if (teamEligible.some(category => !category.roles.length))
-        return true;
-
-    const roleIds = await db.selectFrom(tUsersEvents)
-        .where(tUsersEvents.eventId.equals(eventId))
-            .and(tUsersEvents.userId.equals(userId))
-            .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
-        .selectOneColumn(tUsersEvents.roleId)
-        .executeSelectMany();
-
-    const userRoleIds = new Set(roleIds.map(id => `${id}`));
-    return teamEligible.some(category =>
-        category.roles.split(',').some(role => userRoleIds.has(role)));
 }
