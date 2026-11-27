@@ -260,7 +260,7 @@ function rowSurfaceStyles(theme: Theme) {
                 props: { rowState: 'past' as ScheduleListRowState },
                 style: {
                     backgroundColor:
-                        `color-mix(in srgb, ${palette.text.primary} 2.5%, ${palette.m3.sheet})`,
+                        `color-mix(in srgb, ${palette.text.primary} 4.5%, ${palette.m3.sheet})`,
                 },
             },
             {
@@ -310,7 +310,7 @@ const RowButton = styled(ButtonBase, {
 
         '&[data-state="past"]:hover': {
             backgroundColor:
-                `color-mix(in srgb, ${palette.text.primary} 6%, ${palette.m3.sheet})`,
+                `color-mix(in srgb, ${palette.text.primary} 8%, ${palette.m3.sheet})`,
         },
     };
 }) as ExtendButtonBase<ButtonBaseTypeMap<RowSurfaceProps>>;
