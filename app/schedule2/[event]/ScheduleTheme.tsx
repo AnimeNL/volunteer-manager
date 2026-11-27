@@ -109,6 +109,39 @@ function createScheduleTheme(themeColor: string) {
                 }),
             },
         },
+        MuiCssBaseline: {
+            styleOverrides: theme => {
+                const palette = (theme.vars || theme).palette;
+                return {
+                    '*::-webkit-scrollbar': {
+                        height: 10,
+                        width: 10,
+                    },
+                    '*::-webkit-scrollbar-track': {
+                        backgroundColor: 'transparent',
+                    },
+                    '*::-webkit-scrollbar-thumb': {
+                        backgroundClip: 'content-box',
+                        backgroundColor: palette.m3.outlineVariant,
+                        border: '3px solid transparent',
+                        borderRadius: 999,
+                    },
+                    '*::-webkit-scrollbar-thumb:hover': {
+                        backgroundColor:
+                            `color-mix(in srgb, ${palette.m3.onSurfaceVariant} 50%, transparent)`,
+                    },
+                    '*::-webkit-scrollbar-corner': {
+                        backgroundColor: 'transparent',
+                    },
+                    '@supports not selector(::-webkit-scrollbar)': {
+                        '*': {
+                            scrollbarColor: `${palette.m3.outlineVariant} transparent`,
+                            scrollbarWidth: 'thin',
+                        },
+                    },
+                };
+            },
+        },
         MuiDrawer: {
             styleOverrides: {
                 paper: ({ theme }) => ({

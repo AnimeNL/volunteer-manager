@@ -58,6 +58,9 @@ export function Page(props: React.PropsWithChildren<PageProps>) {
                     md: 0,
                 },
                 position: { xs: 'relative', md: 'static' },
+                '&::-webkit-scrollbar-track': {
+                    marginTop: { xs: `${kSheetBorderRadiusPx}px`, md: 0 },
+                },
             }}>
                 <PullToRefresh />
                 <Suspense fallback={null}>
