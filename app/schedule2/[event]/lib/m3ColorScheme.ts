@@ -104,11 +104,12 @@ export interface M3TonalPalette {
 
     /**
      * Analogous tonal palettes shifted in HCL hue space from the seed colour for overview action
-     * tiles (seafoam, sage, and warm honey when seeded with green).
+     * tiles (seafoam, sage, warm honey, and sky when seeded with green).
      */
     tileAccentA: M3ActionTileTone;
     tileAccentB: M3ActionTileTone;
     tileAccentC: M3ActionTileTone;
+    tileAccentD: M3ActionTileTone;
 }
 
 /**
@@ -198,6 +199,7 @@ export function computeM3ColorScheme(seedColor: string): M3ColorScheme {
         tileAccentA: computeTileTone(hue + 50, tileChroma, /* dark= */ true),
         tileAccentB: computeTileTone(hue - 18, tileChroma, /* dark= */ true),
         tileAccentC: computeTileTone(hue - 55, tileChroma, /* dark= */ true),
+        tileAccentD: computeTileTone(hue + 100, tileChroma, /* dark= */ true),
     };
 
     const light: M3TonalPalette = {
@@ -221,6 +223,7 @@ export function computeM3ColorScheme(seedColor: string): M3ColorScheme {
         tileAccentA: computeTileTone(hue + 50, tileChroma, /* dark= */ false),
         tileAccentB: computeTileTone(hue - 18, tileChroma, /* dark= */ false),
         tileAccentC: computeTileTone(hue - 55, tileChroma, /* dark= */ false),
+        tileAccentD: computeTileTone(hue + 100, tileChroma, /* dark= */ false),
     };
 
     return { dark, light };

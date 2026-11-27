@@ -4,7 +4,7 @@
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
-import QrCode2Icon from '@mui/icons-material/QrCode2';
+import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -99,7 +99,7 @@ export default function ScheduleTicketPage(props: PageProps<'/schedule2/[event]/
             header={
                 <Header
                     description="Welcoming you to the festival"
-                    icon={ <QrCode2Icon /> }
+                    icon={ <ConfirmationNumberOutlinedIcon /> }
                     title="Your ticket" />
             }>
             <Card>

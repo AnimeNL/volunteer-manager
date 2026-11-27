@@ -6,7 +6,7 @@
  */
 const kNavigationSectionOrder = [
     '', '/shifts', '/areas', '/duty-book', '/help-requests', '/knowledge', '/volunteers',
-    '/settings', '/hotel', '/ticket', '/feedback', '/vendors',
+    '/settings', '/hotel', '/ticket', '/scanner', '/feedback', '/vendors',
 ];
 
 /**

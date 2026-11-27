@@ -8,7 +8,7 @@ import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 
-import type { OverviewActionTileId } from './components/OverviewActions';
+import type { OverviewActionTileId } from './components/OverviewActionTiles';
 import type { OverviewVendorEntry } from './components/OverviewVendorCard';
 import { EventBanner } from './components/EventBanner';
 import { OverviewActionTiles } from './components/OverviewActionTiles';
@@ -17,7 +17,7 @@ import { Page, SuspenseReveal } from './components/Page';
 import { getActiveVendors, hasVendorSchedule } from './lib/data/vendorData';
 import { getVolunteerHotelBookings } from './lib/data/hotelData';
 import { getVolunteerTicket } from './lib/data/ticketData';
-import { readSettings } from '@lib/Settings';
+import { readCachedSetting, readSettings } from '@lib/Settings';
 import { readUserSettings } from '@lib/UserSettings';
 import { requireScheduleAccess } from './lib/getScheduleAccess';
 
@@ -32,8 +32,9 @@ async function OverviewActions(props: { params: Promise<{ event: string }> }) {
     const { event: eventSlug } = await props.params;
     const { event, user } = await requireScheduleAccess(eventSlug);
 
-    const [ hotelBookings, ticket, userSettings ] = await Promise.all([
+    const [ hotelBookings, scannerEnabled, ticket, userSettings ] = await Promise.all([
         getVolunteerHotelBookings(event, user.id),
+        readCachedSetting('schedule-enable-scanner', false),
         getVolunteerTicket(event, user.id),
         readUserSettings(user.id, [
             'user-schedule-hide-feedback-tile',
@@ -50,6 +51,8 @@ async function OverviewActions(props: { params: Promise<{ event: string }> }) {
         tiles.push('hotel');
     if (!userSettings['user-schedule-hide-schedule-tile'])
         tiles.push('schedule');
+    if (scannerEnabled)
+        tiles.push('scanner');
     if (!userSettings['user-schedule-hide-feedback-tile'])
         tiles.push('feedback');
 

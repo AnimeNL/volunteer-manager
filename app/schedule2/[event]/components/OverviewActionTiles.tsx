@@ -11,11 +11,12 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
 import CloseIcon from '@mui/icons-material/Close';
+import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
 import Grid from '@mui/material/Grid';
 import HotelOutlinedIcon from '@mui/icons-material/HotelOutlined';
 import IconButton from '@mui/material/IconButton';
-import QrCode2Icon from '@mui/icons-material/QrCode2';
+import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
@@ -24,12 +25,18 @@ import { getNavigationTransitionTypes, getSchedulePath } from '../lib/navigation
 
 import { kCardBorderRadiusPx } from '../Constants';
 
-import { type OverviewActionTileId, dismissOverviewActionTile } from './OverviewActions';
+import { type DismissibleOverviewActionTileId,
+    dismissOverviewActionTile } from './OverviewActions';
+
+/**
+ * Identifier of an actionable tile on the schedule overview page.
+ */
+export type OverviewActionTileId = DismissibleOverviewActionTileId | 'scanner';
 
 /**
  * Accent slot key identifying which analogous palette tone a secondary tile uses.
  */
-type TileAccentKey = 'tileAccentA' | 'tileAccentB' | 'tileAccentC';
+type TileAccentKey = 'tileAccentA' | 'tileAccentB' | 'tileAccentC' | 'tileAccentD';
 
 /**
  * Static metadata describing each actionable overview tile.
@@ -40,6 +47,13 @@ interface ActionTileMetadata {
     icon: React.ReactNode;
     label: string;
     segment: string;
+}
+
+/**
+ * Returns whether the given `tileId` can be dismissed by the volunteer.
+ */
+function isDismissibleTile(tileId: OverviewActionTileId): tileId is DismissibleOverviewActionTileId {
+    return tileId !== 'scanner';
 }
 
 /**
@@ -61,6 +75,13 @@ const kActionTiles: Record<OverviewActionTileId, ActionTileMetadata> = {
         label: 'Hotel',
         segment: '/hotel',
     },
+    scanner: {
+        accent: 'tileAccentD',
+        heroSubtitle: 'Scan QR codes',
+        icon: <QrCodeScannerIcon fontSize="small" />,
+        label: 'Scanner',
+        segment: '/scanner',
+    },
     schedule: {
         accent: 'tileAccentB',
         heroSubtitle: 'Your upcoming shifts',
@@ -70,7 +91,7 @@ const kActionTiles: Record<OverviewActionTileId, ActionTileMetadata> = {
     },
     ticket: {
         heroSubtitle: 'Welcoming you to the festival',
-        icon: <QrCode2Icon fontSize="small" />,
+        icon: <ConfirmationNumberOutlinedIcon fontSize="small" />,
         label: 'Your ticket',
         segment: '/ticket',
     },
@@ -106,7 +127,7 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
     const [ rippleKey, setRippleKey ] = useState<number>(0);
     useEffect(() => () => setRippleKey(key => key + 1), []);
 
-    async function handleDismiss(tileId: OverviewActionTileId) {
+    async function handleDismiss(tileId: DismissibleOverviewActionTileId) {
         setDismissed(current => new Set([ ...current, tileId ]));
 
         const response = await dismissOverviewActionTile(tileId);
@@ -125,6 +146,8 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
 
     const [ heroId, ...secondaryIds ] = visibleIds;
     const hero = kActionTiles[heroId];
+    const heroDismissible = isDismissibleTile(heroId);
+    const secondaryGridSize = secondaryIds.length > 3 ? { xs: 6, sm: 'grow' as const } : 'grow';
 
     return (
         <Grid container spacing={1.25}>
@@ -134,6 +157,7 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
                         key={rippleKey}
                         accent={hero.accent}
                         component={Link}
+                        dismissible={heroDismissible}
                         hero
                         href={getSchedulePath(eventSlug, hero.segment)}
                         transitionTypes={getNavigationTransitionTypes('', hero.segment)}>
@@ -154,14 +178,15 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
                             </Box>
                         </Stack>
                     </ActionTileButton>
-                    <DismissButton
-                        accent={hero.accent}
-                        aria-label={`Dismiss ${hero.label}`}
-                        hero
-                        onClick={() => handleDismiss(heroId)}
-                        size="small">
-                        <CloseIcon fontSize="small" />
-                    </DismissButton>
+                    { heroDismissible &&
+                        <DismissButton
+                            accent={hero.accent}
+                            aria-label={`Dismiss ${hero.label}`}
+                            hero
+                            onClick={() => handleDismiss(heroId)}
+                            size="small">
+                            <CloseIcon fontSize="small" />
+                        </DismissButton> }
                 </Box>
             </Grid>
 
@@ -169,8 +194,9 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
                 <Grid container spacing={1.25} size={{ xs: 12, md: 7 }}>
                     { secondaryIds.map(tileId => {
                         const tile = kActionTiles[tileId];
+                        const dismissible = isDismissibleTile(tileId);
                         return (
-                            <Grid key={tileId} size="grow">
+                            <Grid key={tileId} size={secondaryGridSize}>
                                 <Box sx={{ height: '100%', position: 'relative' }}>
                                     <ActionTileButton
                                         key={rippleKey}
@@ -199,13 +225,14 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
                                             </Typography>
                                         </Stack>
                                     </ActionTileButton>
-                                    <DismissButton
-                                        accent={tile.accent}
-                                        aria-label={`Dismiss ${tile.label}`}
-                                        onClick={() => handleDismiss(tileId)}
-                                        size="small">
-                                        <CloseIcon fontSize="small" />
-                                    </DismissButton>
+                                    { dismissible &&
+                                        <DismissButton
+                                            accent={tile.accent}
+                                            aria-label={`Dismiss ${tile.label}`}
+                                            onClick={() => handleDismiss(tileId)}
+                                            size="small">
+                                            <CloseIcon fontSize="small" />
+                                        </DismissButton> }
                                 </Box>
                             </Grid>
                         );
@@ -220,8 +247,10 @@ export function OverviewActionTiles(props: OverviewActionTilesProps) {
  * omitted, or the matching analogous tone), while `hero` controls the wider hero layout padding.
  */
 const ActionTileButton = styled(ButtonBase, {
-    shouldForwardProp: prop => prop !== 'accent' && prop !== 'hero',
-})<{ accent?: TileAccentKey; hero?: boolean }>(({ accent, hero, theme }) => {
+    shouldForwardProp: prop => prop !== 'accent' && prop !== 'dismissible' && prop !== 'hero',
+})<{ accent?: TileAccentKey; dismissible?: boolean; hero?: boolean }>(
+    ({ accent, dismissible, hero, theme }) =>
+{
     const palette = (theme.vars || theme).palette;
     const tone = accent ? palette.m3[accent] : undefined;
 
@@ -235,7 +264,7 @@ const ActionTileButton = styled(ButtonBase, {
         height: '100%',
         minHeight: 80,
         overflow: 'hidden',
-        padding: hero ? theme.spacing(1.5, 5.5, 1.5, 1.5) : theme.spacing(1.5),
+        padding: hero && dismissible ? theme.spacing(1.5, 5.5, 1.5, 1.5) : theme.spacing(1.5),
         position: 'relative',
         textAlign: 'left',
         textDecoration: 'none',
@@ -260,7 +289,8 @@ const ActionTileButton = styled(ButtonBase, {
             }),
         },
     };
-}) as ExtendButtonBase<ButtonBaseTypeMap<{ accent?: TileAccentKey; hero?: boolean }>>;
+}) as ExtendButtonBase<
+    ButtonBaseTypeMap<{ accent?: TileAccentKey; dismissible?: boolean; hero?: boolean }>>;
 
 /**
  * Rounded icon badge for an overview tile, sized at 36px in the hero slot and 32px in secondary

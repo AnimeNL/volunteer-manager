@@ -22,7 +22,7 @@ const kOverviewActionTileSettings = {
 /**
  * Identifier of a dismissible action tile on the schedule overview page.
  */
-export type OverviewActionTileId = keyof typeof kOverviewActionTileSettings;
+export type DismissibleOverviewActionTileId = keyof typeof kOverviewActionTileSettings;
 
 /**
  * Zod schema describing the data accepted by `dismissOverviewActionTile`.
@@ -34,7 +34,7 @@ const kDismissOverviewActionTileData = z.object({
 /**
  * Server Action persisting dismissal of a single overview action tile for the signed-in volunteer.
  */
-export async function dismissOverviewActionTile(tile: OverviewActionTileId) {
+export async function dismissOverviewActionTile(tile: DismissibleOverviewActionTileId) {
     return executeServerAction(
         { tile }, kDismissOverviewActionTileData, async (data, props) =>
     {

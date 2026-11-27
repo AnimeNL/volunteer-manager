@@ -10,6 +10,7 @@ import { useState } from 'react';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import CodeIcon from '@mui/icons-material/Code';
+import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import Divider from '@mui/material/Divider';
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
@@ -22,7 +23,6 @@ import ListItemText from '@mui/material/ListItemText';
 import LogoutIcon from '@mui/icons-material/Logout';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import QrCode2Icon from '@mui/icons-material/QrCode2';
 import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
@@ -192,7 +192,7 @@ function EventAccountMenuItems(props: {
             segment: '/hotel',
         },
         hasTicket && {
-            icon: <QrCode2Icon fontSize="small" />,
+            icon: <ConfirmationNumberOutlinedIcon fontSize="small" />,
             label: 'Your ticket',
             segment: '/ticket',
         },
