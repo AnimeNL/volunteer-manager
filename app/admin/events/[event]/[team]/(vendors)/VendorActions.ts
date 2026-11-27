@@ -14,7 +14,7 @@ import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tVendors, tVendorsSchedule } from '@lib/database';
 
 import type { VendorTeam } from '@lib/database/Types';
-import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
+import { kTemporalZonedDateTime } from '@lib/ZodHelpers';
 import { kVendorTeam } from '@lib/database/Types';
 import { kVendorTeamName } from './VendorTable';
 

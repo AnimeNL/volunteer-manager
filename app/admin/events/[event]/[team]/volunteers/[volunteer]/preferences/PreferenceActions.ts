@@ -17,7 +17,7 @@ import db, { tEvents, tRoles, tUsersEvents, tUsersEventsPreferencesAvailability,
 import { kAvailabilityBuildUpTearDownScheme, kServiceHoursProperty, kServiceTimingProperty }
     from './AvailabilitySettings';
 import { kEventAvailabilityStatus, kShirtFit, kShirtSize } from '@lib/database/Types';
-import { kTemporalPlainDate, kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
+import { kTemporalPlainDate, kTemporalZonedDateTime } from '@lib/ZodHelpers';
 
 // -------------------------------------------------------------------------------------------------
 // Availability preferences

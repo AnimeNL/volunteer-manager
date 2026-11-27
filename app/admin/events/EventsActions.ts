@@ -13,7 +13,7 @@ import db, { tEvents } from '@lib/database';
 
 import { kAnyEvent } from '@lib/auth/access';
 import { kEventAvailabilityStatus } from '@lib/database/Types';
-import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
+import { kTemporalZonedDateTime } from '@lib/ZodHelpers';
 
 /**
  * Zod type that describes the data required when creating an event.

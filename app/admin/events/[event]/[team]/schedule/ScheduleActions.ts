@@ -19,7 +19,7 @@ import db, { tActivities, tActivitiesTimeslots, tRoles, tSchedule, tScheduleLogs
 
 import type { kServiceHoursProperty } from '@app/(registration)/registration/[slug]/application/ApplicationActions';
 import { kMutation, kRegistrationStatus } from '@lib/database/Types';
-import { kTemporalPlainDate, kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
+import { kTemporalPlainDate, kTemporalZonedDateTime } from '@lib/ZodHelpers';
 
 /**
  * Zod schema describing the shift payload for creating or updating a schedule entry.

@@ -11,7 +11,7 @@ import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tEnvironments, tEnvironmentsEvents, tEvents } from '@lib/database';
 
-import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
+import { kTemporalZonedDateTime } from '@lib/ZodHelpers';
 
 /**
  * The data associated with website settings for a particular environment and event.

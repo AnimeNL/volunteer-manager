@@ -3,7 +3,7 @@
 
 import { z } from 'zod/v4';
 
-import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
+import { kTemporalZonedDateTime } from '@lib/ZodHelpers';
 
 /**
  * Returns a time that is guaranteed to be valid. The `input` will be used when it conforms to the

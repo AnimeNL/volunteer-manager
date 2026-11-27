@@ -13,7 +13,7 @@ import { requireAuthenticationWithEvent } from '@lib/auth';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 import db, { tEvents, tTrainingsAssignments, tUsersEvents } from '@lib/database';
 
-import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
+import { kTemporalZonedDateTime } from '@lib/ZodHelpers';
 
 /**
  * The data associated with a training configuration update.

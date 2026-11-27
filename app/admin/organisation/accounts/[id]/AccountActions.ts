@@ -22,7 +22,7 @@ import db, { tFeedback, tNardoPersonalised, tOutboxEmail, tStorage, tSubscriptio
     tUsersAuth, tUsersPasskeys } from '@lib/database';
 
 import { kCommunicationLanguage, kFileType } from '@lib/database/Types';
-import { kTemporalPlainDate } from '@app/admin/lib/ZodTransformers';
+import { kTemporalPlainDate } from '@lib/ZodHelpers';
 
 /**
  * Zod type that describes that no data is expected.

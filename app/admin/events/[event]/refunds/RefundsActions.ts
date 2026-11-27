@@ -11,7 +11,7 @@ import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tEvents } from '@lib/database';
 
-import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
+import { kTemporalZonedDateTime } from '@lib/ZodHelpers';
 
 /**
  * The data associated with a refund configuration update.

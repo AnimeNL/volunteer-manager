@@ -15,7 +15,7 @@ import { storeBlobData } from '@lib/database/BlobStore';
 import db, { tEvents, tUsersEventsPreferencesRefunds } from '@lib/database';
 
 import { kEventAvailabilityStatus, kEventTicketProvider, kFileType } from '@lib/database/Types';
-import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
+import { kTemporalZonedDateTime } from '@lib/ZodHelpers';
 
 /**
  * Server Action through which refund requests can be anonymized. This permanently deletes data.
