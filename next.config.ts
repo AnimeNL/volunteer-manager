@@ -69,6 +69,10 @@ const nextConfig: NextConfig = {
         serverActions: {
             bodySizeLimit: '5mb',
         },
+
+        staleTimes: {
+            dynamic: 60,
+        },
     },
     output: isProductionBuild ? 'standalone' : undefined,
     partialPrefetching: false,

@@ -1,6 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { cacheLife } from 'next/cache';
 import { Suspense } from 'react';
 
 import Card from '@mui/material/Card';
@@ -100,12 +101,13 @@ function HotelBookingDetails(props: { booking: HotelBooking }) {
 }
 
 /**
- * Authenticates the request behind `<Suspense>` and renders the primary hotel booking (or empty
- * state) inside the static `<Card>`.
+ * Privately cached per-session renderer for the volunteer's primary hotel booking in `eventSlug`.
  */
-async function PrimaryHotelBooking(props: { params: Promise<{ event: string }> }) {
-    const { event: eventSlug } = await props.params;
-    const { event, user } = await requireScheduleAccess(eventSlug);
+async function CachedPrimaryHotelBooking(props: { eventSlug: string }) {
+    'use cache: private';
+    cacheLife({ stale: 60 });
+
+    const { event, user } = await requireScheduleAccess(props.eventSlug);
     const bookings = await getVolunteerHotelBookings(event, user.id);
 
     if (!bookings.length) {
@@ -126,11 +128,22 @@ async function PrimaryHotelBooking(props: { params: Promise<{ event: string }> }
 }
 
 /**
- * Renders any additional confirmed hotel bookings beyond the first as separate `<Card>` elements.
+ * Authenticates the request behind `<Suspense>` and renders the primary hotel booking (or empty
+ * state) inside the static `<Card>`.
  */
-async function AdditionalHotelBookings(props: { params: Promise<{ event: string }> }) {
+async function PrimaryHotelBooking(props: { params: Promise<{ event: string }> }) {
     const { event: eventSlug } = await props.params;
-    const { event, user } = await requireScheduleAccess(eventSlug);
+    return <CachedPrimaryHotelBooking eventSlug={eventSlug} />;
+}
+
+/**
+ * Privately cached per-session renderer for any additional confirmed hotel bookings in `eventSlug`.
+ */
+async function CachedAdditionalHotelBookings(props: { eventSlug: string }) {
+    'use cache: private';
+    cacheLife({ stale: 60 });
+
+    const { event, user } = await requireScheduleAccess(props.eventSlug);
     const bookings = await getVolunteerHotelBookings(event, user.id);
 
     if (bookings.length <= 1)
@@ -144,6 +157,14 @@ async function AdditionalHotelBookings(props: { params: Promise<{ event: string 
                 </Card> ) }
         </>
     );
+}
+
+/**
+ * Renders any additional confirmed hotel bookings beyond the first as separate `<Card>` elements.
+ */
+async function AdditionalHotelBookings(props: { params: Promise<{ event: string }> }) {
+    const { event: eventSlug } = await props.params;
+    return <CachedAdditionalHotelBookings eventSlug={eventSlug} />;
 }
 
 /**

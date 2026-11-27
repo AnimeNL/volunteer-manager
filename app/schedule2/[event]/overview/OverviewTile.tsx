@@ -70,6 +70,11 @@ interface OverviewTileBaseProps {
      * Optional dismissal handler; when provided, renders a top-right close button.
      */
     onDismiss?: () => void;
+
+    /**
+     * Whether to opt the tile's `<Link>` into per-link prefetching (`prefetch={true}`).
+     */
+    prefetch?: boolean;
 }
 
 /**
@@ -94,12 +99,13 @@ interface OverviewTileFrameProps extends OverviewTileBaseProps {
  * button for both hero and supporting action tiles.
  */
 function OverviewTileFrame(props: OverviewTileFrameProps) {
-    const { accent, children, href, icon: Icon, label, onDismiss } = props;
+    const { accent, children, href, icon: Icon, label, onDismiss, prefetch } = props;
     const rippleKey = useActivityRippleKey();
 
     return (
         <Box sx={{ height: '100%', position: 'relative' }}>
-            <TileSurface key={rippleKey} accent={accent} component={Link} href={href}>
+            <TileSurface key={rippleKey} accent={accent} component={Link} href={href}
+                         prefetch={prefetch ? true : undefined}>
                 <TileWatermark aria-hidden accent={accent}>
                     <Icon sx={{ fontSize: 'inherit' }} />
                 </TileWatermark>

@@ -110,11 +110,13 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
         hasHotelRoom && {
             icon: <HotelOutlinedIcon fontSize="small" />,
             label: 'Hotel room',
+            prefetch: true,
             segment: '/hotel',
         },
         hasTicket && {
             icon: <ConfirmationNumberOutlinedIcon fontSize="small" />,
             label: 'Your ticket',
+            prefetch: true,
             segment: '/ticket',
         },
     ].filter((item): item is Exclude<typeof item, false | undefined> => !!item);
@@ -133,14 +135,16 @@ export function AccountMenuButton(props: AccountMenuButtonProps) {
     ].filter((item): item is Exclude<typeof item, false | undefined> => !!item);
 
     function renderEventMenuItem(
-        slug: string, item: { icon: React.ReactNode; label: string; segment: string })
+        slug: string,
+        item: { icon: React.ReactNode; label: string; prefetch?: boolean; segment: string })
     {
         return (
             <MenuItem
                 key={item.segment}
                 component={Link}
                 href={getSchedulePath(slug, item.segment)}
-                onClick={() => setAnchorEl(null)}>
+                onClick={() => setAnchorEl(null)}
+                prefetch={item.prefetch ? true : undefined}>
                 <ListItemIcon>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.label} />
             </MenuItem>

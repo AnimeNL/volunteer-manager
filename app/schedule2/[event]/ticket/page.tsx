@@ -1,6 +1,8 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { cacheLife } from 'next/cache';
+
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -19,11 +21,14 @@ import { getVolunteerTicket } from '../lib/data/ticketData';
 import { requireScheduleAccess } from '../lib/getScheduleAccess';
 
 /**
- * Authenticates the request behind `<Suspense>` and renders the volunteer's ticket QR code.
+ * Privately cached per-session ticket renderer for `eventSlug`, allowing per-link prefetching to
+ * resolve the volunteer's ticket ahead of navigation.
  */
-async function TicketContent(props: { params: Promise<{ event: string }> }) {
-    const { event: eventSlug } = await props.params;
-    const { event, user } = await requireScheduleAccess(eventSlug);
+async function CachedTicketContent(props: { eventSlug: string }) {
+    'use cache: private';
+    cacheLife({ stale: 60 });
+
+    const { event, user } = await requireScheduleAccess(props.eventSlug);
     const ticket = await getVolunteerTicket(event, user.id);
 
     if (!ticket) {
@@ -56,6 +61,14 @@ async function TicketContent(props: { params: Promise<{ event: string }> }) {
             </Stack>
         </CardContent>
     );
+}
+
+/**
+ * Authenticates the request behind `<Suspense>` and renders the volunteer's ticket QR code.
+ */
+async function TicketContent(props: { params: Promise<{ event: string }> }) {
+    const { event: eventSlug } = await props.params;
+    return <CachedTicketContent eventSlug={eventSlug} />;
 }
 
 /**

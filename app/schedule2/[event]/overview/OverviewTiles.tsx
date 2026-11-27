@@ -32,6 +32,7 @@ interface OverviewTileMetadata {
     accent?: TileAccentKey;
     icon: SvgIconComponent;
     label: string;
+    prefetch?: boolean;
     segment: string;
     subtitle?: string;
 }
@@ -58,6 +59,7 @@ const kOverviewTiles: Record<OverviewTileId, OverviewTileMetadata> = {
         accent: 'tileAccentA',
         icon: HotelOutlinedIcon,
         label: 'Hotel',
+        prefetch: true,
         segment: '/hotel',
     },
     scanner: {
@@ -75,6 +77,7 @@ const kOverviewTiles: Record<OverviewTileId, OverviewTileMetadata> = {
     ticket: {
         icon: ConfirmationNumberOutlinedIcon,
         label: 'Your ticket',
+        prefetch: true,
         segment: '/ticket',
         subtitle: 'Welcoming you to the festival',
     },
@@ -132,6 +135,7 @@ export function OverviewTiles(props: OverviewTilesProps) {
             icon: tile.icon,
             label: tile.label,
             onDismiss: isDismissibleTile(tileId) ? () => handleDismiss(tileId) : undefined,
+            prefetch: tile.prefetch,
         };
     }
 
