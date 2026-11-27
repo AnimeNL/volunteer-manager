@@ -24,7 +24,7 @@ export function EmptyStateCard(props: EmptyStateCardProps) {
                     <Typography variant="h6" gutterBottom>
                         {props.title}
                     </Typography> }
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="textSecondary">
                     {props.description}
                 </Typography>
             </CardContent>

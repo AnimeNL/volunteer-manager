@@ -58,7 +58,7 @@ export function Header(props: HeaderProps) {
                     {props.title}
                 </Typography>
                 { !!props.description &&
-                    <Typography component="div" variant="body2" color="text.secondary" noWrap>
+                    <Typography component="div" variant="body2" color="textSecondary" noWrap>
                         {props.description}
                     </Typography> }
             </Box>

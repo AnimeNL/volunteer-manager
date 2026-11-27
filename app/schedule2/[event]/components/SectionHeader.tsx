@@ -51,7 +51,7 @@ export function SectionHeader(props: SectionHeaderProps) {
             <Typography
                 component="h2"
                 variant="overline"
-                color={muted ? 'text.disabled' : 'text.secondary'}
+                color={muted ? 'textDisabled' : 'textSecondary'}
                 noWrap>
                 {title}
             </Typography>

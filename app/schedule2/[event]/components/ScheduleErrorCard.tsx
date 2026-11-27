@@ -41,13 +41,13 @@ export function ScheduleErrorCard(props: ScheduleErrorCardProps) {
             <Card>
                 <CardContent>
                     <Stack spacing={1}>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" color="textSecondary">
                             Error {props.statusCode}
                         </Typography>
                         <Typography variant="h5">
                             {props.title}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" color="textSecondary">
                             {props.description}
                         </Typography>
                         <Typography variant="body2" sx={{ pt: 1 }}>

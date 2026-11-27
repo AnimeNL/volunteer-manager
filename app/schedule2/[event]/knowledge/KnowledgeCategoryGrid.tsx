@@ -105,7 +105,7 @@ function KnowledgeCategoryCard(props: KnowledgeCategoryCardProps) {
                                 {category.title}
                             </Typography>
                             { !!category.description &&
-                                <Typography variant="body2" color="text.secondary" sx={{
+                                <Typography variant="body2" color="textSecondary" sx={{
                                     WebkitBoxOrient: 'vertical',
                                     WebkitLineClamp: 2,
                                     display: '-webkit-box',
@@ -125,7 +125,7 @@ function KnowledgeCategoryCard(props: KnowledgeCategoryCardProps) {
                         justifyContent: 'space-between',
                         pt: 1,
                     }}>
-                        <Typography variant="caption" color="text.secondary" sx={{
+                        <Typography variant="caption" color="textSecondary" sx={{
                             fontVariantNumeric: 'tabular-nums',
                         }}>
                             {countLabel}

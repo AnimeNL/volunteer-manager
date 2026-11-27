@@ -44,7 +44,7 @@ export function ScannerBlockedState(props: ScannerBlockedStateProps) {
                 <Typography variant="subtitle1">
                     {props.title}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="textSecondary">
                     {props.description}
                 </Typography>
             </Stack>

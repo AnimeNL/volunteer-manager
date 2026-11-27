@@ -86,12 +86,14 @@ React View Transitions.
 * Use standard MUI `<Typography variant="...">` and icon `fontSize` presets (`small`, `medium`,
   `large`) rather than hardcoded custom `fontSize` values so the type scale stays consistent across
   the portal.
-* Follow the canonical palette boundary: use MUI's semantic palette (`primary.*`, `secondary.*`,
-  `background.default`/`paper`, `text.primary`/`secondary`/`disabled`, `divider`, `action.hover`,
-  `warning.*`, `error.*`, `info.*`) and `color="text.secondary"` (not legacy `textSecondary`);
-  reserve `m3.*` strictly for M3-specific surfaces/accents MUI does not model (`sheet`, `dock`,
-  `dockActive`, `floatingNav`, `treeLine`, `ambientGlow*`, `tileAccentA–D`). Never hardcode
-  hex/rgba colours outside `ScheduleTheme.tsx` and `m3ColorScheme.ts`.
+* Follow the canonical palette boundary: in `sx` / `styled()`, use MUI's semantic palette tokens
+  (`primary.*`, `secondary.*`, `background.default`/`paper`, `text.primary`/`secondary`/`disabled`,
+  `divider`, `action.hover`, `warning.*`, `error.*`, `info.*`), and on `<Typography color="...">`
+  use the `<Typography>` colour presets (`textPrimary`, `textSecondary`, `textDisabled`, `primary`,
+  `error`, `inherit`) rather than dot-path strings; reserve `m3.*` strictly for M3-specific
+  surfaces/accents MUI does not model (`sheet`, `dock`, `dockActive`, `floatingNav`, `treeLine`,
+  `ambientGlow*`, `tileAccentA–D`). Never hardcode hex/rgba colours outside `ScheduleTheme.tsx` and
+  `m3ColorScheme.ts`.
 * Reuse the shared primitives in `components/` (`InteractiveSurface` / `useActivityRippleKey`,
   `IconBadge`, `RestrictedBadge`, `EmptyStateCard`, `ScheduleList` / `ScheduleListRow`,
   `ScheduleListSkeleton` / `SegmentedListSkeleton`) and co-locate route-specific components next to

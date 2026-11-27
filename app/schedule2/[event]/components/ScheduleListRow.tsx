@@ -115,10 +115,11 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
                         sx={{ alignItems: 'center', minWidth: 0 }}>
                         <Typography
                             color={state === 'active'
-                                ? 'secondary.contrastText'
-                                : (isPast ? 'text.disabled' : 'text.primary')}
+                                ? undefined
+                                : (isPast ? 'textDisabled' : 'textPrimary')}
                             noWrap
                             sx={{
+                                color: state === 'active' ? 'secondary.contrastText' : undefined,
                                 fontWeight: state === 'active' ? 600 : undefined,
                                 lineHeight: subtitle ? 1.25 : 1.35,
                                 textDecoration: isPast ? 'line-through' : undefined,
@@ -133,7 +134,7 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
                                 title="Hidden from visitors" /> }
                     </Stack>
                     { !!subtitle &&
-                        <Typography variant="body2" color="text.secondary" noWrap
+                        <Typography variant="body2" color="textSecondary" noWrap
                                     sx={{ lineHeight: 1.35 }}>
                             {subtitle}
                         </Typography> }
@@ -146,8 +147,8 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
                         { !!trailing &&
                             <Typography
                                 color={state === 'active'
-                                    ? 'primary.main'
-                                    : (isPast ? 'text.disabled' : 'text.secondary')}
+                                    ? 'primary'
+                                    : (isPast ? 'textDisabled' : 'textSecondary')}
                                 sx={{
                                     fontVariantNumeric: 'tabular-nums',
                                     fontWeight: state === 'active' ? 600 : undefined,

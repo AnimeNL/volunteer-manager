@@ -107,9 +107,9 @@ async function SidebarEventBannerContent(props: EventBannerProps) {
                 right: 0,
             }}>
                 <Typography
-                    color="common.white"
                     noWrap
                     sx={{
+                        color: 'common.white',
                         letterSpacing: '-0.01em',
                         textShadow: '0 1px 3px rgba(0, 0, 0, 0.85), 0 0 8px rgba(0, 0, 0, 0.45)',
                     }}
@@ -158,7 +158,7 @@ async function MobileEventBannerContent(props: EventBannerProps) {
                 right: 0,
             }}>
                 <Typography
-                    color="text.primary"
+                    color="textPrimary"
                     noWrap
                     sx={{
                         letterSpacing: '-0.01em',
@@ -169,7 +169,7 @@ async function MobileEventBannerContent(props: EventBannerProps) {
                 </Typography>
                 { !!subtitle &&
                     <Typography
-                        color="text.secondary"
+                        color="textSecondary"
                         noWrap
                         sx={{ textShadow: '0 1px 4px var(--mui-palette-m3-sheet)' }}
                         variant="body2">

@@ -79,7 +79,7 @@ function HotelBookingDetails(props: { booking: HotelBooking }) {
                 <Typography variant="h6">
                     {booking.hotelName}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="textSecondary">
                     {booking.roomName}
                 </Typography>
             </CardContent>
@@ -114,7 +114,7 @@ async function PrimaryHotelBooking(props: { params: Promise<{ event: string }> }
                 <Typography variant="h6" gutterBottom>
                     No hotel room assigned
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="textSecondary">
                     No confirmed hotel booking has been assigned to your account for{' '}
                     {event.shortName} yet.
                 </Typography>
