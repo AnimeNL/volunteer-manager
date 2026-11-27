@@ -153,7 +153,11 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
             }}>
                 <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>
                     <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', minWidth: 0 }}>
-                        <RowTitle hasSubtitle={!!subtitle} state={state} variant="body2" noWrap>
+                        <RowTitle
+                            hasSubtitle={!!subtitle}
+                            state={state}
+                            variant={subtitle ? 'subtitle2' : 'body2'}
+                            noWrap>
                             {title}
                         </RowTitle>
                         { hidden &&
@@ -166,8 +170,8 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
                             </Tooltip> }
                     </Stack>
                     { !!subtitle &&
-                        <Typography variant="caption" color="textSecondary" noWrap
-                                    sx={{ display: 'block', mt: 0.25 }}>
+                        <Typography variant="body2" color="textSecondary" noWrap
+                                    sx={{ lineHeight: 1.35 }}>
                             {subtitle}
                         </Typography> }
                 </Box>
@@ -194,6 +198,7 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
                 key={rippleKey}
                 component={Link}
                 data-state={state}
+                hasSubtitle={!!subtitle}
                 href={href}
                 rowState={state}
                 transitionTypes={transitionTypes}>
@@ -203,7 +208,7 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
     }
 
     return (
-        <RowStatic data-state={state} rowState={state}>
+        <RowStatic data-state={state} hasSubtitle={!!subtitle} rowState={state}>
             {inner}
         </RowStatic>
     );
@@ -297,6 +302,12 @@ function rowSurfaceStyles(theme: Theme) {
         width: '100%',
         variants: [
             {
+                props: { hasSubtitle: true },
+                style: {
+                    padding: theme.spacing(1.25, 2),
+                },
+            },
+            {
                 props: { rowState: 'active' as ScheduleListRowState },
                 style: {
                     backgroundColor:
@@ -312,8 +323,8 @@ function rowSurfaceStyles(theme: Theme) {
  * Interactive row button rendered when `href` is provided.
  */
 const RowButton = styled(ButtonBase, {
-    shouldForwardProp: prop => prop !== 'rowState',
-})<{ rowState: ScheduleListRowState }>(({ theme }) => {
+    shouldForwardProp: prop => prop !== 'hasSubtitle' && prop !== 'rowState',
+})<{ hasSubtitle: boolean; rowState: ScheduleListRowState }>(({ theme }) => {
     const palette = (theme.vars || theme).palette;
 
     return {
@@ -334,14 +345,16 @@ const RowButton = styled(ButtonBase, {
                 `color-mix(in srgb, ${palette.m3.secondaryContainer} 80%, ${palette.m3.card})`,
         },
     };
-}) as ExtendButtonBase<ButtonBaseTypeMap<{ rowState: ScheduleListRowState }>>;
+}) as ExtendButtonBase<
+    ButtonBaseTypeMap<{ hasSubtitle: boolean; rowState: ScheduleListRowState }>>;
 
 /**
  * Non-interactive row container matching `<RowButton>` geometry and state surface.
  */
 const RowStatic = styled(Box, {
-    shouldForwardProp: prop => prop !== 'rowState',
-})<{ rowState: ScheduleListRowState }>(({ theme }) => rowSurfaceStyles(theme));
+    shouldForwardProp: prop => prop !== 'hasSubtitle' && prop !== 'rowState',
+})<{ hasSubtitle: boolean; rowState: ScheduleListRowState }>(
+    ({ theme }) => rowSurfaceStyles(theme));
 
 /**
  * Primary row title text styled by row state.
@@ -359,6 +372,7 @@ const RowTitle = styled(Typography, {
                 props: { hasSubtitle: true },
                 style: {
                     fontWeight: 600,
+                    lineHeight: 1.25,
                 },
             },
             {
