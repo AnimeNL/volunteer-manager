@@ -3,9 +3,7 @@
 
 import { notFound } from 'next/navigation';
 
-import Box from '@mui/material/Box';
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
-import Stack from '@mui/material/Stack';
 
 import { Header, HeaderTextSlot } from '../../../components/Header';
 import { Page, SuspenseReveal } from '../../../components/Page';
@@ -69,30 +67,7 @@ export default function ScheduleVolunteerTeamPage(
                     icon={ <GroupOutlinedIcon /> }
                     title={
                         <HeaderTextSlot
-                            resolve={async () => {
-                                const team = await loadTeamDetail(props.params);
-                                if (!team)
-                                    return null;
-
-                                return (
-                                    <Stack
-                                        component="span"
-                                        direction="row"
-                                        spacing={1}
-                                        sx={{ alignItems: 'center', display: 'inline-flex' }}>
-                                        <Box
-                                            component="span"
-                                            sx={{
-                                                bgcolor: team.colour,
-                                                borderRadius: '50%',
-                                                flexShrink: 0,
-                                                height: 10,
-                                                width: 10,
-                                            }} />
-                                        <span>{team.name}</span>
-                                    </Stack>
-                                );
-                            }}
+                            resolve={async () => (await loadTeamDetail(props.params))?.name ?? null}
                             width={110} />
                     } />
             }>
