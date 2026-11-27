@@ -81,4 +81,6 @@ export async function invalidateTeamCache(team: number | string) {
 
         invalidateUrlSlug({ team });
     }
+
+    Cache.getInstance('EventState').clear();
 }

@@ -91,14 +91,17 @@ export async function invalidateEventCache(event: number | string): Promise<void
 
         cache.delete(event);
 
-        if (cached)
+        if (cached) {
+            Cache.getInstance('EventState').delete(cached.id);
             invalidateUrlSlug({ event: cached.id });
+        }
 
     } else if (typeof event === 'number') {
         const slug = await getUrlSlug({ event });
         if (!!slug)
             cache.delete(slug);
 
+        Cache.getInstance('EventState').delete(event);
         invalidateUrlSlug({ event });
     }
 }

@@ -241,7 +241,9 @@ export default async function SettingsPage() {
                     defaultValue: 4,
 
                     label: 'Schedule - pre-open hours',
-                    description: 'Number of hours before opening that shifts can be scheduled',
+                    description:
+                        'Number of hours before opening that volunteers are considered available ' +
+                        'and shifts can be scheduled',
                 },
                 {
                     setting: 'schedule-event-view-end-hours',
@@ -249,7 +251,9 @@ export default async function SettingsPage() {
                     defaultValue: 4,
 
                     label: 'Schedule - post-close hours',
-                    description: 'Number of hours after closing that shifts can be scheduled',
+                    description:
+                        'Number of hours after closing that volunteers are considered available ' +
+                        'and shifts can be scheduled',
                 },
                 {
                     setting: 'schedule-recent-shift-count',

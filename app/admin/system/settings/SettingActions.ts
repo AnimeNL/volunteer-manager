@@ -6,6 +6,7 @@
 import { z } from 'zod/v4';
 
 import { type UserSettingsMap, clearUserSettings } from '@lib/UserSettings';
+import { Cache } from '@lib/cache';
 import { LogBuilder } from '@lib/log';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthentication } from '@lib/auth';
@@ -89,6 +90,12 @@ export async function updateSettings(formData: unknown) {
         }
 
         await writeSettings(settings as any);
+
+        if (Object.hasOwn(settings, 'schedule-event-view-start-hours') ||
+                Object.hasOwn(settings, 'schedule-event-view-end-hours'))
+        {
+            Cache.getInstance('EventState').clear();
+        }
 
         LogBuilder.for('UpdateSystemSettings')
             .withInitiatorUser(props.user)
