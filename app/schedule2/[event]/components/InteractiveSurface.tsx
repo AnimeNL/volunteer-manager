@@ -29,6 +29,11 @@ export function useActivityRippleKey(): number {
  */
 interface InteractiveSurfaceProps {
     /**
+     * Optional CSS class name forwarded to the underlying `<ButtonBase>` (e.g. from `styled()`).
+     */
+    className?: string;
+
+    /**
      * Destination URL navigated to when the surface is activated.
      */
     href: string;
@@ -50,11 +55,13 @@ interface InteractiveSurfaceProps {
  * `<Activity>`-safe ripple remounting.
  */
 export function InteractiveSurface(props: React.PropsWithChildren<InteractiveSurfaceProps>) {
-    const { children, href, surface = 'transparent', sx } = props;
+    const { children, className, href, surface = 'transparent', sx } = props;
     const rippleKey = useActivityRippleKey();
 
     return (
-        <SurfaceButton key={rippleKey} component={Link} href={href} surface={surface} sx={sx}>
+        <SurfaceButton
+            key={rippleKey} className={className} component={Link} href={href}
+            surface={surface} sx={sx}>
             {children}
         </SurfaceButton>
     );

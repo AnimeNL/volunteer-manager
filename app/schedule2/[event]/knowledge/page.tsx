@@ -42,7 +42,7 @@ function KnowledgeCategoriesSkeleton() {
         <Grid container spacing={1.25}>
             { [ 0, 1, 2, 3 ].map(index =>
                 <Grid key={index} size={{ xs: 12, sm: 6 }}>
-                    <Skeleton variant="rounded" height={156} />
+                    <Skeleton variant="rounded" height={104} />
                 </Grid> ) }
         </Grid>
     );
