@@ -8,13 +8,14 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Stack from '@mui/material/Stack';
-import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
 import type { KnowledgeBaseCategorySummary } from '../lib/data/knowledgeData';
+import { IconBadge } from '../components/IconBadge';
 import { InteractiveSurface } from '../components/InteractiveSurface';
 import { KnowledgeBaseIcon } from '@components/KnowledgeBaseIcon';
+import { RestrictedBadge } from '../components/RestrictedBadge';
 import { getSchedulePath } from '../lib/navigationTypes';
 
 /**
@@ -62,18 +63,16 @@ export function KnowledgeCategoryGrid(props: KnowledgeCategoryGridProps) {
                                         alignItems: 'flex-start',
                                         justifyContent: 'space-between',
                                     }}>
-                                        <CategoryIconBadge>
+                                        <IconBadge size="md">
                                             <KnowledgeBaseIcon
                                                 fontSize="small"
                                                 variant={category.icon} />
-                                        </CategoryIconBadge>
+                                        </IconBadge>
                                         { category.limited &&
-                                            <Tooltip title="Access is limited">
-                                                <LimitedBadge aria-label="Access is limited">
-                                                    <LockOutlinedIcon fontSize="inherit" />
-                                                    <span>Limited</span>
-                                                </LimitedBadge>
-                                            </Tooltip> }
+                                            <RestrictedBadge
+                                                icon={ <LockOutlinedIcon fontSize="inherit" /> }
+                                                pillLabel="Limited"
+                                                title="Access is limited" /> }
                                     </Stack>
 
                                     <Box sx={{ minWidth: 0 }}>
@@ -113,46 +112,6 @@ export function KnowledgeCategoryGrid(props: KnowledgeCategoryGridProps) {
         </Grid>
     );
 }
-
-/**
- * Rounded 40px tonal squircle badge displaying the category's `<KnowledgeBaseIcon>`.
- */
-const CategoryIconBadge = styled(Box)(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
-
-    return {
-        alignItems: 'center',
-        backgroundColor: palette.secondary.main,
-        borderRadius: 10,
-        color: palette.secondary.contrastText,
-        display: 'flex',
-        flexShrink: 0,
-        height: 40,
-        justifyContent: 'center',
-        width: 40,
-    };
-});
-
-/**
- * Warm-amber pill indicator denoting categories with restricted role or team visibility.
- */
-const LimitedBadge = styled('span')(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
-
-    return {
-        alignItems: 'center',
-        backgroundColor: `color-mix(in srgb, ${palette.warning.main} 13%, transparent)`,
-        borderRadius: 9999,
-        color: palette.warning.main,
-        display: 'inline-flex',
-        flexShrink: 0,
-        fontSize: theme.typography.caption.fontSize,
-        fontWeight: 500,
-        gap: theme.spacing(0.5),
-        lineHeight: 1.4,
-        padding: theme.spacing(0.25, 1),
-    };
-});
 
 /**
  * Muted category description clamped to two lines to keep Bento cards balanced in height.

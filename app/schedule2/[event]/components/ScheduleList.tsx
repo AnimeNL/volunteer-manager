@@ -11,11 +11,11 @@ import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import Stack from '@mui/material/Stack';
-import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 import { styled } from '@mui/material/styles';
 
+import { RestrictedBadge } from './RestrictedBadge';
 import { useActivityRippleKey } from './InteractiveSurface';
 
 import { kCardBorderRadiusPx } from '../Constants';
@@ -153,13 +153,10 @@ export function ScheduleListRow(props: ScheduleListRowProps) {
                             {title}
                         </RowTitle>
                         { hidden &&
-                            <Tooltip title="Hidden from visitors">
-                                <HiddenIconBadge
-                                    aria-label="Hidden from visitors"
-                                    muted={isPast}>
-                                    <VisibilityOffOutlinedIcon fontSize="inherit" />
-                                </HiddenIconBadge>
-                            </Tooltip> }
+                            <RestrictedBadge
+                                icon={ <VisibilityOffOutlinedIcon fontSize="inherit" /> }
+                                muted={isPast}
+                                title="Hidden from visitors" /> }
                     </Stack>
                     { !!subtitle &&
                         <Typography variant="body2" color="text.secondary" noWrap
@@ -411,28 +408,6 @@ const RowTrailing = styled(Typography, {
         ],
     };
 });
-
-/**
- * Warm-amber slashed-eye indicator denoting events hidden from visitors.
- */
-const HiddenIconBadge = styled('span', {
-    shouldForwardProp: prop => prop !== 'muted',
-})<{ muted: boolean }>(({ theme }) => ({
-    alignItems: 'center',
-    color: (theme.vars || theme).palette.warning.main,
-    display: 'inline-flex',
-    flexShrink: 0,
-    fontSize: theme.typography.caption.fontSize,
-    opacity: 0.92,
-    variants: [
-        {
-            props: { muted: true },
-            style: {
-                opacity: 0.55,
-            },
-        },
-    ],
-}));
 
 /**
  * Subtle 2px progress track tucked beneath active rows.

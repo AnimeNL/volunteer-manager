@@ -1,10 +1,11 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+
+import { IconBadge } from './IconBadge';
 
 /**
  * Props accepted by the <Header> component.
@@ -51,15 +52,7 @@ export function Header(props: HeaderProps) {
             pt: { xs: 0.5, md: 0 },
             pb: { xs: 0.5, md: 1.5 },
         }}>
-            <Avatar aria-hidden="true" variant="rounded" sx={{
-                bgcolor: 'secondary.main',
-                borderRadius: { xs: 1, md: 0.5 },
-                color: 'secondary.contrastText',
-                height: 46,
-                width: 46,
-            }}>
-                {props.icon}
-            </Avatar>
+            <IconBadge size="lg">{props.icon}</IconBadge>
             <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>
                 <Typography component="h1" variant="h6" noWrap>
                     {props.title}

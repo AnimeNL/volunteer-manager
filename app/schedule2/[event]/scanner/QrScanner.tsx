@@ -22,6 +22,7 @@ import Typography from '@mui/material/Typography';
 import VideocamOffOutlinedIcon from '@mui/icons-material/VideocamOffOutlined';
 import { styled } from '@mui/material/styles';
 
+import { IconBadge } from '../components/IconBadge';
 import { useQrScanner } from './useQrScanner';
 
 import { recordScannedBarcode } from './ScannerActions';
@@ -214,9 +215,9 @@ function ScannerBlockedState(props: {
 }) {
     return (
         <BlockedContainer spacing={2}>
-            <BlockedIconBadge>
+            <IconBadge size="xl">
                 {props.icon}
-            </BlockedIconBadge>
+            </IconBadge>
             <Stack spacing={0.5} sx={{ maxWidth: 380 }}>
                 <Typography variant="subtitle1">
                     {props.title}
@@ -320,19 +321,5 @@ const BlockedContainer = styled(Stack)(({ theme }) => {
         borderRadius: theme.shape.borderRadius,
         padding: theme.spacing(4, 2.5),
         textAlign: 'center',
-    };
-});
-
-const BlockedIconBadge = styled(Box)(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
-    return {
-        alignItems: 'center',
-        backgroundColor: palette.secondary.main,
-        borderRadius: '50%',
-        color: palette.secondary.contrastText,
-        display: 'flex',
-        height: 64,
-        justifyContent: 'center',
-        width: 64,
     };
 });

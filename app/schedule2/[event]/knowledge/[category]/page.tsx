@@ -7,13 +7,13 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
-import Tooltip from '@mui/material/Tooltip';
 
 import { Header } from '../../components/Header';
 import { KnowledgeBaseIcon } from '@components/KnowledgeBaseIcon';
 import { KnowledgeQuestionItem, KnowledgeQuestionList } from './KnowledgeQuestionList';
 import { Markdown } from '@components/Markdown';
 import { Page, SuspenseReveal } from '../../components/Page';
+import { RestrictedBadge } from '../../components/RestrictedBadge';
 import { ScheduleListSkeleton } from '../../components/ScheduleListSkeleton';
 import { SectionHeader } from '../../components/SectionHeader';
 import { getKnowledgeBaseCategory } from '../../lib/data/knowledgeData';
@@ -70,12 +70,10 @@ async function CategoryHeaderActions(
         return null;
 
     return (
-        <Tooltip title="Access is limited">
-            <LockOutlinedIcon
-                aria-label="Access is limited"
-                fontSize="small"
-                sx={{ color: 'warning.main', mx: 0.75 }} />
-        </Tooltip>
+        <RestrictedBadge
+            icon={ <LockOutlinedIcon fontSize="small" /> }
+            mx={0.75}
+            title="Access is limited" />
     );
 }
 

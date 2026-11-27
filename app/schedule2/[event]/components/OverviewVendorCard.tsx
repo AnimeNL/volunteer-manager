@@ -16,6 +16,7 @@ import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
 import type { VendorTeam } from '@lib/database/Types';
+import { IconBadge } from './IconBadge';
 import { InteractiveSurface } from './InteractiveSurface';
 import { getSchedulePath } from '../lib/navigationTypes';
 
@@ -90,9 +91,13 @@ export function OverviewVendorCard(props: OverviewVendorCardProps) {
                 const content = (
                     <Stack direction="row" spacing={1.5}
                            sx={{ alignItems: 'center', minWidth: 0, width: '100%' }}>
-                        <VendorIconBadge inactive={isEmpty} team={entry.team}>
+                        <IconBadge
+                            size="sm"
+                            tone={isEmpty
+                                ? 'muted'
+                                : (entry.team === kVendorTeam.FirstAid ? 'error' : 'info')}>
                             {icon}
-                        </VendorIconBadge>
+                        </IconBadge>
                         <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>
                             <Typography variant="subtitle2" color="text.primary"
                                         sx={{ lineHeight: 1.25 }}>
@@ -130,49 +135,6 @@ export function OverviewVendorCard(props: OverviewVendorCardProps) {
         </Card>
     );
 }
-
-/**
- * Rounded tonal icon square matching the action tile badge geometry. Uses a subtle crimson or
- * blue tint when personnel are on site, and dims to a neutral surface in the zero state.
- */
-const VendorIconBadge = styled(Box, {
-    shouldForwardProp: prop => prop !== 'inactive' && prop !== 'team',
-})<{ inactive: boolean; team: VendorTeam }>(({ theme }) => {
-    const palette = (theme.vars || theme).palette;
-
-    return {
-        alignItems: 'center',
-        borderRadius: 10,
-        display: 'flex',
-        flexShrink: 0,
-        height: 32,
-        justifyContent: 'center',
-        width: 32,
-        variants: [
-            {
-                props: { inactive: true },
-                style: {
-                    backgroundColor: palette.action.hover,
-                    color: palette.text.disabled,
-                },
-            },
-            {
-                props: { inactive: false, team: kVendorTeam.FirstAid },
-                style: {
-                    backgroundColor: `color-mix(in srgb, ${palette.error.main} 14%, transparent)`,
-                    color: palette.error.main,
-                },
-            },
-            {
-                props: { inactive: false, team: kVendorTeam.Security },
-                style: {
-                    backgroundColor: `color-mix(in srgb, ${palette.info.main} 14%, transparent)`,
-                    color: palette.info.main,
-                },
-            },
-        ],
-    };
-});
 
 /**
  * Non-interactive row container sharing identical padding with interactive vendor rows.
