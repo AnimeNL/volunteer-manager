@@ -57,6 +57,7 @@ export { tSubscriptionsPublications } from './scheme/SubscriptionsPublicationsTa
 export { tTasks } from './scheme/TasksTable';
 export { tTeamsRoles } from './scheme/TeamsRolesTable';
 export { tTeams } from './scheme/TeamsTable';
+export { tTeamsVisibility } from './scheme/TeamsVisibilityTable';
 export { tTrainings } from './scheme/TrainingsTable';
 export { tTrainingsAssignments } from './scheme/TrainingsAssignmentsTable';
 export { tTrainingsExtra } from './scheme/TrainingsExtraTable';

@@ -22,7 +22,8 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TeamQuickActions } from './TeamQuickActions';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/auth';
-import db, { tEmailAccounts, tEnvironments, tRoles, tTeams, tTeamsRoles } from '@lib/database';
+import db, { tEmailAccounts, tEnvironments, tRoles, tTeams, tTeamsRoles, tTeamsVisibility }
+    from '@lib/database';
 
 import * as actions from '../TeamsActions';
 
@@ -118,6 +119,24 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
         .orderBy(tEnvironments.environmentTitle, 'asc')
         .executeSelectMany();
 
+    const visibleTeamIds = await dbInstance.selectFrom(tTeamsVisibility)
+        .innerJoin(tTeams)
+            .on(tTeams.teamId.equals(tTeamsVisibility.visibleTeamId))
+                .and(tTeams.teamDeleted.isNull())
+        .where(tTeamsVisibility.teamId.equals(team.id))
+        .selectOneColumn(tTeamsVisibility.visibleTeamId)
+        .executeSelectMany();
+
+    const visibleTeamOptions = await dbInstance.selectFrom(tTeams)
+        .where(tTeams.teamId.notEquals(team.id))
+            .and(tTeams.teamDeleted.isNull())
+        .select({
+            id: tTeams.teamId,
+            label: tTeams.teamTitle,
+        })
+        .orderBy('label', 'asc')
+        .executeSelectMany();
+
     // ---------------------------------------------------------------------------------------------
     // Determine the flags available for this team. Each flag must be fetched from the database, and
     // will be shown as a list item with a checkbox that can be appropriately toggled.
@@ -204,7 +223,7 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
             </Section>
 
             <FormGridSection noHeader tabs back="Back to teams"
-                             action={updateTeamFn} defaultValues={team}>
+                             action={updateTeamFn} defaultValues={{ ...team, visibleTeamIds }}>
                 { (canUpdateTeam || canDisableTeam) &&
                     <Grid size={{ xs: 12 }}>
                         <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
@@ -276,6 +295,17 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
                     <AutocompleteElement
                         name="availableRoleIds" label="Available roles" options={roles} multiple
                         matchId autocompleteProps={{ fullWidth: true, readOnly, size: 'small' }} />
+                </Grid>
+
+                <Grid size={{ xs: 12 }}>
+                    <Divider />
+                </Grid>
+
+                <Grid size={{ xs: 12 }}>
+                    <AutocompleteElement
+                        name="visibleTeamIds" label="Visible teams" options={visibleTeamOptions}
+                        multiple matchId
+                        autocompleteProps={{ fullWidth: true, readOnly, size: 'small' }} />
                 </Grid>
 
                 <Grid size={{ xs: 12 }}>

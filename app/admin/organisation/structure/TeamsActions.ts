@@ -4,6 +4,7 @@
 'use server';
 
 import { notFound } from 'next/navigation';
+import { updateTag } from 'next/cache';
 import { z } from 'zod/v4';
 
 import { Cache, invalidateTeamCache } from '@lib/cache';
@@ -13,7 +14,7 @@ import { executeServerAction } from '@lib/serverAction';
 import { invalidateAuthCache, requireAuthentication } from '@lib/auth';
 import { nanoid } from '@lib/nanoid';
 import { readSetting } from '@lib/Settings';
-import db, { tEnvironments, tTeams, tTeamsRoles } from '@lib/database';
+import db, { tEnvironments, tTeams, tTeamsRoles, tTeamsVisibility } from '@lib/database';
 
 import { kEnvironmentPurpose } from '@lib/database/Types';
 
@@ -321,6 +322,7 @@ export async function toggleTeamEnabled(teamId: number, enabled: boolean, formDa
 
         await invalidateTeamCache(teamId);
         invalidateAuthCache();
+        updateTag('schedule-teams-visibility');
 
         Cache.getInstance('AdminNavigationMenuCache').clear();
 
@@ -416,6 +418,7 @@ const kUpdateTeamData = z.object({
 
     defaultRoleId: z.number(),
     availableRoleIds: z.array(z.number()),
+    visibleTeamIds: z.array(z.number()),
 
     flagEnableDutyBook: z.boolean(),
     flagEnableScheduling: z.boolean(),
@@ -442,6 +445,8 @@ export async function updateTeam(teamId: number, formData: unknown) {
             return { success: false, error: 'The team must have at least one available role…' };
         if (!data.availableRoleIds.includes(data.defaultRoleId))
             return { success: false, error: 'The default role of this team must be available…' };
+
+        const visibleTeamIds = [ ...new Set(data.visibleTeamIds.filter(id => id !== teamId)) ];
 
         const dbInstance = db;
         const affectedRows = await dbInstance.transaction(async () => {
@@ -482,6 +487,19 @@ export async function updateTeam(teamId: number, formData: unknown) {
                 })))
                 .executeInsert();
 
+            await dbInstance.deleteFrom(tTeamsVisibility)
+                .where(tTeamsVisibility.teamId.equals(teamId))
+                .executeDelete();
+
+            if (visibleTeamIds.length > 0) {
+                await dbInstance.insertInto(tTeamsVisibility)
+                    .values(visibleTeamIds.map(visibleTeamId => ({
+                        teamId,
+                        visibleTeamId,
+                    })))
+                    .executeInsert();
+            }
+
             return affectedRows;
         });
 
@@ -492,6 +510,7 @@ export async function updateTeam(teamId: number, formData: unknown) {
         Cache.getInstance('Environments').clear();
 
         await invalidateTeamCache(teamId);
+        updateTag('schedule-teams-visibility');
 
         LogBuilder.for('UpdateTeam')
             .withCondition(!!affectedRows)
