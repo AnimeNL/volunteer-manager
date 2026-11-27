@@ -8,10 +8,10 @@ import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 
-import type { OverviewActionTileId } from './components/OverviewActionTiles';
+import type { OverviewTileId } from './components/OverviewTiles';
 import type { OverviewVendorEntry } from './components/OverviewVendorCard';
 import { EventBanner } from './components/EventBanner';
-import { OverviewActionTiles } from './components/OverviewActionTiles';
+import { OverviewTiles } from './components/OverviewTiles';
 import { OverviewVendorCard } from './components/OverviewVendorCard';
 import { Page, SuspenseReveal } from './components/Page';
 import { getActiveVendors, hasVendorSchedule } from './lib/data/vendorData';
@@ -42,7 +42,7 @@ async function OverviewActions(props: { params: Promise<{ event: string }> }) {
         ], /* disableFallback= */ true),
     ]);
 
-    const tiles: OverviewActionTileId[] = [];
+    const tiles: OverviewTileId[] = [];
     if (!!ticket && !userSettings['user-schedule-hide-ticket-tile'])
         tiles.push('ticket');
     if (hotelBookings.length > 0 && !userSettings['user-schedule-hide-hotel-tile'])
@@ -54,7 +54,7 @@ async function OverviewActions(props: { params: Promise<{ event: string }> }) {
 
     tiles.push('feedback');
 
-    return <OverviewActionTiles eventSlug={event.slug} tiles={tiles} />;
+    return <OverviewTiles eventSlug={event.slug} tiles={tiles} />;
 }
 
 /**
