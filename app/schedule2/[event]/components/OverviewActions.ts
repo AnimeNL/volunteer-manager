@@ -13,9 +13,7 @@ import { writeUserSetting } from '@lib/UserSettings';
  * Maps dismissible overview action tiles to their backing user settings.
  */
 const kOverviewActionTileSettings = {
-    feedback: 'user-schedule-hide-feedback-tile',
     hotel: 'user-schedule-hide-hotel-tile',
-    schedule: 'user-schedule-hide-schedule-tile',
     ticket: 'user-schedule-hide-ticket-tile',
 } as const;
 
@@ -28,7 +26,7 @@ export type DismissibleOverviewActionTileId = keyof typeof kOverviewActionTileSe
  * Zod schema describing the data accepted by `dismissOverviewActionTile`.
  */
 const kDismissOverviewActionTileData = z.object({
-    tile: z.enum([ 'feedback', 'hotel', 'schedule', 'ticket' ]),
+    tile: z.enum([ 'hotel', 'ticket' ]),
 });
 
 /**

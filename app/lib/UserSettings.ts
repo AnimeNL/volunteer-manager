@@ -51,9 +51,7 @@ export type UserSettingsMap = {
 
     'user-schedule-expand-duty-book': boolean;
     'user-schedule-expand-events': boolean;
-    'user-schedule-hide-feedback-tile': boolean;
     'user-schedule-hide-hotel-tile': boolean;
-    'user-schedule-hide-schedule-tile': boolean;
     'user-schedule-hide-ticket-tile': boolean;
     'user-schedule-time-offset-seconds': number;
 };

@@ -81,8 +81,7 @@ export function SettingUtilitiesSection() {
                 {
                     key: 'Reset dismissed overview tiles',
                     description:
-                        'Clears all dismissed Ticket, Hotel, Schedule, and Feedback overview ' +
-                        'tiles across all users.',
+                        'Clears all dismissed Ticket and Hotel overview tiles across all users.',
                     keyAlign: 'center',
                     value: (
                         <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
