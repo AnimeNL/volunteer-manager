@@ -8,6 +8,7 @@ import WorkOutlineOutlinedIcon from '@mui/icons-material/WorkOutlineOutlined';
 import type { AccessDescriptor, AccessOperation } from '@lib/auth/access';
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { AccessControl } from '@lib/auth/access';
+import { Cache } from '@lib/cache';
 import { DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
 import { LogBuilder } from '@lib/log';
 import { Section } from '@app/admin/components/Section';
@@ -253,8 +254,10 @@ const rolesDataSource = createDataSource('organisation/structure/roles', withRow
             .where(tRoles.roleId.equals(updatedRow.id))
             .executeUpdate();
 
-        if (affectedRows)
+        if (affectedRows) {
             invalidateAuthCache();
+            Cache.getInstance('EventState').clear();
+        }
 
         LogBuilder.for('UpdateRole')
             .withCondition(!!affectedRows)

@@ -16,6 +16,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TeamNameCell } from './TeamCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { invalidateEventState } from '@lib/event';
 import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tContent, tEventsTeams, tTeams } from '@lib/database';
 
@@ -157,6 +158,9 @@ const eventTeamsDataSource = createDataSource('admin/event/settings/teams', with
 
             return !!affectedRows;
         });
+
+        if (success)
+            await invalidateEventState(event.id, 'teams');
 
         Cache.getInstance('AdminNavigationMenuCache').delete(event.slug);
         Cache.getInstance('AdminNavigationActiveEvents').clear();

@@ -11,6 +11,7 @@ import { Publish } from '@lib/subscriptions';
 import { executeServerAction } from '@lib/serverAction';
 import { getTeam } from '@lib/cache';
 import { invalidateAuthCache, requireAuthenticationWithEventAndTeam } from '@lib/auth';
+import { invalidateEventState } from '@lib/event';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 import db, { tTeams, tTeamsRoles, tUsers, tUsersEvents, tUsersEventsPreferencesAvailability,
     tUsersEventsPreferencesParticipation } from '@lib/database';
@@ -145,8 +146,11 @@ export async function decideApplication(
                 .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Registered))
             .executeUpdate();
 
-        if (affectedRows)
+        if (affectedRows) {
             invalidateAuthCache(/* forUserId= */ data.userId);
+            if (data.approved)
+                await invalidateEventState(event.id, { volunteer: data.userId });
+        }
 
         LogBuilder.for('DecideApplication')
             .withCondition(!!affectedRows)

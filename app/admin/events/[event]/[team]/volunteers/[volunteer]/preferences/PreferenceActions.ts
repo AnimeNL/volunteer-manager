@@ -8,6 +8,7 @@ import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log';
 import { executeServerAction } from '@lib/serverAction';
+import { invalidateEventState } from '@lib/event';
 import { requireAuthenticationWithEventAndTeam, requireVolunteerAuthenticationWithEventAndTeam }
     from '@lib/auth';
 import db, { tEvents, tRoles, tUsersEvents, tUsersEventsPreferencesAvailability,
@@ -193,6 +194,9 @@ export async function updateAvailabilityPreferences(
 
             return true;
         });
+
+        if (updated)
+            await invalidateEventState(event.id, { volunteer: userId });
 
         LogBuilder.for('UpdateAvailabilityPreferences')
             .withCondition(updated)

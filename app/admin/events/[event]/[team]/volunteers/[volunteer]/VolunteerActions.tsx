@@ -10,6 +10,7 @@ import { LogBuilder } from '@lib/log/LogBuilder';
 import { executeServerAction } from '@lib/serverAction';
 import { getTeam } from '@lib/cache';
 import { invalidateAuthCache, requireAuthenticationWithEventAndTeam } from '@lib/auth';
+import { invalidateEventState } from '@lib/event';
 import { maybeRevokeVolunteerTicket } from '@lib/tickets/maybeRevokeVolunteerTicket';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 import db, { tRoles, tTeamsRoles, tUsersEvents } from '@lib/database';
@@ -91,8 +92,10 @@ export async function updateVolunteerStatus(
                 .and(tUsersEvents.teamId.equals(team.id))
             .executeUpdate();
 
-        if (affectedRows)
+        if (affectedRows) {
             invalidateAuthCache(/* forUserId= */ parsedArgs.data.userId);
+            await invalidateEventState(event.id, { volunteer: parsedArgs.data.userId });
+        }
 
         if (isCancelled && !!affectedRows) {
             await maybeRevokeVolunteerTicket({
@@ -170,8 +173,10 @@ export async function changeRole(
                 .and(tUsersEvents.teamId.equals(team.id))
             .executeUpdate();
 
-        if (affectedRows)
+        if (affectedRows) {
             invalidateAuthCache(/* forUserId= */ userId);
+            await invalidateEventState(event.id, { volunteer: userId });
+        }
 
         LogBuilder.for('UpdateVolunteerRole')
             .withCondition(!!affectedRows)
@@ -268,8 +273,10 @@ export async function changeTeam(
                 .and(tUsersEvents.teamId.equals(currentTeam.id))
             .executeUpdate();
 
-        if (affectedRows)
+        if (affectedRows) {
             invalidateAuthCache(/* forUserId= */ userId);
+            await invalidateEventState(event.id, { volunteer: userId });
+        }
 
         LogBuilder.for('UpdateVolunteerTeam')
             .withCondition(!!affectedRows)
@@ -318,6 +325,9 @@ export async function updateNotes(
                 .and(tUsersEvents.eventId.equals(event.id))
                 .and(tUsersEvents.teamId.equals(team.id))
             .executeUpdate();
+
+        if (affectedRows)
+            await invalidateEventState(event.id, { volunteer: userId });
 
         LogBuilder.for('UpdateVolunteerNotes')
             .withCondition(!!affectedRows)

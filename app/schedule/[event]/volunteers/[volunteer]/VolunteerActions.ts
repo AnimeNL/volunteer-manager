@@ -9,6 +9,7 @@ import { z } from 'zod/v4';
 import { LogBuilder } from '@lib/log';
 import { executeServerAction } from '@lib/serverAction';
 import { getTeam } from '@lib/cache';
+import { invalidateEventState } from '@lib/event';
 import { requireVolunteerAuthenticationWithEvent } from '@lib/auth';
 import db, { tUsersEvents } from '@lib/database';
 
@@ -68,6 +69,9 @@ export async function updateVolunteerNotes(formData: unknown) {
                 .and(tUsersEvents.userId.equals(data.userId))
                 .and(tUsersEvents.teamId.equals(team.id))
             .executeUpdate();
+
+        if (affectedRows)
+            await invalidateEventState(event.id, { volunteer: data.userId });
 
         LogBuilder.for('UpdateVolunteerNotes')
             .withCondition(!!affectedRows)
