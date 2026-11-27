@@ -15,6 +15,11 @@ import { kSheetBorderRadiusPx } from '../Constants';
  */
 interface PageProps {
     /**
+     * Optional banner rendered flush at the top of the mobile sheet without outer padding.
+     */
+    banner?: React.ReactNode;
+
+    /**
      * Optional page header rendered in the outer shell above the rounded sheet on mobile, and as
      * the leading element inside the sheet on desktop.
      */
@@ -27,10 +32,12 @@ interface PageProps {
  * the layout's outer sheet.
  */
 export function Page(props: React.PropsWithChildren<PageProps>) {
+    const hasBanner = Boolean(props.banner);
+
     return (
         <ViewTransition enter="schedule-page-enter" exit="schedule-page-exit" default="none">
             {props.header}
-            <Stack spacing={1.5} useFlexGap sx={{
+            <Stack useFlexGap sx={{
                 bgcolor: { xs: 'm3.sheet', md: 'transparent' },
                 borderRadius: {
                     xs: `${kSheetBorderRadiusPx}px ${kSheetBorderRadiusPx}px 0 0`,
@@ -41,21 +48,39 @@ export function Page(props: React.PropsWithChildren<PageProps>) {
                 minWidth: 0,
                 overflowY: { xs: 'auto', md: 'visible' },
                 overscrollBehaviorY: { xs: 'contain', md: 'auto' },
-                p: { xs: 1.5, md: 0 },
-                pb: {
-                    xs: 'calc(80px + env(safe-area-inset-bottom, 0px))',
-                    md: 0,
-                },
                 position: { xs: 'relative', md: 'static' },
                 '&::-webkit-scrollbar-track': {
                     marginTop: { xs: `${kSheetBorderRadiusPx}px`, md: 0 },
                 },
+                ...(hasBanner
+                    ? { gap: { xs: 1.5, md: 0 }, p: 0 }
+                    : {
+                        gap: 1.5,
+                        p: { xs: 1.5, md: 0 },
+                        pb: {
+                            xs: 'calc(80px + env(safe-area-inset-bottom, 0px))',
+                            md: 0,
+                        },
+                    }),
             }}>
                 <PullToRefresh />
                 <Suspense fallback={null}>
                     <PageScrollReset />
                 </Suspense>
-                {props.children}
+                { hasBanner ? (
+                    <>
+                        {props.banner}
+                        <Stack spacing={1.5} useFlexGap sx={{
+                            pb: {
+                                xs: 'calc(80px + env(safe-area-inset-bottom, 0px))',
+                                md: 0,
+                            },
+                            px: { xs: 1.5, md: 0 },
+                        }}>
+                            {props.children}
+                        </Stack>
+                    </>
+                ) : props.children }
             </Stack>
         </ViewTransition>
     );

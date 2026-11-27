@@ -6,7 +6,7 @@ import { Suspense } from 'react';
 import Stack from '@mui/material/Stack';
 
 import { DesktopNavigationList, VolunteerNavigationItems } from './DesktopNavigationList';
-import { EventBanner } from './EventBanner';
+import { SidebarEventBanner } from './EventBanner';
 import { getNavigationData } from '../lib/scheduleData';
 
 /**
@@ -31,7 +31,7 @@ export function DesktopNavigation(props: DesktopNavigationProps) {
             position: 'sticky',
             top: 12,
         }}>
-            <EventBanner params={props.params} variant="sidebar" />
+            <SidebarEventBanner params={props.params} />
             <DesktopNavigationList>
                 <Suspense fallback={null}>
                     <AuthenticatedNavigationItems params={props.params} />

@@ -10,7 +10,7 @@ import Stack from '@mui/material/Stack';
 
 import type { OverviewTileId } from './components/OverviewTiles';
 import type { OverviewVendorEntry } from './components/OverviewVendorCard';
-import { EventBanner } from './components/EventBanner';
+import { MobileEventBanner } from './components/EventBanner';
 import { OverviewTiles } from './components/OverviewTiles';
 import { OverviewVendorCard } from './components/OverviewVendorCard';
 import { Page, SuspenseReveal } from './components/Page';
@@ -165,8 +165,7 @@ function OverviewVendorsSkeleton() {
  */
 export default function ScheduleLandingPage(props: PageProps<'/schedule2/[event]'>) {
     return (
-        <Page>
-            <EventBanner params={props.params} variant="widescreen" />
+        <Page banner={ <MobileEventBanner params={props.params} /> }>
             <SuspenseReveal fallback={ <OverviewActionsSkeleton /> }>
                 <OverviewActions params={props.params} />
             </SuspenseReveal>

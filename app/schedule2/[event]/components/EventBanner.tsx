@@ -15,19 +15,13 @@ import { getEvent } from '@lib/cache';
 import { kSheetBorderRadiusPx } from '../Constants';
 
 /**
- * Props accepted by the <EventBanner> component.
+ * Props accepted by the <SidebarEventBanner> and <MobileEventBanner> components.
  */
 interface EventBannerProps {
     /**
      * Route params promise from the `[event]` segment, awaited inside `<Suspense>`.
      */
     params: Promise<{ event: string }>;
-
-    /**
-     * Layout variant: `sidebar` renders a fixed-height card for desktop navigation; `widescreen`
-     * renders a mobile-only widescreen banner for the overview page.
-     */
-    variant: 'sidebar' | 'widescreen';
 }
 
 /**
@@ -53,11 +47,10 @@ function formatEventDateRange(
 }
 
 /**
- * Streams the event's identity image and metadata from `getEvent()` inside `<Suspense>` so the
- * banner stays decoupled from the static App Shell.
+ * Resolves the banner image URL, title, and date/venue subtitle for the `[event]` segment.
  */
-async function EventBannerImage(props: EventBannerProps) {
-    const { event: eventSlug } = await props.params;
+async function loadEventBanner(params: Promise<{ event: string }>) {
+    const { event: eventSlug } = await params;
     const event = await getEvent(eventSlug);
     const imageUrl = event?.imageUrl ?? '/images/admin/event-header.jpg';
     const title = event?.shortName || event?.name || 'AnimeCon';
@@ -71,20 +64,35 @@ async function EventBannerImage(props: EventBannerProps) {
             subtitleParts.push(venue);
     }
 
-    const subtitle = subtitleParts.join(' · ');
-    const isWidescreen = props.variant === 'widescreen';
+    return {
+        imageUrl,
+        subtitle: subtitleParts.join(' · '),
+        title,
+    };
+}
+
+/**
+ * Renders the cover-fitted event banner image inside its `<Card>` container.
+ */
+function BannerImage(props: { alt: string; src: string }) {
+    return (
+        <Box component="img" alt={props.alt} src={props.src}
+             sx={{ display: 'block', height: '100%', objectFit: 'cover', width: '100%' }} />
+    );
+}
+
+/**
+ * Streams sidebar event banner metadata behind `<Suspense>` with a dark bottom gradient scrim.
+ */
+async function SidebarEventBannerContent(props: EventBannerProps) {
+    const { imageUrl, subtitle, title } = await loadEventBanner(props.params);
 
     return (
         <>
-            <Box component="img" alt={title} src={imageUrl}
-                 sx={{ display: 'block', height: '100%', objectFit: 'cover', width: '100%' }} />
+            <BannerImage alt={title} src={imageUrl} />
             <Box aria-hidden="true" sx={{
-                background: isWidescreen
-                    ? 'linear-gradient(180deg, transparent 45%, ' +
-                      'color-mix(in srgb, var(--mui-palette-m3-sheet) 55%, transparent) 76%, ' +
-                      'var(--mui-palette-m3-sheet) 100%)'
-                    : 'linear-gradient(180deg, transparent 25%, ' +
-                      'rgba(0, 0, 0, 0.52) 65%, rgba(0, 0, 0, 0.88) 100%)',
+                background: 'linear-gradient(180deg, transparent 25%, ' +
+                    'rgba(0, 0, 0, 0.52) 65%, rgba(0, 0, 0, 0.88) 100%)',
                 inset: 0,
                 pointerEvents: 'none',
                 position: 'absolute',
@@ -94,33 +102,28 @@ async function EventBannerImage(props: EventBannerProps) {
                 left: 0,
                 pointerEvents: 'none',
                 position: 'absolute',
-                px: isWidescreen ? 2 : 1.5,
-                py: isWidescreen ? 1.5 : 1.25,
+                px: 1.5,
+                py: 1.25,
                 right: 0,
             }}>
                 <Typography
-                    color={isWidescreen ? 'text.primary' : 'common.white'}
+                    color="common.white"
                     noWrap
                     sx={{
                         letterSpacing: '-0.01em',
-                        textShadow: isWidescreen
-                            ? '0 1px 6px var(--mui-palette-m3-sheet)'
-                            : '0 1px 3px rgba(0, 0, 0, 0.85), 0 0 8px rgba(0, 0, 0, 0.45)',
+                        textShadow: '0 1px 3px rgba(0, 0, 0, 0.85), 0 0 8px rgba(0, 0, 0, 0.45)',
                     }}
-                    variant={isWidescreen ? 'h6' : 'subtitle2'}>
+                    variant="subtitle2">
                     {title}
                 </Typography>
                 { !!subtitle &&
                     <Typography
-                        color={isWidescreen ? 'text.secondary' : undefined}
                         noWrap
                         sx={{
-                            ...(isWidescreen ? {} : { color: 'rgba(255, 255, 255, 0.82)' }),
-                            textShadow: isWidescreen
-                                ? '0 1px 4px var(--mui-palette-m3-sheet)'
-                                : '0 1px 3px rgba(0, 0, 0, 0.75)',
+                            color: 'rgba(255, 255, 255, 0.82)',
+                            textShadow: '0 1px 3px rgba(0, 0, 0, 0.75)',
                         }}
-                        variant={isWidescreen ? 'body2' : 'caption'}>
+                        variant="caption">
                         {subtitle}
                     </Typography> }
             </Stack>
@@ -129,24 +132,85 @@ async function EventBannerImage(props: EventBannerProps) {
 }
 
 /**
- * Displays the event's banner image with a bottom gradient scrim, title, and date/venue subtitle.
- * Streams event metadata behind `<Suspense>` to keep the surrounding shell static.
+ * Streams mobile overview banner metadata behind `<Suspense>`, fading into the `m3.sheet` surface.
  */
-export function EventBanner(props: EventBannerProps) {
+async function MobileEventBannerContent(props: EventBannerProps) {
+    const { imageUrl, subtitle, title } = await loadEventBanner(props.params);
+
     return (
-        <Card sx={props.variant === 'widescreen'
-            ? {
-                aspectRatio: '22 / 9',
-                borderRadius: `${kSheetBorderRadiusPx}px ${kSheetBorderRadiusPx}px 0 0`,
-                display: { xs: 'block', md: 'none' },
-                mt: -1.5,
-                mx: -1.5,
-                position: 'relative',
-            }
-            : { height: 112, position: 'relative' }}>
+        <>
+            <BannerImage alt={title} src={imageUrl} />
+            <Box aria-hidden="true" sx={{
+                background: 'linear-gradient(180deg, transparent 45%, ' +
+                    'color-mix(in srgb, var(--mui-palette-m3-sheet) 55%, transparent) 76%, ' +
+                    'var(--mui-palette-m3-sheet) 100%)',
+                inset: 0,
+                pointerEvents: 'none',
+                position: 'absolute',
+            }} />
+            <Stack spacing={0.25} sx={{
+                bottom: 0,
+                left: 0,
+                pointerEvents: 'none',
+                position: 'absolute',
+                px: 2,
+                py: 1.5,
+                right: 0,
+            }}>
+                <Typography
+                    color="text.primary"
+                    noWrap
+                    sx={{
+                        letterSpacing: '-0.01em',
+                        textShadow: '0 1px 6px var(--mui-palette-m3-sheet)',
+                    }}
+                    variant="h6">
+                    {title}
+                </Typography>
+                { !!subtitle &&
+                    <Typography
+                        color="text.secondary"
+                        noWrap
+                        sx={{ textShadow: '0 1px 4px var(--mui-palette-m3-sheet)' }}
+                        variant="body2">
+                        {subtitle}
+                    </Typography> }
+            </Stack>
+        </>
+    );
+}
+
+/**
+ * Fixed-height sidebar event banner for the desktop navigation rail. Streams event metadata
+ * behind `<Suspense>` to keep the surrounding shell static.
+ */
+export function SidebarEventBanner(props: EventBannerProps) {
+    return (
+        <Card sx={{ height: 112, position: 'relative' }}>
             <Suspense
                 fallback={ <Skeleton variant="rectangular" width="100%" height="100%" /> }>
-                <EventBannerImage params={props.params} variant={props.variant} />
+                <SidebarEventBannerContent params={props.params} />
+            </Suspense>
+        </Card>
+    );
+}
+
+/**
+ * Mobile-only widescreen event banner rendered flush at the top of the overview sheet. Streams
+ * event metadata behind `<Suspense>` to keep the surrounding shell static.
+ */
+export function MobileEventBanner(props: EventBannerProps) {
+    return (
+        <Card sx={{
+            aspectRatio: '22 / 9',
+            borderRadius: `${kSheetBorderRadiusPx}px ${kSheetBorderRadiusPx}px 0 0`,
+            display: { xs: 'block', md: 'none' },
+            flexShrink: 0,
+            position: 'relative',
+        }}>
+            <Suspense
+                fallback={ <Skeleton variant="rectangular" width="100%" height="100%" /> }>
+                <MobileEventBannerContent params={props.params} />
             </Suspense>
         </Card>
     );
