@@ -413,6 +413,16 @@ export default async function SettingsPage() {
                     description: 'Maximum number of inline search results that will be shown',
                 },
                 {
+                    setting: 'schedule-show-sales-information',
+                    type: 'boolean',
+                    defaultValue: false,
+
+                    label: 'Show sales information',
+                    description:
+                        'Whether volunteers can see ticket sales information on program event ' +
+                        'pages',
+                },
+                {
                     setting: 'schedule-sort-past-days-last',
                     type: 'boolean',
                     defaultValue: true,

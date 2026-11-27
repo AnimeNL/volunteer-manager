@@ -185,6 +185,7 @@ export type Settings = {
     'schedule-search-candidate-fuzziness': number;
     'schedule-search-candidate-minimum-score': number;
     'schedule-search-result-limit': number;
+    'schedule-show-sales-information': boolean;
     'schedule-sort-past-days-last': boolean;
     'schedule-sort-past-events-last': boolean;
 
@@ -208,6 +209,7 @@ export type Setting = keyof Settings;
 const kCacheTaggedSettings = [
     'schedule-check-in-rate-seconds',
     'schedule-enable-scanner',
+    'schedule-show-sales-information',
     'theme-color',
     'web-vitals-reporting',
 ] as const satisfies readonly Setting[];
