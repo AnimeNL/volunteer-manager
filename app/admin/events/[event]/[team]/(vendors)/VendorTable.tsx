@@ -3,11 +3,11 @@
 
 import { z } from 'zod/v4';
 
-import { Cache } from '@lib/cache';
 import { DataTable, createDataSource, kEventTransformer, withContext, withRowModel, type Column,
     type ExtractRowModel } from '@app/admin/components/DataTable';
 import { LogBuilder } from '@app/lib/log/index';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
+import { invalidateCache } from '@lib/cache';
 import { readSetting } from '@lib/Settings';
 import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tVendors } from '@lib/database';
@@ -124,7 +124,7 @@ const vendorDataSource = createDataSource('admin/events/vendor-team', withContex
             .returningLastInsertedId()
             .executeInsert();
 
-        Cache.getInstance('VolunteerPortal').delete({ eventId: context.event.id, type: 'vendors' });
+        invalidateCache('event.vendors', { eventId: context.event.id });
         ScheduleCache.clear('vendors', context.event.id);
 
         LogBuilder.for('CreateVendor')
@@ -149,7 +149,7 @@ const vendorDataSource = createDataSource('admin/events/vendor-team', withContex
                 .and(tVendors.vendorVisible.equals(/* true= */ 1))
             .executeUpdate();
 
-        Cache.getInstance('VolunteerPortal').delete({ eventId: context.event.id, type: 'vendors' });
+        invalidateCache('event.vendors', { eventId: context.event.id });
         ScheduleCache.clear('vendors', context.event.id);
 
         LogBuilder.for('DeleteVendor')
@@ -211,7 +211,7 @@ const vendorDataSource = createDataSource('admin/events/vendor-team', withContex
                 .and(tVendors.vendorVisible.equals(/* true= */ 1))
             .executeUpdate();
 
-        Cache.getInstance('VolunteerPortal').delete({ eventId: context.event.id, type: 'vendors' });
+        invalidateCache('event.vendors', { eventId: context.event.id });
         ScheduleCache.clear('vendors', context.event.id);
 
         LogBuilder.for('UpdateVendor')

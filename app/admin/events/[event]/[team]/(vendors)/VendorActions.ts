@@ -6,10 +6,10 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import { Cache } from '@lib/cache';
 import { LogBuilder } from '@lib/log';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { executeServerAction } from '@lib/serverAction';
+import { invalidateCache } from '@lib/cache';
 import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tVendors, tVendorsSchedule } from '@lib/database';
 
@@ -131,7 +131,7 @@ export async function updateVendorSchedule(
             }
         });
 
-        Cache.getInstance('VolunteerPortal').delete({ eventId: event.id, type: 'vendors' });
+        invalidateCache('event.vendors', { eventId: event.id });
         ScheduleCache.clear('vendors', event.id);
 
         LogBuilder.for('UpdateVendorSchedule')

@@ -7,10 +7,10 @@ import type { AuthenticationContext, User } from '@lib/auth';
 import type { ContentScope } from './ContentScope';
 import type { ContentType } from '@lib/database/Types';
 import type { ExtractRowModel } from '@app/admin/components/DataTable/server';
-import { Cache } from '@lib/cache/Cache';
 import { LogBuilder } from '@lib/log';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable/server';
+import { invalidateCache } from '@lib/cache';
 import { requireAuthentication, requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tContent, tContentCategories, tEvents, tTeams, tUsers } from '@lib/database';
 
@@ -37,7 +37,7 @@ export function clearContentCacheForEventAndType(eventId: number, type: ContentT
     if (type === 'FAQ')
         ScheduleCache.clear('knowledge', eventId);
 
-    Cache.getInstance('Content').delete({ eventId });
+    invalidateCache('event.content', { eventId, type });
 }
 
 /**
