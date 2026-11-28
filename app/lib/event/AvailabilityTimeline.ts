@@ -625,29 +625,3 @@ export function computeAvailabilityTimeline(
 {
     return new AvailabilityTimeline(input, options).segments;
 }
-
-/**
- * Binary-searches a compiled `timeline` for the index of the segment containing `timeMs`
- * (`startMs <= timeMs < endMs`). Returns `-1` when `timeMs` falls outside the timeline horizon.
- */
-export function findAvailabilitySegmentIndex(
-    timeline: readonly AvailabilitySegment[],
-    timeMs: number): number
-{
-    let low = 0;
-    let high = timeline.length - 1;
-
-    while (low <= high) {
-        const mid = (low + high) >>> 1;
-        const segment = timeline[mid];
-
-        if (timeMs < segment.startMs)
-            high = mid - 1;
-        else if (timeMs >= segment.endMs)
-            low = mid + 1;
-        else
-            return mid;
-    }
-
-    return -1;
-}

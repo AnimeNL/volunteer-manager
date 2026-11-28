@@ -230,6 +230,25 @@ export class ShiftIndex {
         return this.#assignmentsByUser.get(userId) ?? [];
     }
 
+    /**
+     * Returns the earliest scheduled assignment for `userId` starting strictly after `timeMs`, or
+     * `undefined` when no upcoming assignment exists.
+     */
+    getNextAssignmentForVolunteer(
+        userId: number, timeMs: number): EventShiftAssignment | undefined
+    {
+        const assignments = this.#assignmentsByUser.get(userId);
+        if (!assignments)
+            return undefined;
+
+        for (const assignment of assignments) {
+            if (assignment.startMs > timeMs)
+                return assignment;
+        }
+
+        return undefined;
+    }
+
     getAssignmentsForActivity(activityId: number): readonly EventShiftAssignment[] {
         return this.#assignmentsByActivity.get(activityId)?.all ?? [];
     }

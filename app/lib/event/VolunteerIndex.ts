@@ -1,13 +1,12 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { AvailabilitySegment, EventRole, EventShift, EventShiftAssignment, EventTeam,
-    EventVolunteer, EventVolunteerAvailability, EventVolunteerParticipation, VolunteerLiveStatus,
-    VolunteerStateAtTime } from './Types';
 import type { AvailabilityTimelineOptions, RequestedProgramTimeslot } from './AvailabilityTimeline';
+import type { EventRole, EventTeam, EventVolunteer, EventVolunteerAvailability,
+    EventVolunteerParticipation, VolunteerLiveStatus, VolunteerStateAtTime } from './Types';
 import type { ProgramIndex } from './ProgramIndex';
 import type { ShiftIndex } from './ShiftIndex';
-import { computeAvailabilityTimeline, findAvailabilitySegmentIndex } from './AvailabilityTimeline';
+import { AvailabilityTimeline } from './AvailabilityTimeline';
 
 /**
  * Raw teams and roles slice loaded from `tEventsTeams`, `tTeams`, and `tRoles`.
@@ -81,7 +80,7 @@ export class VolunteerIndex {
     readonly #volunteersById = new Map<number, EventVolunteer>();
     readonly #allVolunteersSorted: readonly EventVolunteer[];
     readonly #volunteersByTeam = new Map<number, readonly EventVolunteer[]>();
-    readonly #timelinesByUser = new Map<number, readonly AvailabilitySegment[]>();
+    readonly #timelinesByUser = new Map<number, AvailabilityTimeline>();
 
     constructor(
         teamsSlice: TeamsSlice,
@@ -136,7 +135,7 @@ export class VolunteerIndex {
                     volunteersByTeam.set(participation.teamId, [ volunteer ]);
             }
 
-            const timeline = computeAvailabilityTimeline({
+            const timeline = new AvailabilityTimeline({
                 event: {
                     startTime: context.startTime,
                     endTime: context.endTime,
@@ -217,7 +216,7 @@ export class VolunteerIndex {
      * (such as `includeRequestedEvents`) are enabled.
      */
     getTimeline(
-        userId: number, options?: AvailabilityTimelineOptions): readonly AvailabilitySegment[]
+        userId: number, options?: AvailabilityTimelineOptions): AvailabilityTimeline
     {
         const isDefault = !options || (
             !options.includeRequestedEvents &&
@@ -226,11 +225,11 @@ export class VolunteerIndex {
         );
 
         if (isDefault)
-            return this.#timelinesByUser.get(userId) ?? [];
+            return this.#timelinesByUser.get(userId) ?? AvailabilityTimeline.empty();
 
         const volunteer = this.#volunteersById.get(userId);
         if (!volunteer)
-            return [];
+            return AvailabilityTimeline.empty();
 
         const requestedTimeslots: RequestedProgramTimeslot[] = [];
         if (options.includeRequestedEvents) {
@@ -247,7 +246,7 @@ export class VolunteerIndex {
             }
         }
 
-        return computeAvailabilityTimeline({
+        return new AvailabilityTimeline({
             event: {
                 startTime: this.#context.startTime,
                 endTime: this.#context.endTime,
@@ -272,13 +271,9 @@ export class VolunteerIndex {
         if (!volunteer)
             return undefined;
 
-        const timeline = this.#timelinesByUser.get(userId) ?? [];
-        const index = findAvailabilitySegmentIndex(timeline, timeMs);
-
-        const current = index >= 0 ? timeline[index] : undefined;
-        const previous = resolvePreviousSegment(timeline, index, timeMs);
-        const next = resolveNextSegment(timeline, index, timeMs);
-        const nextShift = findNextShift(this.#shifts.getAssignmentsForVolunteer(userId), timeMs);
+        const timeline = this.#timelinesByUser.get(userId) ?? AvailabilityTimeline.empty();
+        const { current, previous, next, availableAgainAtMs } = timeline.queryAt(timeMs);
+        const nextShift = this.#shifts.getNextAssignmentForVolunteer(userId, timeMs);
 
         if (current?.kind === 'shift') {
             const activeAssignments = current.assignments;
@@ -311,8 +306,6 @@ export class VolunteerIndex {
                 nextShift,
             };
         }
-
-        const availableAgainAtMs = findAvailableAgainAtMs(timeline, index, timeMs);
 
         return {
             volunteer,
@@ -348,82 +341,18 @@ export class VolunteerIndex {
     }
 
     /**
-     * Returns the shift record for `shiftId`, delegating to `ShiftIndex` for convenience.
-     */
-    getShift(shiftId: number): EventShift | undefined {
-        return this.#shifts.getShift(shiftId);
-    }
-
-    /**
      * Approximate heap footprint in bytes for cache diagnostics reporting.
      */
     estimateByteSize(): number {
-        let segmentCount = 0;
+        let timelineBytes = 0;
         for (const timeline of this.#timelinesByUser.values())
-            segmentCount += timeline.length;
+            timelineBytes += timeline.estimateByteSize();
 
         return (
             this.#teamsById.size * 256 +
             this.#rolesById.size * 96 +
             this.#volunteersById.size * 512 +
-            segmentCount * 96
+            timelineBytes
         );
     }
-}
-
-function resolvePreviousSegment(
-    timeline: readonly AvailabilitySegment[], index: number, timeMs: number)
-    : AvailabilitySegment | undefined
-{
-    if (index > 0)
-        return timeline[index - 1];
-    if (index === -1 && timeline.length > 0 && timeMs >= timeline[timeline.length - 1].endMs)
-        return timeline[timeline.length - 1];
-
-    return undefined;
-}
-
-function resolveNextSegment(
-    timeline: readonly AvailabilitySegment[], index: number, timeMs: number)
-    : AvailabilitySegment | undefined
-{
-    if (index >= 0 && index + 1 < timeline.length)
-        return timeline[index + 1];
-    if (index === -1 && timeline.length > 0 && timeMs < timeline[0].startMs)
-        return timeline[0];
-
-    return undefined;
-}
-
-function findAvailableAgainAtMs(
-    timeline: readonly AvailabilitySegment[], index: number, timeMs: number): number | undefined
-{
-    if (!timeline.length)
-        return undefined;
-
-    let startIndex: number;
-    if (index >= 0)
-        startIndex = index + 1;
-    else if (timeMs < timeline[0].startMs)
-        startIndex = 0;
-    else
-        return undefined;
-
-    for (let i = startIndex; i < timeline.length; ++i) {
-        if (timeline[i].kind !== 'unavailable')
-            return timeline[i].startMs;
-    }
-
-    return undefined;
-}
-
-function findNextShift(
-    assignments: readonly EventShiftAssignment[], timeMs: number): EventShiftAssignment | undefined
-{
-    for (const assignment of assignments) {
-        if (assignment.startMs > timeMs)
-            return assignment;
-    }
-
-    return undefined;
 }

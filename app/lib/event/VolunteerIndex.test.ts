@@ -201,7 +201,7 @@ describe('VolunteerIndex', () => {
             kTeamsSlice, kVolunteersSlice, kContext, kProgram, kShifts);
 
         const withRequested = index.getTimeline(1, { includeRequestedEvents: true });
-        const requestedSegment = withRequested.find(
+        const requestedSegment = withRequested.segments.find(
             segment => segment.kind === 'avoid' && segment.reason === 'requested-event');
 
         expect(requestedSegment).toBeDefined();

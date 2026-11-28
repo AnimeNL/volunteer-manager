@@ -94,4 +94,12 @@ describe('ShiftIndex', () => {
         expect(handover!.active.map(a => a.userId)).toEqual([ 11, 12 ]);
         expect(handover!.next.map(a => a.userId)).toEqual([ 13 ]);
     });
+
+    it('finds the next scheduled assignment for a volunteer after a given instant', () => {
+        const index = new ShiftIndex(kShiftsSlice, kScheduleSlice, kProgram);
+
+        expect(index.getNextAssignmentForVolunteer(10, 500)?.id).toBe(501);
+        expect(index.getNextAssignmentForVolunteer(10, 1000)).toBeUndefined();
+        expect(index.getNextAssignmentForVolunteer(999, 0)).toBeUndefined();
+    });
 });
