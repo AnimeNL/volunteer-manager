@@ -8,7 +8,7 @@ import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log';
 import { executeServerAction } from '@lib/serverAction';
-import { invalidateEventState } from '@lib/event';
+import { invalidateCache } from '@lib/cache';
 import { requireAuthenticationWithEventAndTeam, requireVolunteerAuthenticationWithEventAndTeam }
     from '@lib/auth';
 import db, { tEvents, tRoles, tUsersEvents, tUsersEventsPreferencesAvailability,
@@ -196,7 +196,7 @@ export async function updateAvailabilityPreferences(
         });
 
         if (updated)
-            await invalidateEventState(event.id, { volunteer: userId });
+            invalidateCache('event.volunteer', { eventId: event.id, userId });
 
         LogBuilder.for('UpdateAvailabilityPreferences')
             .withCondition(updated)

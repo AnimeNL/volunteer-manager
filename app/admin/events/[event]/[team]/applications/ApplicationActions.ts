@@ -9,9 +9,8 @@ import { z } from 'zod/v4';
 import { LogBuilder } from '@lib/log';
 import { Publish } from '@lib/subscriptions';
 import { executeServerAction } from '@lib/serverAction';
-import { getTeam } from '@lib/cache';
-import { invalidateAuthCache, requireAuthenticationWithEventAndTeam } from '@lib/auth';
-import { invalidateEventState } from '@lib/event';
+import { getTeam, invalidateCache } from '@lib/cache';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 import db, { tTeams, tTeamsRoles, tUsers, tUsersEvents, tUsersEventsPreferencesAvailability,
     tUsersEventsPreferencesParticipation } from '@lib/database';
@@ -147,9 +146,14 @@ export async function decideApplication(
             .executeUpdate();
 
         if (affectedRows) {
-            invalidateAuthCache(/* forUserId= */ data.userId);
-            if (data.approved)
-                await invalidateEventState(event.id, { volunteer: data.userId });
+            if (data.approved) {
+                invalidateCache('event.volunteer.membership', {
+                    eventId: event.id,
+                    userId: data.userId,
+                });
+            } else {
+                invalidateCache('user.auth', { userId: data.userId });
+            }
         }
 
         LogBuilder.for('DecideApplication')
@@ -351,7 +355,7 @@ export async function moveApplication(
         if (!affectedRows)
             return { success: false, error: 'Unable to move the application in the database…' };
 
-        invalidateAuthCache(/* forUserId= */ userId);
+        invalidateCache('user.auth', { userId });
 
         const targetUserName = await db.selectFrom(tUsers)
             .where(tUsers.userId.equals(userId))
@@ -413,7 +417,7 @@ export async function reconsiderApplication(
             .executeUpdate();
 
         if (affectedRows)
-            invalidateAuthCache(/* forUserId= */ userId);
+            invalidateCache('user.auth', { userId });
 
         LogBuilder.for('ReconsiderApplication')
             .withCondition(!!affectedRows)

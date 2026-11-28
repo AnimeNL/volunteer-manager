@@ -3,7 +3,7 @@
 
 import type { CachedEvent, InvalidatableEventStateEntry } from '@lib/cache';
 import type { EventStateDataSource } from './EventStateLoader';
-import type { EventStateInvalidationScope, EventStateSlice } from './Types';
+import type { EventStateSlice } from './Types';
 import type { ProgramSlice } from './ProgramIndex';
 import type { RawVolunteerRecord, TeamsSlice, VolunteersSlice } from './VolunteerIndex';
 import type { ScheduleSlice, ShiftsSlice } from './ShiftIndex';
@@ -74,21 +74,6 @@ export class EventStateCacheEntry implements InvalidatableEventStateEntry {
      */
     resetBoundaryHours(): void {
         this.#boundaryHours = undefined;
-    }
-
-    /**
-     * Marks the requested slice(s) or individual volunteer ID dirty so the next `ensureFresh()`
-     * call reloads only the affected data.
-     */
-    invalidate(scope: EventStateInvalidationScope): void {
-        if (typeof scope === 'string') {
-            this.#dirtySlices.add(scope);
-        } else if (Array.isArray(scope)) {
-            for (const slice of scope)
-                this.#dirtySlices.add(slice);
-        } else if ('volunteer' in scope) {
-            this.#dirtyVolunteerIds.add(scope.volunteer);
-        }
     }
 
     /**

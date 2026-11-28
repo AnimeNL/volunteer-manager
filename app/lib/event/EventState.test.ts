@@ -232,7 +232,7 @@ describe('EventState', () => {
 
         // (1) Schedule-only invalidation reloads ONLY `schedule`.
         setAssignmentEnd(ms('2026-06-13T17:00:00+02:00'));
-        await store.invalidate(event.id, 'schedule');
+        invalidateCache('event.schedule', { eventId: event.id });
 
         const afterSchedule = (await store.get(event))!;
         expect(counts.schedule).toBe(2);
@@ -244,7 +244,7 @@ describe('EventState', () => {
 
         // (2) Single-volunteer surgical invalidation reloads ONLY that volunteer.
         setVolunteerName('Johnny Doe');
-        await store.invalidate(event.id, { volunteer: 7 });
+        invalidateCache('event.volunteer', { eventId: event.id, userId: 7 });
 
         const afterVolunteer = (await store.get(event))!;
         expect(counts.volunteers).toBe(1);
@@ -259,7 +259,7 @@ describe('EventState', () => {
 
         // (4) Full invalidation clears the entry and reloads all slices.
         setShiftTitle('VIP Entrance');
-        await store.invalidate(event.id);
+        invalidateCache('event', { eventId: event.id });
 
         const afterFull = (await store.get(event))!;
         expect(counts.boundaryHours).toBe(2);

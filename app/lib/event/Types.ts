@@ -241,12 +241,3 @@ export interface ShiftStateAtTime {
 // -------------------------------------------------------------------------------------------------
 
 export type { EventStateSlice };
-
-/**
- * Granular scope accepted by `invalidateEventState()`. Passing `undefined` invalidates the
- * entire event entry.
- */
-export type EventStateInvalidationScope =
-    | EventStateSlice
-    | readonly EventStateSlice[]
-    | { readonly volunteer: number };
