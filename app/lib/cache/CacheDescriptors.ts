@@ -6,6 +6,7 @@ import type { PaletteMode } from '@mui/material/styles';
 import type { CachedEvent, CachedTeam, CachedVendorShift } from './Types';
 import type { EnvironmentPurpose } from '../database/Types';
 import type { EventStateCacheEntry } from '@lib/event/EventStateCacheEntry';
+import type { InvalidationScope, ResolvedInvalidationContext } from './InvalidationScopes';
 import type { UserAuthenticationContext } from '@lib/auth';
 
 /**
@@ -239,6 +240,51 @@ export type CacheParameters<T extends CacheType> = CacheDescriptorMap[T]['Parame
 export type CacheContents<T extends CacheType> = CacheDescriptorMap[T]['Contents'];
 
 /**
+ * Minimal structural subset of `Cache<T>` passed to descriptor invalidation handlers, avoiding a
+ * circular dependency between `CacheDescriptors.ts` and `Cache.ts`.
+ */
+interface CacheInvalidationHandle<T extends CacheType> {
+    clear(): void;
+    delete(
+        ...args: [CacheParameters<T>] extends [undefined]
+            ? []
+            : [ params: Partial<CacheParameters<T>> ]
+    ): void;
+    entries(): IterableIterator<[ CacheParameters<T>, CacheContents<T> | null ]>;
+    get(
+        ...args: [CacheParameters<T>] extends [undefined]
+            ? []
+            : [ params: CacheParameters<T> ]
+    ): CacheContents<T> | null | undefined;
+    params(): IterableIterator<CacheParameters<T>>;
+}
+
+/**
+ * Explicit opt-out strategy for caches that do not participate in scope-driven invalidation.
+ */
+export type CacheInvalidationStrategy =
+    | 'content-addressed'
+    | 'manual'
+    | 'ttl-only'
+    | 'write-through';
+
+/**
+ * Per-scope reaction declared on a cache descriptor. Using `'clear'` evicts the entire cache; a
+ * handler function performs targeted eviction or dirty-marking. When multiple scopes in an
+ * implication chain match the same cache, only the most specific matching handler runs.
+ */
+export type CacheInvalidationHandler<T extends CacheType> =
+    | 'clear'
+    | ((cache: CacheInvalidationHandle<T>, context: ResolvedInvalidationContext) => void);
+
+/**
+ * Invalidation policy required on every cache descriptor.
+ */
+export type CacheInvalidationPolicy<T extends CacheType> =
+    | CacheInvalidationStrategy
+    | Partial<Record<InvalidationScope, CacheInvalidationHandler<T>>>;
+
+/**
  * Descriptor indicating the information that must be known for each type of cache.
  */
 export type CacheDescriptor<T extends CacheType> = {
@@ -251,6 +297,11 @@ export type CacheDescriptor<T extends CacheType> = {
      * Description that explains why this cache exists.
      */
     description: string;
+
+    /**
+     * How this cache is invalidated in response to domain mutations.
+     */
+    invalidation: CacheInvalidationPolicy<T>;
 
     /**
      * Optional link template to provide click-through functionality in the UI.
@@ -300,6 +351,14 @@ export type CacheDescriptor<T extends CacheType> = {
 );
 
 /**
+ * System settings that affect `EventState` availability timeline boundaries.
+ */
+const kEventStateBoundarySettings = new Set([
+    'schedule-event-view-start-hours',
+    'schedule-event-view-end-hours',
+]);
+
+/**
  * Descriptors of the caches that exist in the system.
  */
 export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
@@ -313,6 +372,19 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         type: 'ttl',
         ttl: 900,  // 15 minutes
         maxSize: 1000,
+        invalidation: {
+            'event.visibility': 'clear',
+            'permissionRole': 'clear',
+            'role': 'clear',
+            'team.visibility': 'clear',
+            'user.auth': (cache, { userIds }) => {
+                if (!userIds)
+                    return;
+
+                for (const userId of userIds)
+                    cache.delete(userId);
+            },
+        },
     },
 
     Blob: {
@@ -321,12 +393,23 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         linkTemplate: '/blob/{params}.png',
         type: 'lru',
         maxSize: 100,
+        invalidation: 'content-addressed',
     },
 
     Content: {
         name: 'Content',
         description: 'Content and knowledge base articles published across the system.',
         type: 'permanent',
+        invalidation: {
+            'event.content': (cache, { eventId }) => {
+                if (eventId !== undefined)
+                    cache.delete({ eventId });
+            },
+            'event.teams': (cache, { contentCreated, eventId }) => {
+                if (contentCreated && eventId !== undefined)
+                    cache.delete({ eventId });
+            },
+        },
     },
 
     ContentMarkdown: {
@@ -334,24 +417,87 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         description: 'Compiled React element representation of Markdown content.',
         type: 'ttl',  // there is a lot of dynamic content
         ttl: 3600,
+        invalidation: 'content-addressed',
     },
 
     Environments: {
         name: 'Environments',
         description: 'Environments (i.e. tenants) on the Volunteer Manager.',
         type: 'permanent',
+        invalidation: {
+            'environment': 'clear',
+            'team': 'clear',
+        },
     },
 
     EventCache: {
         name: 'EventCache',
         description: 'Contextual event information used throughout the system.',
         type: 'permanent',
+        invalidation: {
+            'event': (cache, { eventSlug, previousSlug }) => {
+                if (eventSlug)
+                    cache.delete(eventSlug);
+                if (previousSlug)
+                    cache.delete(previousSlug);
+            },
+        },
     },
 
     EventState: {
         name: 'EventState',
         description: 'Indexed operational event state (program, volunteers, shifts, and schedules).',
         type: 'permanent',
+        invalidation: {
+            'event': (cache, { eventId }) => {
+                if (eventId !== undefined)
+                    cache.delete(eventId);
+            },
+            'event.program': (cache, { festivalId }) => {
+                if (festivalId === undefined)
+                    return;
+
+                for (const [ , entry ] of cache.entries()) {
+                    if (entry && entry.festivalId === festivalId)
+                        entry.markDirty('program');
+                }
+            },
+            'event.schedule': (cache, { eventId }) => {
+                if (eventId !== undefined)
+                    cache.get(eventId)?.markDirty('schedule');
+            },
+            'event.shifts': (cache, { eventId }) => {
+                if (eventId !== undefined)
+                    cache.get(eventId)?.markDirty('shifts');
+            },
+            'event.teams': (cache, { eventId }) => {
+                if (eventId !== undefined)
+                    cache.get(eventId)?.markDirty('teams');
+            },
+            'event.volunteer': (cache, { eventId, userId }) => {
+                if (eventId !== undefined && userId !== undefined)
+                    cache.get(eventId)?.markVolunteerDirty(userId);
+            },
+            'role': (cache) => {
+                for (const [ , entry ] of cache.entries())
+                    entry?.markDirty('teams');
+            },
+            'settings': (cache, { keys }) => {
+                if (!keys?.some(key => kEventStateBoundarySettings.has(key)))
+                    return;
+
+                for (const [ , entry ] of cache.entries())
+                    entry?.resetBoundaryHours();
+            },
+            'shiftCategories': (cache) => {
+                for (const [ , entry ] of cache.entries())
+                    entry?.markDirty('shifts');
+            },
+            'team': (cache) => {
+                for (const [ , entry ] of cache.entries())
+                    entry?.markDirty('teams');
+            },
+        },
     },
 
     IP2Location: {
@@ -359,12 +505,14 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         description: 'IP-to-location lookups used for diagnostics and investigation.',
         type: 'ttl',
         ttl: 86400,  // one day
+        invalidation: 'ttl-only',
     },
 
     ManifestLatestEvent: {
         name: 'ManifestLatestEvent',
         description: 'Latest visible event for use in manifest.json.',
         type: 'permanent',
+        invalidation: 'manual',
     },
 
     PageMetadata: {
@@ -372,36 +520,71 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         description: 'Resolved entity labels displayed in administration page titles.',
         type: 'ttl',
         ttl: 900,
+        invalidation: {
+            'environment': (cache) => {
+                cache.delete({ type: 'environment' });
+            },
+            'inbox': (cache, { accountId }) => {
+                if (accountId !== undefined)
+                    cache.delete({ type: 'emailAccount', id: String(accountId) });
+            },
+            'permissionRole': (cache, { roleId }) => {
+                if (roleId)
+                    cache.delete({ type: 'role', id: roleId });
+            },
+            'user.profile': (cache) => {
+                cache.delete({ type: 'user' });
+            },
+        },
     },
 
     PermissionRoles: {
         name: 'PermissionRoles',
         description: 'Roles that can be assigned to users granting them certain permissions',
         type: 'permanent',
+        invalidation: 'write-through',
     },
 
     Settings: {
         name: 'Settings',
         description: 'Server-side configuration settings.',
         type: 'permanent',
+        invalidation: 'write-through',
     },
 
     TeamCache: {
         name: 'TeamCache',
         description: 'Contextual team information used throughout the system.',
         type: 'permanent',
+        invalidation: {
+            'team': (cache, { teamSlug }) => {
+                if (teamSlug)
+                    cache.delete(teamSlug);
+            },
+        },
     },
 
     UrlSlugs: {
         name: 'UrlSlugs',
         description: 'URL-safe slugs to both event and team unique IDs.',
         type: 'permanent',
+        invalidation: {
+            'event': (cache, { eventId }) => {
+                if (eventId !== undefined)
+                    cache.delete({ event: eventId });
+            },
+            'team': (cache, { teamId }) => {
+                if (teamId !== undefined)
+                    cache.delete({ team: teamId });
+            },
+        },
     },
 
     UserSettings: {
         name: 'UserSettings',
         description: 'User-specific server-side configuration settings.',
         type: 'permanent',
+        invalidation: 'write-through',
     },
 
     // ---------------------------------------------------------------------------------------------
@@ -413,6 +596,10 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         description: 'Active events for use in the admin navigation.',
         type: 'ttl',
         ttl: 300,
+        invalidation: {
+            'event.identity': 'clear',
+            'event.teams': 'clear',
+        },
     },
 
     AdminNavigationMenuCache: {
@@ -420,6 +607,25 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         description: 'Badges and counters displayed in the administration navigation.',
         type: 'ttl',
         ttl: 300,
+        invalidation: {
+            'event.slug': 'clear',
+            'event.teams': (cache, { eventSlug }) => {
+                if (eventSlug)
+                    cache.delete(eventSlug);
+            },
+            'inbox': (cache, { userId }) => {
+                if (userId !== undefined) {
+                    cache.delete(`inbox/${userId}`);
+                    return;
+                }
+
+                for (const key of [ ...cache.params() ]) {
+                    if (key.startsWith('inbox/'))
+                        cache.delete(key);
+                }
+            },
+            'team': 'clear',
+        },
     },
 
     // ---------------------------------------------------------------------------------------------
@@ -430,6 +636,7 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         name: 'EventFinances',
         description: 'Processed financial information associated with an event.',
         type: 'permanent',
+        invalidation: 'manual',
     },
 
     // ---------------------------------------------------------------------------------------------
@@ -441,6 +648,17 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         description: 'Options and order details retrieved from ticketing providers.',
         type: 'ttl',
         ttl: 72 * 3600,
+        invalidation: {
+            'event.tickets': (cache, { eventSlug, ticketTarget }) => {
+                if (!eventSlug)
+                    return;
+
+                if (ticketTarget === 'weeztix')
+                    cache.delete(`${eventSlug}/weeztix`);
+
+                cache.delete(`${eventSlug}/weeztix/ticketTypes`);
+            },
+        },
     },
 
     // ---------------------------------------------------------------------------------------------
@@ -451,6 +669,12 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         name: 'VolunteerPortal',
         description: 'Event-scoped data cached for the volunteer schedule portal.',
         type: 'permanent',
+        invalidation: {
+            'event.vendors': (cache, { eventId }) => {
+                if (eventId !== undefined)
+                    cache.delete({ eventId, type: 'vendors' });
+            },
+        },
     },
 
     // ---------------------------------------------------------------------------------------------
@@ -462,6 +686,7 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         name: 'TestCacheWithParams',
         description: 'Internal cache used for testing',
         type: 'permanent',
+        invalidation: 'manual',
     },
 
     TestCacheWithLRU: {
@@ -470,6 +695,7 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         description: 'Internal cache used for testing',
         type: 'lru',
         maxSize: 3,
+        invalidation: 'manual',
     },
 
     TestCacheWithTTL: {
@@ -478,6 +704,7 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         description: 'Internal cache used for testing',
         type: 'ttl',
         ttl: 10,
+        invalidation: 'manual',
     },
 
     TestCacheWithBoundedTTL: {
@@ -487,6 +714,7 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         type: 'ttl',
         ttl: 10,
         maxSize: 2,
+        invalidation: 'manual',
     },
 
 };
