@@ -512,7 +512,9 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         name: 'ManifestLatestEvent',
         description: 'Latest visible event for use in manifest.json.',
         type: 'permanent',
-        invalidation: 'manual',
+        invalidation: {
+            'event.identity': 'clear',
+        },
     },
 
     PageMetadata: {

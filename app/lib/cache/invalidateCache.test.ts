@@ -60,6 +60,7 @@ describe('invalidateCache', () => {
         const stateCache = Cache.getInstance('EventState');
         const activeEventsCache = Cache.getInstance('AdminNavigationActiveEvents');
         const menuCache = Cache.getInstance('AdminNavigationMenuCache');
+        const manifestCache = Cache.getInstance('ManifestLatestEvent');
         const authCache = Cache.getInstance('Authentication');
 
         const seed = () => {
@@ -68,6 +69,7 @@ describe('invalidateCache', () => {
             stateCache.set(42, createMockEventStateEntry(9001).entry);
             activeEventsCache.set([ { concluded: false, label: '2026', slug: '2026' } ]);
             menuCache.set('2026', { badge: 1 });
+            manifestCache.set({ name: 'AnimeCon 2026', fullName: 'AnimeCon 2026: Test' });
             authCache.set(7, { context: {} as any, sessions: new Map() });
         };
 
@@ -79,21 +81,24 @@ describe('invalidateCache', () => {
         expect(stateCache.has(42)).toBe(false);
         expect(activeEventsCache.has()).toBe(true);
         expect(menuCache.has('2026')).toBe(true);
+        expect(manifestCache.has()).toBe(true);
         expect(authCache.has(7)).toBe(true);
 
-        // `event.identity` also clears AdminNavigationActiveEvents (resolving ID by slug).
+        // `event.identity` also clears AdminNavigationActiveEvents and ManifestLatestEvent.
         seed();
         invalidateCache('event.identity', { eventSlug: '2026' });
         expect(eventCache.has('2026')).toBe(false);
         expect(slugCache.has({ event: 42 })).toBe(false);
         expect(stateCache.has(42)).toBe(false);
         expect(activeEventsCache.has()).toBe(false);
+        expect(manifestCache.has()).toBe(false);
         expect(authCache.has(7)).toBe(true);
 
         // `event.visibility` also clears Authentication.
         seed();
         invalidateCache('event.visibility', { eventId: 42 });
         expect(activeEventsCache.has()).toBe(false);
+        expect(manifestCache.has()).toBe(false);
         expect(authCache.has(7)).toBe(false);
         expect(menuCache.has('2026')).toBe(true);
 
