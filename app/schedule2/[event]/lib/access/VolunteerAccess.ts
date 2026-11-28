@@ -4,6 +4,7 @@
 import { notFound } from 'next/navigation';
 
 import type { AccessControl } from '@lib/auth/access';
+import type { EventState } from '@lib/event';
 import type { ShiftColleagues, VolunteerAccessShift } from './SharedShiftIndex';
 import { SharedShiftIndex } from './SharedShiftIndex';
 
@@ -108,6 +109,69 @@ export class VolunteerAccess {
 
     #participationsByUser = new Map<number, VolunteerAccessParticipation[]>();
     #sharedShifts: SharedShiftIndex;
+
+    /**
+     * Constructs an empty, fail-closed `VolunteerAccess` policy when event operational state is
+     * unavailable.
+     */
+    static empty(
+        eventSlug: string, viewerUserId: number, access: AccessControl): VolunteerAccess
+    {
+        return new VolunteerAccess({
+            viewerUserId,
+            eventSlug,
+            access,
+            teams: [],
+            teamVisibility: new Map(),
+            participations: [],
+            shifts: [],
+        });
+    }
+
+    /**
+     * Constructs a `VolunteerAccess` policy directly from an in-memory `EventState` snapshot,
+     * issuing no database queries.
+     */
+    static fromEventState(
+        eventState: EventState, viewerUserId: number, access: AccessControl): VolunteerAccess
+    {
+        const teams = eventState.volunteers.getTeams().map(team => ({
+            id: team.id,
+            slug: team.slug,
+        }));
+
+        const participations: VolunteerAccessParticipation[] = [];
+        for (const volunteer of eventState.volunteers.getVolunteers()) {
+            for (const participation of volunteer.participations) {
+                const role = eventState.volunteers.getRole(participation.roleId);
+                participations.push({
+                    userId: volunteer.id,
+                    teamId: participation.teamId,
+                    isLeader: role?.isLeader ?? false,
+                });
+            }
+        }
+
+        const shifts = eventState.shifts.getAllAssignments().map(assignment => ({
+            scheduleId: assignment.id,
+            userId: assignment.userId,
+            shiftId: assignment.shiftId,
+            shiftTeamId: assignment.teamId,
+            activityId: assignment.activityId,
+            startMs: assignment.startMs,
+            endMs: assignment.endMs,
+        }));
+
+        return new VolunteerAccess({
+            viewerUserId,
+            eventSlug: eventState.eventSlug,
+            access,
+            teams,
+            teamVisibility: eventState.volunteers.getTeamVisibility(),
+            participations,
+            shifts,
+        });
+    }
 
     constructor(params: VolunteerAccessParams) {
         this.#viewerUserId = params.viewerUserId;

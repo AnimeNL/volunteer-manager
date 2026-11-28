@@ -6,7 +6,6 @@ import { cache } from 'react';
 
 import type { AccessControl } from '@lib/auth/access';
 import type { CachedEvent } from '@lib/cache';
-import type { EventState } from '@lib/event';
 import type { User } from '@lib/auth';
 import { VolunteerAccess } from './VolunteerAccess';
 import { getEventState } from '@lib/event';
@@ -24,53 +23,6 @@ export interface VolunteerAccessContext {
 }
 
 /**
- * Builds a `VolunteerAccess` policy instance directly from an in-memory `EventState` snapshot,
- * issuing no database queries.
- */
-function buildVolunteerAccess(
-    eventState: EventState,
-    viewerUserId: number,
-    access: AccessControl): VolunteerAccess
-{
-    const teams = eventState.volunteers.getTeams().map(team => ({
-        id: team.id,
-        slug: team.slug,
-    }));
-
-    const participations: { userId: number; teamId: number; isLeader: boolean }[] = [];
-    for (const volunteer of eventState.volunteers.getVolunteers()) {
-        for (const participation of volunteer.participations) {
-            const role = eventState.volunteers.getRole(participation.roleId);
-            participations.push({
-                userId: volunteer.id,
-                teamId: participation.teamId,
-                isLeader: role?.isLeader ?? false,
-            });
-        }
-    }
-
-    const shifts = eventState.shifts.getAllAssignments().map(assignment => ({
-        scheduleId: assignment.id,
-        userId: assignment.userId,
-        shiftId: assignment.shiftId,
-        shiftTeamId: assignment.teamId,
-        activityId: assignment.activityId,
-        startMs: assignment.startMs,
-        endMs: assignment.endMs,
-    }));
-
-    return new VolunteerAccess({
-        viewerUserId,
-        eventSlug: eventState.eventSlug,
-        access,
-        teams,
-        teamVisibility: eventState.volunteers.getTeamVisibility(),
-        participations,
-        shifts,
-    });
-}
-
-/**
  * Request-cached builder so multiple Server Components and data loaders in the same render share
  * one precomputed `VolunteerAccess` instance backed by the permanent `EventState` cache.
  */
@@ -81,19 +33,10 @@ const resolveVolunteerAccess = cache(
         access: AccessControl): Promise<VolunteerAccess> =>
     {
         const eventState = await getEventState(event);
-        if (!eventState) {
-            return new VolunteerAccess({
-                viewerUserId,
-                eventSlug: event.slug,
-                access,
-                teams: [],
-                teamVisibility: new Map(),
-                participations: [],
-                shifts: [],
-            });
-        }
+        if (!eventState)
+            return VolunteerAccess.empty(event.slug, viewerUserId, access);
 
-        return buildVolunteerAccess(eventState, viewerUserId, access);
+        return VolunteerAccess.fromEventState(eventState, viewerUserId, access);
     });
 
 /**
