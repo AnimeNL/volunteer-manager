@@ -20,10 +20,10 @@
   registration-activation tokens (rotated on activation, deactivation, and password changes) — do
   not remove it or repurpose it for sessions.
 - **Auth cache & `bypassCache`**: Any mutation changing a user's profile, permissions, event
-  participations, activation status, or credentials must call
-  `invalidateAuthCache(/* forUserId= */ userId)` (or `invalidateAuthCache()` for global role/event
-  changes). High-risk security mutations (password changes, passkey management, admin account
-  actions) must verify against the database via `requireAuthenticationContext` with
+  participations, activation status, or credentials must call `invalidateCache()` from `@lib/cache`
+  with the appropriate scope (e.g. `'user.auth'`, `'user.profile'`, `'event.volunteer'`, or
+  `'permissionRole'`). High-risk security mutations (password changes, passkey management, admin
+  account actions) must verify against the database via `requireAuthenticationContext` with
   `{ bypassCache: true }`.
 - **Prefer `requireAuthenticationContext()`**: Use `requireAuthenticationContext()` whenever
   unauthenticated requests should fail with `401`. Reserve `getAuthenticationContext()` for routes
@@ -45,4 +45,5 @@
   `vi.mock('next/headers', ...)` factory will bind the real `next/headers` if that helper
   transitively imports `AuthenticationContext.ts` or any other runtime consumer of `next/headers`.
   Keep test helpers free of runtime `next/headers` imports (e.g. clear
-  `Cache.getInstance('Authentication')` directly instead of importing `invalidateAuthCache`).
+  `Cache.getInstance('Authentication')` directly instead of importing from
+  `AuthenticationContext.ts`).

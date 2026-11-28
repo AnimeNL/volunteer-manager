@@ -18,6 +18,12 @@ event or team metadata:
 * When neither is an option, ask the user for confirmation on whether a manual database query is
   preferred over another approach, and consider one or two alternatives.
 
+## Cache invalidation
+When a mutation modifies cached domain state, always call `invalidateCache()` from `@lib/cache`
+with the matching domain scope from `InvalidationScopes.ts` instead of clearing individual caches
+directly via `Cache.getInstance(...).clear()` or `.delete()`. Every cache descriptor in
+`CacheDescriptors.ts` declares its own invalidation policy.
+
 ## Server Actions
 Convention is to add a local `FeatureActions.ts` (where "Feature" is the name of the page you're
 editing) with a top-level `'use server';` directive. Each Server Action should:

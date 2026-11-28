@@ -47,17 +47,18 @@ teams ────────┬──────────► shifts ──
 ### Partial Invalidation
 
 Because the cache is permanent, mutations invalidate only the affected slice(s) via
-`invalidateEventState(event, scope)` (or `invalidateEventProgram(festivalId)` when only the AnPlan
-festival ID is known), delegating to `EventStateStore.getInstance()`:
+`invalidateCache()` from `@lib/cache` (using scopes such as `'event.program'`, `'event.teams'`,
+`'event.volunteer'`, `'event.shifts'`, `'event.schedule'`, or `'settings'`):
 
-1. `EventStateCacheEntry.invalidate()` marks the requested slice(s) or volunteer ID dirty lazily
-   without issuing database queries.
+1. `EventStateCacheEntry` (`markDirty()`, `markVolunteerDirty()`, `resetBoundaryHours()`) marks the
+   requested slice(s), volunteer ID, or boundary hours dirty lazily without issuing database
+   queries.
 2. On the next `getEventState()` call, `EventStateCacheEntry.ensureFresh()` reloads only dirty
    slices from `EventStateLoader` and shares a single in-flight rebuild promise across concurrent
    requests to prevent stampedes.
 3. Only the facets affected by the reloaded slices are rebuilt in memory.
-4. Omitting `scope` drops the entire cached event entry (for example when event dates or timezone
-   change).
+4. Broad event scopes (such as `'event'` or `'event.identity'`, for example when event dates or
+   timezone change) evict the entire `EventState` entry.
 
 ## Facets and Time-Bound Queries
 
