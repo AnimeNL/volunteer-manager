@@ -5,6 +5,7 @@ import type { PaletteMode } from '@mui/material/styles';
 
 import type { CachedEvent, CachedTeam, CachedVendorShift } from './Types';
 import type { EnvironmentPurpose } from '../database/Types';
+import type { EventStateCacheEntry } from '@lib/event/EventStateCacheEntry';
 import type { UserAuthenticationContext } from '@lib/auth';
 
 /**
@@ -68,7 +69,7 @@ interface CacheDescriptorMap {
 
     EventState: {
         Parameters: number;  // event ID
-        Contents: any;  // EventStateCacheEntry
+        Contents: EventStateCacheEntry;
     };
 
     IP2Location: {
