@@ -6,6 +6,7 @@ import type { InvalidationArgs, InvalidationScope, ResolvedInvalidationContext }
     from './InvalidationScopes';
 import { Cache } from './Cache';
 import { expandInvalidationScopes } from './InvalidationScopes';
+import { invalidateNextCacheTags } from './nextCacheBridge';
 
 import { kCacheDescriptor } from './CacheDescriptors';
 
@@ -162,4 +163,6 @@ export function invalidateCache<Scope extends InvalidationScope>(
             break;
         }
     }
+
+    invalidateNextCacheTags(scopes, context);
 }
