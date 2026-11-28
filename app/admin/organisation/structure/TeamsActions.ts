@@ -6,13 +6,12 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import { Cache, invalidateTeamCache } from '@lib/cache';
 import { LogBuilder } from '@lib/log';
-import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
 import { executeServerAction } from '@lib/serverAction';
-import { invalidateAuthCache, requireAuthentication } from '@lib/auth';
+import { invalidateCache } from '@lib/cache';
 import { nanoid } from '@lib/nanoid';
 import { readSetting } from '@lib/Settings';
+import { requireAuthentication } from '@lib/auth';
 import db, { tEnvironments, tTeams, tTeamsRoles, tTeamsVisibility } from '@lib/database';
 
 import { kEnvironmentPurpose } from '@lib/database/Types';
@@ -78,7 +77,7 @@ export async function createEnvironment(formData: unknown) {
                 domain: data.domain,
             });
 
-        Cache.getInstance('Environments').clear();
+        invalidateCache('environment');
 
         return {
             success: true,
@@ -161,7 +160,7 @@ export async function createTeam(formData: unknown) {
                 .executeInsert();
         }
 
-        await invalidateTeamCache(data.slug);
+        invalidateCache('team', { teamId, teamSlug: data.slug });
 
         LogBuilder.for('CreateTeam')
             .withInitiatorUser(props.user)
@@ -169,9 +168,6 @@ export async function createTeam(formData: unknown) {
             .record({
                 team: data.title,
             });
-
-        Cache.getInstance('AdminNavigationMenuCache').clear();
-        Cache.getInstance('Environments').clear();
 
         return {
             success: true,
@@ -230,9 +226,7 @@ export async function deleteEnvironment(environmentId: number, formData: unknown
                 domain: existingEnvironment,
             });
 
-        Cache.getInstance('Environments').clear();
-
-        clearPageMetadataCache('environment');
+        invalidateCache('environment');
 
         return {
             success: true,
@@ -270,7 +264,7 @@ export async function resetTeamKey(teamId: number, formData: unknown) {
         if (!affectedRows)
             return { success: false, error: 'Unable to store the newly generated key…' };
 
-        await invalidateTeamCache(teamId);
+        invalidateCache('team', { teamId });
 
         LogBuilder.for('ResetTeamKey')
             .withCondition(!!affectedRows)
@@ -319,11 +313,7 @@ export async function toggleTeamEnabled(teamId: number, enabled: boolean, formDa
         if (!affectedRows)
             return { success: false, error: 'Unable to update the team state in the database…' };
 
-        await invalidateTeamCache(teamId);
-        invalidateAuthCache();
-
-        Cache.getInstance('AdminNavigationMenuCache').clear();
-        Cache.getInstance('EventState').clear();
+        invalidateCache('team.visibility', { teamId });
 
         LogBuilder.for('UpdateTeamEnabled')
             .withCondition(!!affectedRows)
@@ -392,9 +382,7 @@ export async function updateEnvironment(environmentId: number, formData: unknown
                 domain: existingEnvironment,
             });
 
-        Cache.getInstance('Environments').clear();
-
-        clearPageMetadataCache('environment');
+        invalidateCache('environment');
 
         return { success: true, refresh: true };
     });
@@ -505,11 +493,7 @@ export async function updateTeam(teamId: number, formData: unknown) {
         if (!affectedRows)
             return { success: false, error: 'Unable to update the team in the database…' };
 
-        Cache.getInstance('AdminNavigationMenuCache').clear();
-        Cache.getInstance('Environments').clear();
-        Cache.getInstance('EventState').clear();
-
-        await invalidateTeamCache(teamId);
+        invalidateCache('team', { teamId });
 
         LogBuilder.for('UpdateTeam')
             .withCondition(!!affectedRows)

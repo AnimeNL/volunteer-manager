@@ -2,7 +2,8 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { Cache } from './Cache';
-import { getTeam, invalidateTeamCache } from './getTeam';
+import { getTeam } from './getTeam';
+import { invalidateCache } from './invalidateCache';
 import { useMockConnection } from '@lib/database/Connection';
 
 describe('getTeam', () => {
@@ -23,19 +24,19 @@ describe('getTeam', () => {
         expect(teamCache.has('non-existent')).toBeFalsy();
     });
 
-    it('should safely handle invalidation when a null entry is cached', async () => {
+    it('should safely handle invalidation when a null entry is cached', () => {
         teamCache.set('missing-slug', null as any);
 
-        await expect(invalidateTeamCache('missing-slug')).resolves.toBeUndefined();
+        expect(() => invalidateCache('team', { teamSlug: 'missing-slug' })).not.toThrow();
         expect(teamCache.has('missing-slug')).toBeFalsy();
     });
 
-    it('should invalidate both the team cache and team URL slug cache by slug', async () => {
+    it('should invalidate both the team cache and team URL slug cache by slug', () => {
         teamCache.set('crew', { id: 7, slug: 'crew' } as any);
         urlSlugCache.set({ team: 7 }, 'crew');
         urlSlugCache.set({ event: 7 }, 'event-7');
 
-        await invalidateTeamCache('crew');
+        invalidateCache('team', { teamSlug: 'crew' });
 
         expect(teamCache.has('crew')).toBeFalsy();
         expect(urlSlugCache.has({ team: 7 })).toBeFalsy();

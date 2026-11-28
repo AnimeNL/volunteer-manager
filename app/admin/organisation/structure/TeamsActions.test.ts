@@ -8,7 +8,7 @@ import { useMockConnection } from '@lib/database/Connection';
 
 import { updateTeam } from './TeamsActions';
 
-const mockInvalidateTeamCache = vi.fn();
+const mockInvalidateCache = vi.fn();
 
 vi.mock('next/headers', () => ({
     headers: async () => new Headers(),
@@ -18,7 +18,10 @@ vi.mock('@lib/cache', async importOriginal => {
     const actual = await importOriginal<typeof import('@lib/cache')>();
     return {
         ...actual,
-        invalidateTeamCache: (...args: unknown[]) => mockInvalidateTeamCache(...args),
+        invalidateCache: (...args: unknown[]) => {
+            mockInvalidateCache(...args);
+            return (actual.invalidateCache as (...a: unknown[]) => void)(...args);
+        },
     };
 });
 
@@ -94,7 +97,7 @@ describe('TeamsActions', () => {
     const mockConnection = useMockConnection();
 
     beforeEach(() => {
-        mockInvalidateTeamCache.mockReset();
+        mockInvalidateCache.mockReset();
         Cache.getInstance('EventState').clear();
         SetRecordErrorLogDeferDelegate(async () => undefined);
     });
@@ -105,8 +108,12 @@ describe('TeamsActions', () => {
 
     it('persists deduplicated directional visibleTeamIds without self-references', async () => {
         const visibilityInsertParams: unknown[] = [];
-        const eventStateCache = Cache.getInstance('EventState');
-        eventStateCache.set(7, { sentinel: true } as any);
+        const markDirty = vi.fn();
+        Cache.getInstance('EventState').set(7, {
+            markDirty,
+            markVolunteerDirty: vi.fn(),
+            resetBoundaryHours: vi.fn(),
+        });
 
         mockConnection.expect('beginTransaction', () => undefined);
         mockConnection.expect('update', () => 1);
@@ -123,14 +130,18 @@ describe('TeamsActions', () => {
 
         expect(result).toEqual({ success: true, refresh: true });
         expect(visibilityInsertParams).toEqual([ 1, 2, 1, 3 ]);
-        expect(mockInvalidateTeamCache).toHaveBeenCalledWith(1);
-        expect(eventStateCache.has(7)).toBe(false);
+        expect(mockInvalidateCache).toHaveBeenCalledWith('team', { teamId: 1 });
+        expect(markDirty).toHaveBeenCalledWith('teams');
     });
 
     it('clears existing team visibility rows without inserting when visibleTeamIds is empty',
         async () => {
-            const eventStateCache = Cache.getInstance('EventState');
-            eventStateCache.set(7, { sentinel: true } as any);
+            const markDirty = vi.fn();
+            Cache.getInstance('EventState').set(7, {
+                markDirty,
+                markVolunteerDirty: vi.fn(),
+                resetBoundaryHours: vi.fn(),
+            });
 
             mockConnection.expect('beginTransaction', () => undefined);
             mockConnection.expect('update', () => 1);
@@ -142,6 +153,7 @@ describe('TeamsActions', () => {
             const result = await updateTeam(1, buildUpdateTeamInput([]));
 
             expect(result).toEqual({ success: true, refresh: true });
-            expect(eventStateCache.has(7)).toBe(false);
+            expect(mockInvalidateCache).toHaveBeenCalledWith('team', { teamId: 1 });
+            expect(markDirty).toHaveBeenCalledWith('teams');
         });
 });

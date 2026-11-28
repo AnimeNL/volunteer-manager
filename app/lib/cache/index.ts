@@ -6,5 +6,5 @@ export * from './Types';
 
 export { Cache } from './Cache';
 export { getEvent } from './getEvent';
-export { getTeam, invalidateTeamCache } from './getTeam';
+export { getTeam } from './getTeam';
 export { invalidateCache } from './invalidateCache';

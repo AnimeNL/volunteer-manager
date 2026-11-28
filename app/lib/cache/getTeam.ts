@@ -3,7 +3,7 @@
 
 import type { CachedTeam } from './Types';
 import { Cache } from './Cache';
-import { getUrlSlug, invalidateUrlSlug } from './getUrlSlug';
+import { getUrlSlug } from './getUrlSlug';
 import db, { tEnvironments, tTeams } from '@lib/database';
 
 /**
@@ -58,29 +58,4 @@ export async function getTeam(team: number | string): Promise<CachedTeam | undef
 
     cache.set(slug, result);
     return result;
-}
-
-/**
- * Invalidates all cached representations of the `team` identified by either its ID or slug.
- */
-export async function invalidateTeamCache(team: number | string) {
-    const cache = Cache.getInstance('TeamCache');
-
-    if (typeof team === 'string' && cache.has(team)) {
-        const cached = cache.get(team);
-
-        cache.delete(team);
-
-        if (cached)
-            invalidateUrlSlug({ team: cached.id });
-
-    } else if (typeof team === 'number') {
-        const slug = await getUrlSlug({ team });
-        if (!!slug)
-            cache.delete(slug);
-
-        invalidateUrlSlug({ team });
-    }
-
-    Cache.getInstance('EventState').clear();
 }

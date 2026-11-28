@@ -24,10 +24,3 @@ export async function getUrlSlug(params: { event: number } | { team: number })
         }
     }) ?? undefined;
 }
-
-/**
- * Invalidates all cached URL slug information for the given `event` or `team`.
- */
-export function invalidateUrlSlug(params: { event: number } | { team: number }): void {
-    Cache.getInstance('UrlSlugs').delete(params);
-}
