@@ -113,7 +113,7 @@ describe('TeamsActions', () => {
             markDirty,
             markVolunteerDirty: vi.fn(),
             resetBoundaryHours: vi.fn(),
-        });
+        } as any);
 
         mockConnection.expect('beginTransaction', () => undefined);
         mockConnection.expect('update', () => 1);
@@ -141,7 +141,7 @@ describe('TeamsActions', () => {
                 markDirty,
                 markVolunteerDirty: vi.fn(),
                 resetBoundaryHours: vi.fn(),
-            });
+            } as any);
 
             mockConnection.expect('beginTransaction', () => undefined);
             mockConnection.expect('update', () => 1);

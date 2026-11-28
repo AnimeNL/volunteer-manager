@@ -211,7 +211,7 @@ describe('Settings', () => {
             markDirty: vi.fn(),
             markVolunteerDirty: vi.fn(),
             resetBoundaryHours,
-        });
+        } as any);
 
         const expectWrite = () => {
             mockConnection.expect('beginTransaction');
