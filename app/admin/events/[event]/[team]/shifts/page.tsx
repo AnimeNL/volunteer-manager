@@ -26,7 +26,7 @@ import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getShiftMetadata } from './getShiftMetadata';
 import { getShiftsForEvent } from '@app/admin/lib/getShiftsForEvent';
-import { invalidateEventState } from '@lib/event';
+import { invalidateCache } from '@lib/cache';
 import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tSchedule, tShifts } from '@lib/database';
 
@@ -159,7 +159,7 @@ const shiftsDataSource = createDataSource('event/team/shifts', withContext({
             .executeUpdate();
 
         if (affectedRows)
-            await invalidateEventState(context.event.id, 'shifts');
+            invalidateCache('event.shifts', { eventId: context.event.id, shiftId: row.id });
 
         LogBuilder.for('DeleteShift')
             .withCondition(!!affectedRows)

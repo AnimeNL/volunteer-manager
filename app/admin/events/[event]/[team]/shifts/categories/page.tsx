@@ -6,7 +6,6 @@ import { z } from 'zod/v4';
 import CategoryIcon from '@mui/icons-material/Category';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
-import { Cache } from '@lib/cache';
 import { ColourRangeCell } from './ShiftCategoryCells';
 import { DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
 import { ExcitementCell, ExcitementHeader } from '../ShiftCells';
@@ -14,6 +13,7 @@ import { LogBuilder } from '@lib/log';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { invalidateCache } from '@lib/cache';
 import { requireAuthentication, requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tShifts, tShiftsCategories } from '@lib/database';
 
@@ -187,7 +187,7 @@ const shiftCategoriesDataSource = createDataSource('admin/event/shift-categories
             .executeUpdate();
 
         if (affectedRows)
-            Cache.getInstance('EventState').clear();
+            invalidateCache('shiftCategories');
 
         LogBuilder.for('UpdateShiftCategory')
             .withCondition(!!affectedRows)

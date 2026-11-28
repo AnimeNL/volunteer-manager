@@ -7,7 +7,7 @@ import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log';
 import { executeServerAction } from '@lib/serverAction';
-import { invalidateEventState } from '@lib/event';
+import { invalidateCache } from '@lib/cache';
 import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import { writeUserSetting } from '@lib/UserSettings';
 import db, { tActivities, tShifts, tShiftsCategories } from '@lib/database';
@@ -82,7 +82,7 @@ export async function createShift(eventSlug: string, teamSlug: string, formData:
             .executeInsert();
 
         if (insertId)
-            await invalidateEventState(event.id, 'shifts');
+            invalidateCache('event.shifts', { eventId: event.id, shiftId: insertId });
 
         LogBuilder.for('CreateShift')
             .withCondition(!!insertId)
@@ -154,7 +154,7 @@ export async function updateShift(
             .executeUpdate();
 
         if (affectedRows)
-            await invalidateEventState(event.id, 'shifts');
+            invalidateCache('event.shifts', { eventId: event.id, shiftId });
 
         LogBuilder.for('UpdateShift')
             .withCondition(!!affectedRows)

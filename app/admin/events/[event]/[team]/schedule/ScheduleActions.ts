@@ -10,7 +10,7 @@ import type { CachedEvent } from '@lib/cache';
 import { determineAvailability, validateTime } from './fn/determineAvailability';
 import { executeServerAction } from '@lib/serverAction';
 import { getShiftsForEvent } from '@app/admin/lib/getShiftsForEvent';
-import { invalidateEventState } from '@lib/event';
+import { invalidateCache } from '@lib/cache';
 import { isAfter } from '@lib/Temporal';
 import { readSettings } from '@lib/Settings';
 import { requireAuthentication, requireAuthenticationWithEventAndTeam } from '@lib/auth';
@@ -124,7 +124,7 @@ export async function createScheduleEntry(eventSlug: string, teamSlug: string, s
                 .executeInsert();
         });
 
-        await invalidateEventState(event.id, 'schedule');
+        invalidateCache('event.schedule', { eventId: event.id });
 
         return { success: true };
     });
@@ -197,7 +197,7 @@ export async function deleteScheduleEntry(
         });
 
         if (affectedRows)
-            await invalidateEventState(event.id, 'schedule');
+            invalidateCache('event.schedule', { eventId: event.id });
 
         return { success: !!affectedRows };
     });
@@ -349,7 +349,7 @@ export async function updateScheduleEntry(
         });
 
         if (affectedRows)
-            await invalidateEventState(event.id, 'schedule');
+            invalidateCache('event.schedule', { eventId: event.id });
 
         return { success: !!affectedRows };
     });
