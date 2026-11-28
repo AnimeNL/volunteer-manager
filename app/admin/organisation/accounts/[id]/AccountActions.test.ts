@@ -10,9 +10,8 @@ import { activateAccount, anonymizeAccount, deactivateAccount, impersonate, rese
 
 const mockCreatePasswordResetToken = vi.fn();
 const mockImpersonateUser = vi.fn();
-const mockInvalidateAuthCache = vi.fn();
+const mockInvalidateCache = vi.fn();
 const mockRevokeAllUserSessions = vi.fn();
-const mockClearPageMetadataCache = vi.fn();
 
 let currentAdminGrants = 'organisation.accounts,organisation.impersonation';
 
@@ -22,6 +21,14 @@ vi.mock('next/headers', () => ({
         'x-forwarded-for': '203.0.113.10',
     }),
 }));
+
+vi.mock('@lib/cache', async importOriginal => {
+    const actual = await importOriginal<typeof import('@lib/cache')>();
+    return {
+        ...actual,
+        invalidateCache: (...args: unknown[]) => mockInvalidateCache(...args),
+    };
+});
 
 vi.mock('@lib/auth', async importOriginal => {
     const actual = await importOriginal<typeof import('@lib/auth')>();
@@ -47,15 +54,10 @@ vi.mock('@lib/auth', async importOriginal => {
         createPasswordResetToken: (...args: unknown[]) => mockCreatePasswordResetToken(...args),
         getAuthenticationContext: async () => buildAdminContext(),
         impersonateUser: (...args: unknown[]) => mockImpersonateUser(...args),
-        invalidateAuthCache: (...args: unknown[]) => mockInvalidateAuthCache(...args),
         requireAuthenticationContext: async () => buildAdminContext(),
         revokeAllUserSessions: (...args: unknown[]) => mockRevokeAllUserSessions(...args),
     };
 });
-
-vi.mock('@app/admin/lib/generatePageMetadata', () => ({
-    clearPageMetadataCache: (...args: unknown[]) => mockClearPageMetadataCache(...args),
-}));
 
 vi.mock('@lib/log', () => ({
     LogBuilder: {
@@ -79,9 +81,8 @@ describe('AccountActions - security & destructive operations', () => {
         currentAdminGrants = 'organisation.accounts,organisation.impersonation';
         mockCreatePasswordResetToken.mockReset();
         mockImpersonateUser.mockReset();
-        mockInvalidateAuthCache.mockReset();
+        mockInvalidateCache.mockReset();
         mockRevokeAllUserSessions.mockReset();
-        mockClearPageMetadataCache.mockReset();
         SetRecordErrorLogDeferDelegate(async () => undefined);
     });
 
@@ -130,7 +131,7 @@ describe('AccountActions - security & destructive operations', () => {
             message: 'Their account has been activated',
             refresh: true,
         });
-        expect(mockInvalidateAuthCache).toHaveBeenCalledWith(99);
+        expect(mockInvalidateCache).toHaveBeenCalledWith('user.auth', { userId: 99 });
     });
 
     it('refuses to anonymize protected accounts even for root administrators', async () => {
@@ -145,7 +146,7 @@ describe('AccountActions - security & destructive operations', () => {
         }
 
         expect(mockRevokeAllUserSessions).not.toHaveBeenCalled();
-        expect(mockInvalidateAuthCache).not.toHaveBeenCalled();
+        expect(mockInvalidateCache).not.toHaveBeenCalled();
     });
 
     it('anonymizes a non-root account inside a transaction and revokes sessions', async () => {
@@ -178,8 +179,7 @@ describe('AccountActions - security & destructive operations', () => {
         });
 
         expect(mockRevokeAllUserSessions).toHaveBeenCalledWith(55);
-        expect(mockInvalidateAuthCache).toHaveBeenCalledWith(55);
-        expect(mockClearPageMetadataCache).toHaveBeenCalledWith('user');
+        expect(mockInvalidateCache).toHaveBeenCalledWith('user.profile', { userId: 55 });
     });
 
     it('deactivates an account, revokes sessions, and invalidates auth cache', async () => {
@@ -199,7 +199,7 @@ describe('AccountActions - security & destructive operations', () => {
         });
 
         expect(mockRevokeAllUserSessions).toHaveBeenCalledWith(55);
-        expect(mockInvalidateAuthCache).toHaveBeenCalledWith(55);
+        expect(mockInvalidateCache).toHaveBeenCalledWith('user.auth', { userId: 55 });
     });
 
     it('impersonates a non-root user with audit context and redirects home', async () => {

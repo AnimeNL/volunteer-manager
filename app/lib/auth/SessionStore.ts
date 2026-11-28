@@ -5,9 +5,9 @@ import 'server-only';
 import crypto from 'node:crypto';
 import type { cookies } from 'next/headers';
 
-import { Cache } from '@lib/cache';
 import { getSessionFromCookieStore, writeEmptySessionCookieToStore,
     writeSealedSessionCookieToStore } from './Session';
+import { invalidateCache } from '@lib/cache';
 import db, { tUsers, tUsersSessions } from '../database';
 
 import { kSessionExpirationTimeSeconds } from './Constants';
@@ -177,7 +177,7 @@ export async function revokeUserSession(sessionId: number, userId?: number): Pro
         .executeDelete();
 
     if (userId !== undefined)
-        Cache.getInstance('Authentication').delete(userId);
+        invalidateCache('user.auth', { userId });
 
     return deleted > 0;
 }
@@ -206,15 +206,6 @@ export async function deleteAllUserSessions(
 }
 
 /**
- * Invalidates cached authentication contexts for all `userIds`.
- */
-export function evictAuthCacheForUsers(userIds: Iterable<number>): void {
-    const authCache = Cache.getInstance('Authentication');
-    for (const affectedUserId of userIds)
-        authCache.delete(affectedUserId);
-}
-
-/**
  * Revokes all sessions belonging to `userId` — including any impersonation sessions initiated by
  * `userId` — (optionally preserving `exceptSessionId` when a user changes their own password) and
  * invalidates the affected auth cache entries.
@@ -223,7 +214,7 @@ export async function revokeAllUserSessions(
     userId: number, exceptSessionId?: number): Promise<void>
 {
     const affectedUserIds = await deleteAllUserSessions(db, userId, exceptSessionId);
-    evictAuthCacheForUsers(affectedUserIds);
+    invalidateCache('user.auth', { userIds: affectedUserIds });
 }
 
 /**

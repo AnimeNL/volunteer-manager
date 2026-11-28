@@ -11,10 +11,10 @@ import { AccessControl } from '@lib/auth/access';
 import { LogBuilder } from '@lib/log';
 import { PromptExecutor } from '@lib/ai/PromptExecutor';
 import { PromptFactory } from '@lib/ai/PromptFactory';
-import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
-import { createPasswordResetToken, createUserAccessCode, impersonateUser, invalidateAuthCache,
-    isUsernameAvailable, requireAuthenticationContext, revokeAllUserSessions } from '@lib/auth';
+import { createPasswordResetToken, createUserAccessCode, impersonateUser, isUsernameAvailable,
+    requireAuthenticationContext, revokeAllUserSessions } from '@lib/auth';
 import { executeServerAction } from '@lib/serverAction';
+import { invalidateCache } from '@lib/cache';
 import { nanoid } from '@lib/nanoid';
 import { readExampleMessages, writeExampleMessagesForUser } from '@lib/ai/ExampleMessages';
 import { writeUserSettings } from '@lib/UserSettings';
@@ -79,7 +79,7 @@ export async function activateAccount(userId: number, formData: unknown) {
         if (!affectedRows)
             return { success: false, error: 'Unable to activate their account…' };
 
-        invalidateAuthCache(/* forUserId= */ userId);
+        invalidateCache('user.auth', { userId });
 
         LogBuilder.for('AdminUpdateActivation')
             .withInitiatorUser(adminUser)
@@ -195,17 +195,13 @@ export async function anonymizeAccount(userId: number, formData: unknown) {
             return { success: false, error: 'The account could not be anonymized…' };
 
         await revokeAllUserSessions(userId);
-        invalidateAuthCache(/* forUserId= */ userId);
+        invalidateCache('user.profile', { userId });
 
         LogBuilder.for('AdminAnonymizeAccount')
             .withInitiatorUser(adminUser)
             .withAffectedUser(userId)
             .withSeverity('Error')
             .record();
-
-        // The account's information should no longer be available, so remove all cached information
-        // to avoid confusion by page titles showing otherwise permanently removed information.
-        clearPageMetadataCache('user');
 
         return {
             success: true,
@@ -351,7 +347,7 @@ export async function deactivateAccount(userId: number, formData: unknown) {
             return { success: false, error: 'Unable to deactivate their account…' };
 
         await revokeAllUserSessions(userId);
-        invalidateAuthCache(/* forUserId= */ userId);
+        invalidateCache('user.auth', { userId });
 
         LogBuilder.for('AdminUpdateActivation')
             .withInitiatorUser(adminUser)
@@ -411,7 +407,7 @@ export async function deleteAvatar(userId: number, fileId: number, formData: unk
         if (!affectedRows)
             return { success: false, error: 'The avatar could not be deleted from the database' };
 
-        invalidateAuthCache(/* forUserId= */ userId);
+        invalidateCache('user.profile', { userId });
 
         LogBuilder.for('AdminDeleteAvatar')
             .withInitiatorUser(adminUser)
@@ -518,7 +514,7 @@ export async function setDefaultAvatar(userId: number, fileId: number, formData:
         if (!affectedRows)
             return { success: false, error: 'The avatar could not be updated in the database' };
 
-        invalidateAuthCache(/* forUserId= */ userId);
+        invalidateCache('user.profile', { userId });
 
         LogBuilder.for('AdminUpdateAvatar')
             .withInitiatorUser(adminUser)
@@ -603,7 +599,7 @@ export async function updateAccountInformation(userId: number, formData: unknown
         if (!affectedRows)
             return { success: false, error: 'Unable to update the existing user information' };
 
-        invalidateAuthCache(/* forUserId= */ userId);
+        invalidateCache('user.profile', { userId });
 
         LogBuilder.for('AdminUpdateVolunteer')
             .withInitiatorUser(adminUser)
@@ -633,10 +629,6 @@ export async function updateAccountInformation(userId: number, formData: unknown
                 },
             })
             .record();
-
-        // The account's name may have been updated, make sure that this is reflected in any
-        // subsequent page loads by clearing the page title cache.
-        clearPageMetadataCache('user');
 
         return { success: true, refresh: true };
     });

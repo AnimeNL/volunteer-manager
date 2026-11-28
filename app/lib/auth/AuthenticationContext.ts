@@ -170,19 +170,6 @@ async function loadUserAuthenticationContext(userId: number): Promise<Authentica
 }
 
 /**
- * Invalidates cached authentication context(s). Pass `forUserId` when a single user's profile,
- * permissions, event participations, activation status, or session changes; omit it to clear all
- * cached contexts when global authorization inputs (roles, event visibility) change.
- */
-export function invalidateAuthCache(forUserId?: number): void {
-    const authCache = Cache.getInstance('Authentication');
-    if (forUserId !== undefined)
-        authCache.delete(forUserId);
-    else
-        authCache.clear();
-}
-
-/**
  * Options accepted by `requireAuthenticationContext()`.
  */
 interface RequireAuthenticationOptions {

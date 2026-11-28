@@ -4,8 +4,9 @@
 import 'server-only';
 import crypto from 'node:crypto';
 
-import { deleteAllUserSessions, evictAuthCacheForUsers } from './SessionStore';
+import { deleteAllUserSessions } from './SessionStore';
 import { hashPassword, verifyPassword } from './Password';
+import { invalidateCache } from '@lib/cache';
 import { sealPasswordResetRequest } from './Tokens';
 import db, { tUsers, tUsersAuth } from '../database';
 
@@ -276,7 +277,7 @@ export async function setUserPassword(
         return false;
 
     if (affectedUserIds.length)
-        evictAuthCacheForUsers(affectedUserIds);
+        invalidateCache('user.auth', { userIds: affectedUserIds });
 
     return true;
 }

@@ -10,7 +10,7 @@ export { and, or, requireAuthentication, requireAuthenticationWithEvent,
     requireVolunteerAuthenticationWithEvent, requireVolunteerAuthenticationWithEventAndTeam }
     from './RequireAuthentication';
 export { createPasswordResetToken, createUserAccessCode, isUsernameAvailable } from './AccountStore';
-export { getAuthenticationContext, impersonateUser, invalidateAuthCache,
-    requireAuthenticationContext } from './AuthenticationContext';
+export { getAuthenticationContext, impersonateUser, requireAuthenticationContext }
+    from './AuthenticationContext';
 export { getDisplayId, setDisplayId } from './DisplaySession';
 export { revokeAllUserSessions, revokeUserSession } from './SessionStore';

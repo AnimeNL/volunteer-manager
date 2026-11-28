@@ -21,10 +21,11 @@ vi.mock('next/headers', () => ({
 
 import type { SessionData } from './Session';
 import { AccessControl } from './access/AccessControl';
+import { Cache, invalidateCache } from '@lib/cache';
 import { buildAuthenticationContext, expectAuthenticationQuery } from './AuthenticationTestHelpers';
-import { getAuthenticationContext, impersonateUser, invalidateAuthCache,
-    requireAuthenticationContext } from './AuthenticationContext';
 import { executeAccessCheck } from './access/PermissionCheck';
+import { getAuthenticationContext, impersonateUser, requireAuthenticationContext }
+    from './AuthenticationContext';
 import { hashSessionSecret } from './SessionStore';
 import { initialisePermissionRoles } from './access/PermissionRoles';
 import { kSessionCookieName, sealSession, unsealSession } from './Session';
@@ -45,7 +46,7 @@ describe('AuthenticationContext', () => {
 
     beforeEach(async () => {
         cookieStoreData.clear();
-        invalidateAuthCache();
+        Cache.getInstance('Authentication').clear();
         await initialisePermissionRoles([]);
     });
 
@@ -126,13 +127,13 @@ describe('AuthenticationContext', () => {
 
         // Targeted invalidation forces Device A to re-verify against the database:
         await setSessionCookie(deviceA);
-        invalidateAuthCache(/* forUserId= */ 42);
+        invalidateCache('user.auth', { userId: 42 });
         mockConnection.expect('selectOneRow', () => undefined);
         expect((await getAuthenticationContext()).user).toBeUndefined();
 
         // Global clear evicts all cached entries:
         await setSessionCookie(deviceB);
-        invalidateAuthCache();
+        invalidateCache('role');
         mockConnection.expect('selectOneRow', () => undefined);
         expect((await getAuthenticationContext()).user).toBeUndefined();
     });

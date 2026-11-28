@@ -10,8 +10,9 @@ import type { AuthActionResult } from './ActionHelpers';
 import { LogBuilder } from '@lib/log';
 import { checkRateLimit } from '../RateLimit';
 import { formatDate } from '@lib/Temporal';
-import { invalidateAuthCache, requireAuthenticationContext } from '../AuthenticationContext';
+import { invalidateCache } from '@lib/cache';
 import { parseBirthdate } from './ActionHelpers';
+import { requireAuthenticationContext } from '../AuthenticationContext';
 import { storeBlobData } from '@lib/database/BlobStore';
 import db, { tUsers } from '@lib/database';
 
@@ -169,7 +170,7 @@ export async function updateOwnAccountAction(
         .where(tUsers.userId.equals(user.id))
         .executeUpdate();
 
-    invalidateAuthCache(/* forUserId= */ user.id);
+    invalidateCache('user.profile', { userId: user.id });
 
     LogBuilder.for('AccountUpdate')
         .withInitiatorUser(user)
@@ -273,7 +274,7 @@ export async function updateAvatarAction(formData: FormData): Promise<AuthAction
     if (!affectedRows)
         return { success: false };
 
-    invalidateAuthCache(/* forUserId= */ subject.subjectUserId);
+    invalidateCache('user.profile', { userId: subject.subjectUserId });
 
     if (subject.isOverride) {
         LogBuilder.for('AdminUpdateAvatar')
