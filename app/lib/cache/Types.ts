@@ -274,3 +274,34 @@ export interface CachedVendorShift {
      */
     end: Temporal.ZonedDateTime;
 }
+
+/**
+ * Independently reloadable data slice within a cached `EventState` entry.
+ */
+export type EventStateSlice = 'program' | 'schedule' | 'shifts' | 'teams' | 'volunteers';
+
+/**
+ * Structural protocol implemented by entries stored in the `EventState` cache so `@lib/cache` can
+ * perform surgical slice-level and volunteer-level invalidations without importing `@lib/event`.
+ */
+export interface InvalidatableEventStateEntry {
+    /**
+     * AnPlan festival ID associated with the cached event, if any.
+     */
+    readonly festivalId?: number;
+
+    /**
+     * Marks the given `slice` dirty so it is lazily reloaded on the next `getEventState()` call.
+     */
+    markDirty(slice: EventStateSlice): void;
+
+    /**
+     * Marks a single volunteer record dirty for surgical reload on the next `getEventState()` call.
+     */
+    markVolunteerDirty(userId: number): void;
+
+    /**
+     * Clears cached availability boundary hours so `VolunteerIndex` is rebuilt on the next read.
+     */
+    resetBoundaryHours(): void;
+}

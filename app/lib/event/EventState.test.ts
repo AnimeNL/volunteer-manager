@@ -266,4 +266,27 @@ describe('EventState', () => {
         expect(counts.shifts).toBe(2);
         expect(afterFull.shifts.getShift(1)?.name).toBe('VIP Entrance');
     });
+
+    it('reloads only boundary hours when resetBoundaryHours() is invoked on cached entries',
+        async () =>
+    {
+        const event = createMockEvent();
+        const { counts, loaders } = createSpyLoaders();
+        const store = new EventStateStore(loaders);
+
+        await store.get(event);
+        expect(counts.boundaryHours).toBe(1);
+        expect(counts.volunteers).toBe(1);
+
+        const entry = Cache.getInstance('EventState').get(event.id);
+        expect(entry).toBeDefined();
+
+        entry!.resetBoundaryHours();
+        await store.get(event);
+
+        expect(counts.boundaryHours).toBe(2);
+        expect(counts.volunteers).toBe(1);
+        expect(counts.shifts).toBe(1);
+        expect(counts.program).toBe(1);
+    });
 });

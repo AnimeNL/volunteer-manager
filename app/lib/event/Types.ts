@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { ActivityType } from '@lib/database/Types';
+import type { EventStateSlice } from '@lib/cache';
 
 /**
  * Time input accepted by `EventState` query methods. Converted immediately to epoch milliseconds
@@ -239,10 +240,7 @@ export interface ShiftStateAtTime {
 // Partial invalidation
 // -------------------------------------------------------------------------------------------------
 
-/**
- * Independently reloadable data slice within a cached `EventState`.
- */
-export type EventStateSlice = 'program' | 'schedule' | 'shifts' | 'teams' | 'volunteers';
+export type { EventStateSlice };
 
 /**
  * Granular scope accepted by `invalidateEventState()`. Passing `undefined` invalidates the

@@ -1,7 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { CachedEvent } from '@lib/cache';
+import type { CachedEvent, InvalidatableEventStateEntry } from '@lib/cache';
 import type { EventStateDataSource } from './EventStateLoader';
 import type { EventStateInvalidationScope, EventStateSlice } from './Types';
 import type { ProgramSlice } from './ProgramIndex';
@@ -21,7 +21,7 @@ const kAllSlices: readonly EventStateSlice[] = [
  * immutable slices, lazily dirty slice markers, and an in-flight rebuild promise for coalescing
  * concurrent reloads.
  */
-export class EventStateCacheEntry {
+export class EventStateCacheEntry implements InvalidatableEventStateEntry {
     #festivalId?: number;
     #boundaryHours?: { beforeStart: number; afterEnd: number };
 
@@ -52,6 +52,28 @@ export class EventStateCacheEntry {
      */
     estimateByteSize(): number {
         return this.#state?.estimateByteSize() ?? 0;
+    }
+
+    /**
+     * Marks the requested `slice` dirty so the next `ensureFresh()` call reloads only affected data.
+     */
+    markDirty(slice: EventStateSlice): void {
+        this.#dirtySlices.add(slice);
+    }
+
+    /**
+     * Marks a single volunteer record dirty for surgical reload on the next `ensureFresh()` call.
+     */
+    markVolunteerDirty(userId: number): void {
+        this.#dirtyVolunteerIds.add(userId);
+    }
+
+    /**
+     * Clears cached availability boundary hours so `VolunteerIndex` is rebuilt on the next read
+     * without reloading unrelated database slices.
+     */
+    resetBoundaryHours(): void {
+        this.#boundaryHours = undefined;
     }
 
     /**
@@ -100,6 +122,7 @@ export class EventStateCacheEntry {
 
     #isClean(festivalId: number | undefined): boolean {
         return !!this.#state &&
+            !!this.#boundaryHours &&
             this.#festivalId === festivalId &&
             this.#dirtySlices.size === 0 &&
             this.#dirtyVolunteerIds.size === 0;
@@ -171,7 +194,8 @@ export class EventStateCacheEntry {
         if (singleVolunteers.length > 0)
             this.#mergeSingleVolunteers(singleVolunteers);
 
-        this.#rebuildDirtyIndexes(event, festivalId, slicesToLoad, singleVolunteers.length > 0);
+        this.#rebuildDirtyIndexes(
+            event, festivalId, slicesToLoad, singleVolunteers.length > 0, !!boundaryHours);
         return this.#state!;
     }
 
@@ -198,7 +222,8 @@ export class EventStateCacheEntry {
         event: CachedEvent,
         festivalId: number | undefined,
         slicesToLoad: ReadonlySet<EventStateSlice>,
-        hasSingleVolunteerUpdates: boolean): void
+        hasSingleVolunteerUpdates: boolean,
+        boundaryHoursChanged: boolean): void
     {
         const programChanged = slicesToLoad.has('program') || !this.#programIndex;
         const shiftsChanged =
@@ -208,6 +233,7 @@ export class EventStateCacheEntry {
             !this.#shiftIndex;
         const volunteersChanged =
             shiftsChanged ||
+            boundaryHoursChanged ||
             slicesToLoad.has('teams') ||
             slicesToLoad.has('volunteers') ||
             hasSingleVolunteerUpdates ||
