@@ -38,3 +38,11 @@ explicit non-goal in order to avoid framework lock-in:
 * Reserve Next.js `'use cache'` for the narrow cases where Next.js's rendering model requires it
   (such as prerendered App Shell / Instant Navigation reads in `app/schedule2/` or build-safe
   `readCachedSetting()` reads).
+
+## Git Commit Identity (Remote Agents)
+
+Remote agents and cloud sandboxes often ship with a default `/etc/gitconfig` such as
+`noreply@github.com`, which GitHub attributes to its `web-flow` account. Before creating any
+commits, verify `git config user.name` and `git config user.email`, and ensure they are set to the
+user's actual Git identity (e.g., matching recent commits on `main` or the user's GitHub profile
+via `gh api user`).
