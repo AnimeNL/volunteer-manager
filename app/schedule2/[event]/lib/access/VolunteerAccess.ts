@@ -4,6 +4,10 @@
 import { notFound } from 'next/navigation';
 
 import type { AccessControl } from '@lib/auth/access';
+import type { ShiftColleagues, VolunteerAccessShift } from './SharedShiftIndex';
+import { SharedShiftIndex } from './SharedShiftIndex';
+
+export type { ShiftColleagues } from './SharedShiftIndex';
 
 /**
  * Enabled team participating in the event.
@@ -20,19 +24,6 @@ interface VolunteerAccessParticipation {
     userId: number;
     teamId: number;
     isLeader: boolean;
-}
-
-/**
- * Active scheduled shift instance for an event.
- */
-interface VolunteerAccessShift {
-    scheduleId: number;
-    userId: number;
-    shiftId: number;
-    shiftTeamId: number;
-    activityId?: number;
-    startMs: number;
-    endMs: number;
 }
 
 /**
@@ -97,66 +88,6 @@ export type VolunteerAccessResult =
       };
 
 /**
- * Visible colleague schedule IDs relative to one of the viewer's own shifts.
- */
-export interface ShiftColleagues {
-    /**
-     * Schedule IDs ending exactly as the viewer's shift starts.
-     */
-    outgoing: readonly number[];
-
-    /**
-     * Schedule IDs overlapping the viewer's shift in time.
-     */
-    overlapping: readonly number[];
-
-    /**
-     * Schedule IDs starting exactly as the viewer's shift ends.
-     */
-    incoming: readonly number[];
-}
-
-/**
- * Empty colleague grouping returned for unknown or non-viewer schedule IDs.
- */
-const kEmptyShiftColleagues: ShiftColleagues = {
-    outgoing: [],
-    overlapping: [],
-    incoming: [],
-};
-
-/**
- * Classifies the temporal relationship between `viewerShift` and `otherShift` when they share
- * either the same shift definition or the same non-null program activity. Returns `undefined` when
- * the shifts do not share work context or do not overlap or touch exactly.
- */
-function classifyShiftRelation(
-    viewerShift: VolunteerAccessShift,
-    otherShift: VolunteerAccessShift): 'outgoing' | 'overlapping' | 'incoming' | undefined
-{
-    const sharesShift = otherShift.shiftId === viewerShift.shiftId;
-    const sharesActivity =
-        viewerShift.activityId !== undefined && otherShift.activityId === viewerShift.activityId;
-
-    if (!sharesShift && !sharesActivity)
-        return undefined;
-
-    if (otherShift.startMs > viewerShift.endMs || viewerShift.startMs > otherShift.endMs)
-        return undefined;
-
-    if (otherShift.startMs < viewerShift.endMs && viewerShift.startMs < otherShift.endMs)
-        return 'overlapping';
-
-    if (otherShift.endMs === viewerShift.startMs && otherShift.startMs < viewerShift.startMs)
-        return 'outgoing';
-
-    if (otherShift.startMs === viewerShift.endMs && otherShift.endMs > viewerShift.endMs)
-        return 'incoming';
-
-    return 'overlapping';
-}
-
-/**
  * Deciding unit for volunteer, team, and shift visibility in the schedule portal.
  *
  * Constructed from a shared event snapshot and the signed-in viewer's identity/permissions, this
@@ -176,11 +107,7 @@ export class VolunteerAccess {
     #visibleTeams = new Set<number>();
 
     #participationsByUser = new Map<number, VolunteerAccessParticipation[]>();
-    #shiftsById = new Map<number, VolunteerAccessShift>();
-
-    #coShiftUsers = new Set<number>();
-    #coShiftScheduleIds = new Set<number>();
-    #shiftColleagues = new Map<number, ShiftColleagues>();
+    #sharedShifts: SharedShiftIndex;
 
     constructor(params: VolunteerAccessParams) {
         this.#viewerUserId = params.viewerUserId;
@@ -210,7 +137,8 @@ export class VolunteerAccess {
         }
 
         this.#computeVisibleTeams(params.teams, params.teamVisibility);
-        this.#computeSharedShifts(params.shifts);
+        this.#sharedShifts = new SharedShiftIndex(
+            this.#viewerUserId, params.shifts, this.#participationsByUser);
     }
 
     /**
@@ -275,7 +203,7 @@ export class VolunteerAccess {
         if (visibleTeamIds.size > 0)
             return this.#buildFullAccessResult(isSelf, participations, visibleTeamIds);
 
-        if (this.#coShiftUsers.has(targetUserId)) {
+        if (this.#sharedShifts.hasColleague(targetUserId)) {
             return {
                 level: 'shared-shift',
                 isSelf: false,
@@ -303,14 +231,14 @@ export class VolunteerAccess {
      * Returns whether the scheduled shift identified by `scheduleId` is visible to the viewer.
      */
     canSeeShift(scheduleId: number): boolean {
-        const shift = this.#shiftsById.get(scheduleId);
+        const shift = this.#sharedShifts.getShift(scheduleId);
         if (!shift)
             return false;
 
         if (shift.userId === this.#viewerUserId)
             return true;
 
-        if (this.#coShiftScheduleIds.has(scheduleId))
+        if (this.#sharedShifts.isColleagueShift(scheduleId))
             return true;
 
         const participations = this.#participationsByUser.get(shift.userId);
@@ -330,7 +258,7 @@ export class VolunteerAccess {
      * signed-in viewer's own shifts.
      */
     queryShiftColleagues(viewerScheduleId: number): ShiftColleagues {
-        return this.#shiftColleagues.get(viewerScheduleId) ?? kEmptyShiftColleagues;
+        return this.#sharedShifts.getColleagues(viewerScheduleId);
     }
 
     #resolveTeamId(team: number | string): number | undefined {
@@ -367,47 +295,6 @@ export class VolunteerAccess {
                 this.#access.can('volunteers.schedules', 'read', scope))
             {
                 this.#visibleTeams.add(team.id);
-            }
-        }
-    }
-
-    #computeSharedShifts(shifts: readonly VolunteerAccessShift[]): void {
-        const viewerShifts: VolunteerAccessShift[] = [];
-        const otherShifts: VolunteerAccessShift[] = [];
-
-        for (const shift of shifts) {
-            this.#shiftsById.set(shift.scheduleId, shift);
-
-            if (shift.userId === this.#viewerUserId)
-                viewerShifts.push(shift);
-            else if (this.#participationsByUser.has(shift.userId))
-                otherShifts.push(shift);
-        }
-
-        for (const viewerShift of viewerShifts) {
-            const outgoing: number[] = [];
-            const overlapping: number[] = [];
-            const incoming: number[] = [];
-
-            for (const otherShift of otherShifts) {
-                const relation = classifyShiftRelation(viewerShift, otherShift);
-                if (!relation)
-                    continue;
-
-                this.#coShiftUsers.add(otherShift.userId);
-                this.#coShiftScheduleIds.add(otherShift.scheduleId);
-
-                if (relation === 'outgoing')
-                    outgoing.push(otherShift.scheduleId);
-                else if (relation === 'incoming')
-                    incoming.push(otherShift.scheduleId);
-                else
-                    overlapping.push(otherShift.scheduleId);
-            }
-
-            if (outgoing.length > 0 || overlapping.length > 0 || incoming.length > 0) {
-                this.#shiftColleagues.set(
-                    viewerShift.scheduleId, { outgoing, overlapping, incoming });
             }
         }
     }
