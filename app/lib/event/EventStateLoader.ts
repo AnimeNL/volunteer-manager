@@ -5,15 +5,16 @@ import type { EventVolunteerParticipation } from './Types';
 import type { ProgramSlice } from './ProgramIndex';
 import type { RawVolunteerRecord, TeamsSlice, VolunteersSlice } from './VolunteerIndex';
 import type { ScheduleSlice, ShiftsSlice } from './ShiftIndex';
+import { AvailabilityTimeline } from './AvailabilityTimeline';
 import { getBlobUrl } from '@lib/database/BlobStore';
-import { kDefaultEventBoundaryEndHours, kDefaultEventBoundaryStartHours,
-    parseAvailabilityExceptions } from './AvailabilityTimeline';
 import { readSettings } from '@lib/Settings';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots,
     tEventsTeams, tRoles, tSchedule, tShifts, tShiftsCategories, tStorage, tTeams,
     tTeamsVisibility, tUsers, tUsersEvents, tUsersEventsPreferencesAvailability }
     from '@lib/database';
 
+import { kDefaultEventBoundaryEndHours, kDefaultEventBoundaryStartHours }
+    from './AvailabilityTimeline';
 import { kRegistrationStatus } from '@lib/database/Types';
 
 /**
@@ -245,7 +246,8 @@ async function queryVolunteerRows(eventId: number, userId?: number): Promise<Raw
                     availability: {
                         preferenceTimingStart: row.preferenceTimingStart,
                         preferenceTimingEnd: row.preferenceTimingEnd,
-                        exceptions: parseAvailabilityExceptions(row.availabilityExceptions),
+                        exceptions:
+                            AvailabilityTimeline.parseExceptions(row.availabilityExceptions),
                         requestedTimeslotIds: parseRequestedTimeslotIds(row.availabilityTimeslots),
                     },
                 },

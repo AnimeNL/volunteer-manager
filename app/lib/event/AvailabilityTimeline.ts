@@ -607,21 +607,3 @@ export class AvailabilityTimeline {
         return { startMs, endMs };
     }
 }
-
-/**
- * Parses a raw JSON `availability_exceptions` database column into valid epoch-millisecond
- * exception windows.
- */
-export function parseAvailabilityExceptions(raw?: string | null): EventAvailabilityException[] {
-    return AvailabilityTimeline.parseExceptions(raw);
-}
-
-/**
- * Compiles a volunteer's contiguous, non-overlapping availability timeline.
- */
-export function computeAvailabilityTimeline(
-    input: AvailabilityTimelineInput,
-    options?: AvailabilityTimelineOptions): readonly AvailabilitySegment[]
-{
-    return new AvailabilityTimeline(input, options).segments;
-}

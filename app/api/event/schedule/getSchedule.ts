@@ -5,13 +5,13 @@ import type { AccessControl } from '@lib/auth/access';
 import type { DBConnection } from '@lib/database/Connection';
 import type { PublicSchedule } from './PublicSchedule';
 import type { UserAuthenticationContext } from '@lib/auth';
+import { AvailabilityTimeline } from '@lib/event';
 import { FavouriteCache } from './FavouriteCache';
 import { ScheduleCache } from './ScheduleCache';
 import { createTicketService } from '@lib/tickets';
 import { getBlobUrl } from '@lib/database/BlobStore';
 import { getEvent } from '@lib/cache';
 import { isAfter, isBefore } from '@lib/Temporal';
-import { parseAvailabilityExceptions } from '@lib/event';
 import { readSettings } from '@lib/Settings';
 import { readUserSettings } from '@lib/UserSettings';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots, tContent,
@@ -89,7 +89,8 @@ function determineVolunteerUnavailability(
         return -1;  // the event has finished
 
     const currentTimeMs = event.currentTime.epochMilliseconds;
-    for (const exception of parseAvailabilityExceptions(volunteer.availabilityExceptions)) {
+    const exceptions = AvailabilityTimeline.parseExceptions(volunteer.availabilityExceptions);
+    for (const exception of exceptions) {
         if (exception.startMs > currentTimeMs || exception.endMs <= currentTimeMs)
             continue;
 

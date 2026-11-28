@@ -6,7 +6,7 @@ export type { AvailabilitySegment, EventActivity, EventArea, EventAvailabilityEx
     EventStateSlice, EventTeam, EventTimeInput, EventTimeslot, EventVolunteer,
     EventVolunteerAvailability, EventVolunteerParticipation, ShiftStateAtTime, TimeInterval,
     VolunteerLiveStatus, VolunteerStateAtTime } from './Types';
-export type { AvailabilityTimelineInput, AvailabilityTimelineOptions,
+export type { AvailabilityPointSnapshot, AvailabilityTimelineInput, AvailabilityTimelineOptions,
     RequestedProgramTimeslot } from './AvailabilityTimeline';
 export type { EventState } from './EventState';
 export type { EventStateAtTime } from './EventStateAtTime';
@@ -14,6 +14,5 @@ export type { ProgramIndex, ProgramTimeslotFilter } from './ProgramIndex';
 export type { ShiftAssignmentFilter, ShiftIndex } from './ShiftIndex';
 export type { VolunteerFilter, VolunteerIndex } from './VolunteerIndex';
 
-export { computeAvailabilityTimeline, kAvailabilityException, parseAvailabilityExceptions }
-    from './AvailabilityTimeline';
+export { AvailabilityTimeline, kAvailabilityException } from './AvailabilityTimeline';
 export { getEventState, invalidateEventProgram, invalidateEventState } from './EventState';

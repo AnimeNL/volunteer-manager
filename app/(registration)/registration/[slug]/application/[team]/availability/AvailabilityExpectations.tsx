@@ -9,12 +9,11 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import type { AvailabilityDayInfo, AvailabilityExpectation } from './AvailabilityExpectationsClient';
-import type { AvailabilitySegment, EventAvailabilityException, RequestedProgramTimeslot }
-    from '@lib/event';
+import type { EventAvailabilityException, RequestedProgramTimeslot } from '@lib/event';
 import type { TimeslotWithZonedDateTimes }
     from '@app/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/getAvailabilityTimeslots';
 import { AvailabilityExpectationDay, AvailabilityLegend } from './AvailabilityExpectationsClient';
-import { computeAvailabilityTimeline, parseAvailabilityExceptions } from '@lib/event';
+import { AvailabilityTimeline } from '@lib/event';
 import { formatDate, isBefore } from '@lib/Temporal';
 import { readSettings } from '@lib/Settings';
 
@@ -80,7 +79,7 @@ function hasOverlap(
  * remaining overridable by explicit availability exceptions (and requested events for 12:00–14:00).
  */
 function resolveHourlyExpectation(
-    timeline: readonly AvailabilitySegment[],
+    timeline: AvailabilityTimeline,
     exceptions: readonly EventAvailabilityException[],
     requestedTimeslots: readonly RequestedProgramTimeslot[],
     isFirstDay: boolean,
@@ -150,9 +149,9 @@ export async function AvailabilityExpectations(props: AvailabilityExpectationsPr
         });
     }
 
-    const exceptions = parseAvailabilityExceptions(props.exceptions);
+    const exceptions = AvailabilityTimeline.parseExceptions(props.exceptions);
 
-    const timeline = computeAvailabilityTimeline(
+    const timeline = new AvailabilityTimeline(
         {
             event: {
                 startTime: props.eventStartTime,

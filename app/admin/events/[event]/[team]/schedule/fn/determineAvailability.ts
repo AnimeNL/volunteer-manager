@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { RequestedProgramTimeslot } from '@lib/event';
-import { computeAvailabilityTimeline, parseAvailabilityExceptions } from '@lib/event';
+import { AvailabilityTimeline } from '@lib/event';
 
 /**
  * Returns a time that is guaranteed to be valid. The `input` will be used when it conforms to the
@@ -77,7 +77,7 @@ export function determineAvailability(input: AvailabilityInput): AvailabilityInf
         }
     }
 
-    const timeline = computeAvailabilityTimeline(
+    const timeline = new AvailabilityTimeline(
         {
             event: {
                 startTime: event.startTime,
@@ -91,7 +91,7 @@ export function determineAvailability(input: AvailabilityInput): AvailabilityInf
             availability: {
                 preferenceTimingStart: volunteer.preferenceTimingStart,
                 preferenceTimingEnd: volunteer.preferenceTimingEnd,
-                exceptions: parseAvailabilityExceptions(volunteer.availabilityExceptions),
+                exceptions: AvailabilityTimeline.parseExceptions(volunteer.availabilityExceptions),
                 requestedTimeslots,
             },
         },
