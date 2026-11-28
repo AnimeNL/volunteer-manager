@@ -6,6 +6,7 @@ import { z } from 'zod/v4';
 
 import FolderCopyOutlinedIcon from '@mui/icons-material/FolderCopyOutlined';
 
+import type { CacheInvalidationPolicy, CacheInvalidationStrategy } from '@lib/cache/CacheDescriptors';
 import { Cache, serializeParams } from '@lib/cache/Cache';
 import { DataTable, createDataSource, withContext, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
@@ -16,6 +17,27 @@ import { formatBytes } from '@app/admin/lib/formatBytes';
 import { requireAuthentication } from '@lib/auth';
 
 import { kProtectedCaches } from './../ProtectedCaches';
+
+/**
+ * Human-readable labels for non-scope-driven cache invalidation strategies.
+ */
+const kInvalidationStrategyLabels: Record<CacheInvalidationStrategy, string> = {
+    'content-addressed': 'content-addressed (immutable keys)',
+    'manual': 'manual',
+    'ttl-only': 'time-to-live expiry only',
+    'write-through': 'write-through',
+};
+
+/**
+ * Formats a cache descriptor's invalidation policy for display in the cache inspection header.
+ */
+function formatInvalidationPolicy(policy: CacheInvalidationPolicy<any>): string {
+    if (typeof policy === 'string')
+        return `Invalidation policy: ${kInvalidationStrategyLabels[policy]}.`;
+
+    const scopes = Object.keys(policy).sort();
+    return `Invalidated on scopes: ${scopes.join(', ')}.`;
+}
 
 /**
  * Formats a duration in milliseconds to a human-readable string.
@@ -227,6 +249,9 @@ export default async function CacheInspectionPage(props: PageProps<'/admin/syste
                      ]}>
                 <SectionIntroduction>
                     {cache.descriptor.description}
+                </SectionIntroduction>
+                <SectionIntroduction>
+                    {formatInvalidationPolicy(cache.descriptor.invalidation)}
                 </SectionIntroduction>
             </Section>
             <Section noHeader>
