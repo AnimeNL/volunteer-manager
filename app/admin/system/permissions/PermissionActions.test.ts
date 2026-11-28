@@ -8,13 +8,21 @@ import { useMockConnection } from '@lib/database/Connection';
 
 import { updateAccountPermissions, updateRolePermissions } from './PermissionActions';
 
-const mockInvalidateAuthCache = vi.fn();
+const mockInvalidateCache = vi.fn();
 
 let currentAdminGrants = 'system.permissions';
 
 vi.mock('next/headers', () => ({
     headers: async () => new Headers(),
 }));
+
+vi.mock('@lib/cache', async importOriginal => {
+    const actual = await importOriginal<typeof import('@lib/cache')>();
+    return {
+        ...actual,
+        invalidateCache: (...args: unknown[]) => mockInvalidateCache(...args),
+    };
+});
 
 vi.mock('@lib/auth', async importOriginal => {
     const actual = await importOriginal<typeof import('@lib/auth')>();
@@ -38,7 +46,6 @@ vi.mock('@lib/auth', async importOriginal => {
     return {
         ...actual,
         getAuthenticationContext: async () => buildAdminContext(),
-        invalidateAuthCache: (...args: unknown[]) => mockInvalidateAuthCache(...args),
         requireAuthenticationContext: async () => buildAdminContext(),
     };
 });
@@ -64,7 +71,7 @@ describe('PermissionActions', () => {
 
     beforeEach(() => {
         currentAdminGrants = 'system.permissions';
-        mockInvalidateAuthCache.mockReset();
+        mockInvalidateCache.mockReset();
         Cache.getInstance('PermissionRoles').clear();
         SetRecordErrorLogDeferDelegate(async () => undefined);
     });
@@ -94,7 +101,7 @@ describe('PermissionActions', () => {
             success: false,
             error: 'You are not allowed to update these permissions…',
         });
-        expect(mockInvalidateAuthCache).not.toHaveBeenCalled();
+        expect(mockInvalidateCache).not.toHaveBeenCalled();
     });
 
     it('rejects unknown roles and blocks non-root admins from assigning the root role', async () => {
@@ -171,7 +178,7 @@ describe('PermissionActions', () => {
         expect(updateParams).toContain('senior,event.visible');
         expect(updateParams).toContain('event.trainings');
         expect(updateParams).toContain('*');
-        expect(mockInvalidateAuthCache).toHaveBeenCalledWith(55);
+        expect(mockInvalidateCache).toHaveBeenCalledWith('user.auth', { userId: 55 });
     });
 
     it('refuses to modify the root role even for root administrators', async () => {
@@ -186,7 +193,7 @@ describe('PermissionActions', () => {
             success: false,
             error: 'The root role cannot be modified',
         });
-        expect(mockInvalidateAuthCache).not.toHaveBeenCalled();
+        expect(mockInvalidateCache).not.toHaveBeenCalled();
     });
 
     it('blocks non-root administrators from modifying a role that grants root', async () => {
@@ -205,7 +212,7 @@ describe('PermissionActions', () => {
             success: false,
             error: 'You are not allowed to update these permissions…',
         });
-        expect(mockInvalidateAuthCache).not.toHaveBeenCalled();
+        expect(mockInvalidateCache).not.toHaveBeenCalled();
     });
 
     it('updates role permissions, refreshes PermissionRoles cache, and invalidates auth cache', async () => {
@@ -226,6 +233,6 @@ describe('PermissionActions', () => {
             grants: [ 'event.visible', 'event.hotels' ],
             revokes: [ 'event.trainings' ],
         });
-        expect(mockInvalidateAuthCache).toHaveBeenCalledWith();
+        expect(mockInvalidateCache).toHaveBeenCalledWith('permissionRole', { roleId: 'senior' });
     });
 });

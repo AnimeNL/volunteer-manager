@@ -6,14 +6,13 @@ import { z } from 'zod/v4';
 import AutoAwesomeMotionOutlinedIcon from '@mui/icons-material/AutoAwesomeMotionOutlined';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
-import { Cache } from '@lib/cache';
+import { Cache, invalidateCache } from '@lib/cache';
 import { DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
 import { LogBuilder } from '@lib/log';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { invalidateAuthCache, requireAuthentication, requireAuthenticationContext }
-    from '@lib/auth';
+import { requireAuthentication, requireAuthenticationContext } from '@lib/auth';
 import db, { tEvents, tPermissionsRoles, tRoles, tUsers, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -160,7 +159,7 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
                 grants: [ /* no grants */ ],
                 revokes: [ /* no revokes */ ],
             });
-            invalidateAuthCache();
+            invalidateCache('permissionRole', { roleId });
         }
 
         LogBuilder.for('CreatePermissionRole')
@@ -189,7 +188,7 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
 
         if (affectedRows) {
             Cache.getInstance('PermissionRoles').delete(row.id);
-            invalidateAuthCache();
+            invalidateCache('permissionRole', { roleId: row.id });
         }
 
         LogBuilder.for('DeletePermissionRole')
