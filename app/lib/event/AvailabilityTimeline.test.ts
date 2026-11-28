@@ -1,9 +1,8 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { AvailabilitySegment, EventShiftAssignment } from './Types';
-import { computeAvailabilityTimeline, findAvailabilitySegmentIndex,
-    parseAvailabilityExceptions } from './AvailabilityTimeline';
+import type { EventShiftAssignment } from './Types';
+import { AvailabilityTimeline } from './AvailabilityTimeline';
 
 const kTimeZone = 'Europe/Amsterdam';
 
@@ -15,13 +14,6 @@ function ms(iso: string): number {
     return zdt(iso).epochMilliseconds;
 }
 
-function segmentAt(
-    timeline: readonly AvailabilitySegment[], iso: string): AvailabilitySegment | undefined
-{
-    const index = findAvailabilitySegmentIndex(timeline, ms(iso));
-    return index >= 0 ? timeline[index] : undefined;
-}
-
 const kEvent = {
     startTime: zdt('2026-06-12T12:00:00+02:00'),
     endTime: zdt('2026-06-14T18:00:00+02:00'),
@@ -30,32 +22,32 @@ const kEvent = {
 
 describe('AvailabilityTimeline', () => {
     it('applies event boundary hours around festival start and end', () => {
-        const timeline = computeAvailabilityTimeline({
+        const timeline = new AvailabilityTimeline({
             event: kEvent,
             boundaryHours: { beforeStart: 4, afterEnd: 2 },
             availability: {},
         });
 
-        expect(segmentAt(timeline, '2026-06-12T07:59:00+02:00')).toMatchObject({
+        expect(timeline.at(ms('2026-06-12T07:59:00+02:00'))).toMatchObject({
             kind: 'unavailable',
             reason: 'event-boundary',
         });
-        expect(segmentAt(timeline, '2026-06-12T08:00:00+02:00')).toMatchObject({
+        expect(timeline.at(ms('2026-06-12T08:00:00+02:00'))).toMatchObject({
             kind: 'available',
             explicit: false,
         });
-        expect(segmentAt(timeline, '2026-06-14T19:59:00+02:00')).toMatchObject({
+        expect(timeline.at(ms('2026-06-14T19:59:00+02:00'))).toMatchObject({
             kind: 'available',
             explicit: false,
         });
-        expect(segmentAt(timeline, '2026-06-14T20:00:00+02:00')).toMatchObject({
+        expect(timeline.at(ms('2026-06-14T20:00:00+02:00'))).toMatchObject({
             kind: 'unavailable',
             reason: 'event-boundary',
         });
     });
 
     it('applies same-day and overnight daily availability windows cleanly', () => {
-        const sameDay = computeAvailabilityTimeline({
+        const sameDay = new AvailabilityTimeline({
             event: kEvent,
             boundaryHours: { beforeStart: 4, afterEnd: 2 },
             availability: {
@@ -64,19 +56,19 @@ describe('AvailabilityTimeline', () => {
             },
         });
 
-        expect(segmentAt(sameDay, '2026-06-12T09:00:00+02:00')).toMatchObject({
+        expect(sameDay.at(ms('2026-06-12T09:00:00+02:00'))).toMatchObject({
             kind: 'unavailable',
             reason: 'preference-window',
         });
-        expect(segmentAt(sameDay, '2026-06-12T10:00:00+02:00')).toMatchObject({
+        expect(sameDay.at(ms('2026-06-12T10:00:00+02:00'))).toMatchObject({
             kind: 'available',
         });
-        expect(segmentAt(sameDay, '2026-06-12T22:00:00+02:00')).toMatchObject({
+        expect(sameDay.at(ms('2026-06-12T22:00:00+02:00'))).toMatchObject({
             kind: 'unavailable',
             reason: 'preference-window',
         });
 
-        const overnight = computeAvailabilityTimeline({
+        const overnight = new AvailabilityTimeline({
             event: kEvent,
             boundaryHours: { beforeStart: 4, afterEnd: 2 },
             availability: {
@@ -85,24 +77,24 @@ describe('AvailabilityTimeline', () => {
             },
         });
 
-        expect(segmentAt(overnight, '2026-06-13T01:30:00+02:00')).toMatchObject({
+        expect(overnight.at(ms('2026-06-13T01:30:00+02:00'))).toMatchObject({
             kind: 'available',
         });
-        expect(segmentAt(overnight, '2026-06-13T02:00:00+02:00')).toMatchObject({
+        expect(overnight.at(ms('2026-06-13T02:00:00+02:00'))).toMatchObject({
             kind: 'unavailable',
             reason: 'preference-window',
         });
-        expect(segmentAt(overnight, '2026-06-13T11:59:00+02:00')).toMatchObject({
+        expect(overnight.at(ms('2026-06-13T11:59:00+02:00'))).toMatchObject({
             kind: 'unavailable',
             reason: 'preference-window',
         });
-        expect(segmentAt(overnight, '2026-06-13T12:00:00+02:00')).toMatchObject({
+        expect(overnight.at(ms('2026-06-13T12:00:00+02:00'))).toMatchObject({
             kind: 'available',
         });
     });
 
     it('supports optional 1-hour preference edge buffers', () => {
-        const timeline = computeAvailabilityTimeline({
+        const timeline = new AvailabilityTimeline({
             event: kEvent,
             boundaryHours: { beforeStart: 4, afterEnd: 2 },
             availability: {
@@ -111,19 +103,19 @@ describe('AvailabilityTimeline', () => {
             },
         }, { includePreferenceBuffer: true });
 
-        expect(segmentAt(timeline, '2026-06-13T08:30:00+02:00')).toMatchObject({
+        expect(timeline.at(ms('2026-06-13T08:30:00+02:00'))).toMatchObject({
             kind: 'unavailable',
             reason: 'preference-window',
         });
-        expect(segmentAt(timeline, '2026-06-13T09:30:00+02:00')).toMatchObject({
+        expect(timeline.at(ms('2026-06-13T09:30:00+02:00'))).toMatchObject({
             kind: 'avoid',
             reason: 'preference-buffer',
         });
-        expect(segmentAt(timeline, '2026-06-13T22:30:00+02:00')).toMatchObject({
+        expect(timeline.at(ms('2026-06-13T22:30:00+02:00'))).toMatchObject({
             kind: 'avoid',
             reason: 'preference-buffer',
         });
-        expect(segmentAt(timeline, '2026-06-13T23:30:00+02:00')).toMatchObject({
+        expect(timeline.at(ms('2026-06-13T23:30:00+02:00'))).toMatchObject({
             kind: 'unavailable',
             reason: 'preference-window',
         });
@@ -153,32 +145,32 @@ describe('AvailabilityTimeline', () => {
             },
         };
 
-        const defaultTimeline = computeAvailabilityTimeline(input);
-        expect(segmentAt(defaultTimeline, '2026-06-13T14:30:00+02:00')).toMatchObject({
+        const defaultTimeline = new AvailabilityTimeline(input);
+        expect(defaultTimeline.at(ms('2026-06-13T14:30:00+02:00'))).toMatchObject({
             kind: 'available',
         });
 
-        const withRequested = computeAvailabilityTimeline(input, { includeRequestedEvents: true });
-        expect(segmentAt(withRequested, '2026-06-13T14:30:00+02:00')).toMatchObject({
+        const withRequested = new AvailabilityTimeline(input, { includeRequestedEvents: true });
+        expect(withRequested.at(ms('2026-06-13T14:30:00+02:00'))).toMatchObject({
             kind: 'avoid',
             reason: 'requested-event',
             timeslotId: 42,
             activityId: 99,
         });
         // Partially overlaps unavailable after 22:00 — stays unavailable after 22:00.
-        expect(segmentAt(withRequested, '2026-06-13T21:30:00+02:00')).toMatchObject({
+        expect(withRequested.at(ms('2026-06-13T21:30:00+02:00'))).toMatchObject({
             kind: 'avoid',
             reason: 'requested-event',
             timeslotId: 43,
         });
-        expect(segmentAt(withRequested, '2026-06-13T22:30:00+02:00')).toMatchObject({
+        expect(withRequested.at(ms('2026-06-13T22:30:00+02:00'))).toMatchObject({
             kind: 'unavailable',
             reason: 'preference-window',
         });
     });
 
     it('lets explicit availability exceptions override event boundaries and preference windows', () => {
-        const timeline = computeAvailabilityTimeline({
+        const timeline = new AvailabilityTimeline({
             event: kEvent,
             boundaryHours: { beforeStart: 2, afterEnd: 0 },
             availability: {
@@ -207,22 +199,22 @@ describe('AvailabilityTimeline', () => {
             },
         });
 
-        expect(segmentAt(timeline, '2026-06-12T07:00:00+02:00')).toMatchObject({
+        expect(timeline.at(ms('2026-06-12T07:00:00+02:00'))).toMatchObject({
             kind: 'available',
             explicit: true,
         });
-        expect(segmentAt(timeline, '2026-06-13T13:30:00+02:00')).toMatchObject({
+        expect(timeline.at(ms('2026-06-13T13:30:00+02:00'))).toMatchObject({
             kind: 'unavailable',
             reason: 'exception',
             endMs: ms('2026-06-13T14:30:00+02:00'),
         });
-        expect(segmentAt(timeline, '2026-06-13T17:30:00+02:00')).toMatchObject({
+        expect(timeline.at(ms('2026-06-13T17:30:00+02:00'))).toMatchObject({
             kind: 'avoid',
             reason: 'exception',
         });
     });
 
-    it('gives scheduled shifts top precedence and enables O(1) lateral inspection', () => {
+    it('gives scheduled shifts top precedence and supports lateral point-in-time queries', () => {
         const entranceShift: EventShiftAssignment = {
             id: 501,
             shiftId: 10,
@@ -232,7 +224,7 @@ describe('AvailabilityTimeline', () => {
             endMs: ms('2026-06-13T16:00:00+02:00'),
         };
 
-        const timeline = computeAvailabilityTimeline({
+        const timeline = new AvailabilityTimeline({
             event: kEvent,
             boundaryHours: { beforeStart: 2, afterEnd: 0 },
             availability: {
@@ -250,23 +242,48 @@ describe('AvailabilityTimeline', () => {
             assignments: [ entranceShift ],
         });
 
-        const index = findAvailabilitySegmentIndex(timeline, ms('2026-06-13T14:50:00+02:00'));
-        expect(index).toBeGreaterThan(0);
-
-        expect(timeline[index]).toMatchObject({
+        const duringShift = timeline.queryAt(ms('2026-06-13T14:50:00+02:00'));
+        expect(duringShift.current).toMatchObject({
             kind: 'shift',
             startMs: entranceShift.startMs,
             endMs: entranceShift.endMs,
         });
-        expect(timeline[index + 1]).toMatchObject({
+        expect(duringShift.previous).toMatchObject({
+            kind: 'available',
+            endMs: entranceShift.startMs,
+        });
+        expect(duringShift.next).toMatchObject({
             kind: 'unavailable',
             reason: 'exception',
             startMs: ms('2026-06-13T16:00:00+02:00'),
             endMs: ms('2026-06-13T18:00:00+02:00'),
         });
-        expect(timeline[index + 2]).toMatchObject({
+
+        const duringBreak = timeline.queryAt(ms('2026-06-13T16:30:00+02:00'));
+        expect(duringBreak.current).toMatchObject({
+            kind: 'unavailable',
+            reason: 'exception',
+        });
+        expect(duringBreak.next).toMatchObject({
             kind: 'available',
             startMs: ms('2026-06-13T18:00:00+02:00'),
+        });
+        expect(duringBreak.availableAgainAtMs).toBe(ms('2026-06-13T18:00:00+02:00'));
+
+        expect([ ...timeline ]).toEqual(timeline.segments);
+        expect(timeline.length).toBe(timeline.segments.length);
+        expect(timeline.estimateByteSize()).toBeGreaterThan(0);
+    });
+
+    it('supports empty timelines and out-of-horizon queries', () => {
+        const empty = AvailabilityTimeline.empty();
+        expect(empty.length).toBe(0);
+        expect(empty.at(ms('2026-06-13T12:00:00+02:00'))).toBeUndefined();
+        expect(empty.queryAt(ms('2026-06-13T12:00:00+02:00'))).toEqual({
+            current: undefined,
+            previous: undefined,
+            next: undefined,
+            availableAgainAtMs: undefined,
         });
     });
 
@@ -284,11 +301,11 @@ describe('AvailabilityTimeline', () => {
             },
         ]);
 
-        const parsed = parseAvailabilityExceptions(raw);
+        const parsed = AvailabilityTimeline.parseExceptions(raw);
         expect(parsed).toHaveLength(1);
         expect(parsed[0].state).toBe('unavailable');
 
-        expect(parseAvailabilityExceptions(undefined)).toEqual([]);
-        expect(parseAvailabilityExceptions('[]')).toEqual([]);
+        expect(AvailabilityTimeline.parseExceptions(undefined)).toEqual([]);
+        expect(AvailabilityTimeline.parseExceptions('[]')).toEqual([]);
     });
 });
