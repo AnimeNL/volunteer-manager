@@ -4,7 +4,7 @@
 import type { CachedEvent } from '@lib/cache';
 import type { EventStateDataSource } from './EventStateLoader';
 import { Cache } from '@lib/cache';
-import { getEventState, invalidateEventProgram, invalidateEventState } from './EventState';
+import { EventStateStore } from './EventStateStore';
 
 import { kActivityType } from '@lib/database/Types';
 
@@ -192,10 +192,11 @@ describe('EventState', () => {
     it('caches permanently, coalesces concurrent loads, and serves state.at(time)', async () => {
         const event = createMockEvent();
         const { counts, loaders } = createSpyLoaders();
+        const store = new EventStateStore(loaders);
 
         const [ first, second ] = await Promise.all([
-            getEventState(event, loaders),
-            getEventState(event, loaders),
+            store.get(event),
+            store.get(event),
         ]);
 
         expect(first).toBeDefined();
@@ -225,14 +226,15 @@ describe('EventState', () => {
         const event = createMockEvent();
         const { counts, loaders, setAssignmentEnd, setShiftTitle, setVolunteerName } =
             createSpyLoaders();
+        const store = new EventStateStore(loaders);
 
-        await getEventState(event, loaders);
+        await store.get(event);
 
         // (1) Schedule-only invalidation reloads ONLY `schedule`.
         setAssignmentEnd(ms('2026-06-13T17:00:00+02:00'));
-        await invalidateEventState(event.id, 'schedule');
+        await store.invalidate(event.id, 'schedule');
 
-        const afterSchedule = (await getEventState(event, loaders))!;
+        const afterSchedule = (await store.get(event))!;
         expect(counts.schedule).toBe(2);
         expect(counts.program).toBe(1);
         expect(counts.volunteers).toBe(1);
@@ -242,24 +244,24 @@ describe('EventState', () => {
 
         // (2) Single-volunteer surgical invalidation reloads ONLY that volunteer.
         setVolunteerName('Johnny Doe');
-        await invalidateEventState(event.id, { volunteer: 7 });
+        await store.invalidate(event.id, { volunteer: 7 });
 
-        const afterVolunteer = (await getEventState(event, loaders))!;
+        const afterVolunteer = (await store.get(event))!;
         expect(counts.volunteers).toBe(1);
         expect(counts.singleVolunteer).toBe(1);
         expect(afterVolunteer.volunteers.getVolunteer(7)?.name).toBe('Johnny Doe');
 
         // (3) Festival program invalidation reloads ONLY `program`.
-        invalidateEventProgram(9001);
-        await getEventState(event, loaders);
+        store.invalidateProgram(9001);
+        await store.get(event);
         expect(counts.program).toBe(2);
         expect(counts.teams).toBe(1);
 
         // (4) Full invalidation clears the entry and reloads all slices.
         setShiftTitle('VIP Entrance');
-        await invalidateEventState(event.id);
+        await store.invalidate(event.id);
 
-        const afterFull = (await getEventState(event, loaders))!;
+        const afterFull = (await store.get(event))!;
         expect(counts.boundaryHours).toBe(2);
         expect(counts.shifts).toBe(2);
         expect(afterFull.shifts.getShift(1)?.name).toBe('VIP Entrance');
