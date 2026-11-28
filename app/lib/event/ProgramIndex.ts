@@ -72,135 +72,22 @@ export class ProgramIndex {
     readonly #timeslotsByActivity = new Map<number, readonly EventTimeslot[]>();
 
     constructor(slice: ProgramSlice) {
-        const locationIdsByArea = new Map<number, number[]>();
-        for (const area of slice.areas) {
-            locationIdsByArea.set(area.id, []);
-        }
+        const locationIdsByArea = this.#indexLocations(slice);
+        const {
+            activityLocationIds,
+            allTimeslots,
+            programAreaIds,
+            programLocationIds,
+        } = this.#indexTimeslots(slice);
 
-        for (const rawLocation of slice.locations) {
-            if (!locationIdsByArea.has(rawLocation.areaId))
-                continue;
+        this.#allTimeslots = new IntervalIndex(allTimeslots);
+        this.#allActivities = this.#indexActivities(slice, activityLocationIds);
 
-            const location: EventLocation = {
-                id: rawLocation.id,
-                areaId: rawLocation.areaId,
-                name: rawLocation.name,
-                type: rawLocation.type,
-            };
-
-            this.#locations.set(location.id, location);
-            locationIdsByArea.get(location.areaId)!.push(location.id);
-        }
-
-        const rawActivitiesById = new Map<number, ProgramSlice['activities'][number]>();
-        for (const activity of slice.activities) {
-            rawActivitiesById.set(activity.id, activity);
-            if (activity.locationId !== undefined)
-                this.#activityLocationFallback.set(activity.id, activity.locationId);
-        }
-
-        const timeslotsByArea = new Map<number, EventTimeslot[]>();
-        const timeslotsByLocation = new Map<number, EventTimeslot[]>();
-        const timeslotsByActivity = new Map<number, EventTimeslot[]>();
-        const activityLocationIds = new Map<number, Set<number>>();
-        const programAreaIds = new Set<number>();
-        const programLocationIds = new Set<number>();
-        const allTimeslots: EventTimeslot[] = [];
-
-        for (const rawTimeslot of slice.timeslots) {
-            const rawActivity = rawActivitiesById.get(rawTimeslot.activityId);
-            const location = this.#locations.get(rawTimeslot.locationId);
-            if (!rawActivity || !location)
-                continue;
-
-            const timeslot: EventTimeslot = {
-                id: rawTimeslot.id,
-                activityId: rawTimeslot.activityId,
-                locationId: location.id,
-                areaId: location.areaId,
-                startMs: rawTimeslot.startMs,
-                endMs: rawTimeslot.endMs,
-            };
-
-            this.#timeslots.set(timeslot.id, timeslot);
-            allTimeslots.push(timeslot);
-
-            pushToMapArray(timeslotsByArea, timeslot.areaId, timeslot);
-            pushToMapArray(timeslotsByLocation, timeslot.locationId, timeslot);
-            pushToMapArray(timeslotsByActivity, timeslot.activityId, timeslot);
-
-            let locationSet = activityLocationIds.get(timeslot.activityId);
-            if (!locationSet) {
-                locationSet = new Set();
-                activityLocationIds.set(timeslot.activityId, locationSet);
-            }
-            locationSet.add(timeslot.locationId);
-
-            if (rawActivity.type === kActivityType.Program) {
-                programAreaIds.add(timeslot.areaId);
-                programLocationIds.add(timeslot.locationId);
-            }
-        }
-
-        for (const [ areaId, list ] of timeslotsByArea)
-            this.#timeslotsByArea.set(areaId, new IntervalIndex(list));
-
-        for (const [ locationId, list ] of timeslotsByLocation)
-            this.#timeslotsByLocation.set(locationId, new IntervalIndex(list));
-
-        for (const [ activityId, list ] of timeslotsByActivity) {
-            list.sort((lhs, rhs) => lhs.startMs - rhs.startMs || lhs.endMs - rhs.endMs);
-            this.#timeslotsByActivity.set(activityId, list);
-        }
-
-        const activities: EventActivity[] = [];
-        for (const rawActivity of slice.activities) {
-            const slots = this.#timeslotsByActivity.get(rawActivity.id) ?? [];
-            const locIds = [ ...(activityLocationIds.get(rawActivity.id) ?? []) ];
-            if (!locIds.length && rawActivity.locationId !== undefined)
-                locIds.push(rawActivity.locationId);
-
-            const activity: EventActivity = {
-                id: rawActivity.id,
-                title: rawActivity.title,
-                type: rawActivity.type,
-                visible: rawActivity.visible,
-                locationIds: locIds,
-                timeslotIds: slots.map(slot => slot.id),
-            };
-
-            this.#activities.set(activity.id, activity);
-            activities.push(activity);
-        }
-
-        const areas: EventArea[] = [];
-        for (const rawArea of slice.areas) {
-            const locations = (locationIdsByArea.get(rawArea.id) ?? [])
-                .map(id => this.#locations.get(id)!)
-                .sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
-
-            this.#locationsByArea.set(rawArea.id, locations);
-            this.#programLocationsByArea.set(
-                rawArea.id, locations.filter(location => programLocationIds.has(location.id)));
-
-            const area: EventArea = {
-                id: rawArea.id,
-                name: rawArea.name,
-                type: rawArea.type,
-                locationIds: locations.map(location => location.id),
-            };
-
-            this.#areas.set(area.id, area);
-            areas.push(area);
-        }
-
-        areas.sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
+        const areas = this.#indexAreas(slice, locationIdsByArea, programLocationIds);
         this.#allAreasSorted = areas;
         this.#programAreasSorted = areas.filter(area => programAreaIds.has(area.id));
         this.#allLocationsSorted = [ ...this.#locations.values() ]
             .sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
-        this.#allActivities = activities;
-        this.#allTimeslots = new IntervalIndex(allTimeslots);
     }
 
     getArea(areaId: number): EventArea | undefined {
@@ -302,11 +189,11 @@ export class ProgramIndex {
      * type, or visibility.
      */
     getActiveTimeslotsAt(timeMs: number, filter?: ProgramTimeslotFilter): EventTimeslot[] {
-        const index = this.selectTimeslotIndex(filter);
+        const index = this.#selectTimeslotIndex(filter);
         if (!index)
             return [];
 
-        return this.filterTimeslots(index.at(timeMs), filter);
+        return this.#filterTimeslots(index.at(timeMs), filter);
     }
 
     /**
@@ -315,11 +202,11 @@ export class ProgramIndex {
     getOverlappingTimeslots(
         startMs: number, endMs: number, filter?: ProgramTimeslotFilter): EventTimeslot[]
     {
-        const index = this.selectTimeslotIndex(filter);
+        const index = this.#selectTimeslotIndex(filter);
         if (!index)
             return [];
 
-        return this.filterTimeslots(index.overlapping(startMs, endMs), filter);
+        return this.#filterTimeslots(index.overlapping(startMs, endMs), filter);
     }
 
     /**
@@ -341,7 +228,165 @@ export class ProgramIndex {
         );
     }
 
-    private selectTimeslotIndex(
+    #indexLocations(slice: ProgramSlice): Map<number, number[]> {
+        const locationIdsByArea = new Map<number, number[]>();
+        for (const area of slice.areas)
+            locationIdsByArea.set(area.id, []);
+
+        for (const rawLocation of slice.locations) {
+            const areaLocations = locationIdsByArea.get(rawLocation.areaId);
+            if (!areaLocations)
+                continue;
+
+            const location: EventLocation = {
+                id: rawLocation.id,
+                areaId: rawLocation.areaId,
+                name: rawLocation.name,
+                type: rawLocation.type,
+            };
+
+            this.#locations.set(location.id, location);
+            areaLocations.push(location.id);
+        }
+
+        return locationIdsByArea;
+    }
+
+    #indexTimeslots(slice: ProgramSlice): {
+        activityLocationIds: Map<number, Set<number>>;
+        allTimeslots: EventTimeslot[];
+        programAreaIds: Set<number>;
+        programLocationIds: Set<number>;
+    } {
+        const rawActivitiesById = new Map<number, ProgramSlice['activities'][number]>();
+        for (const activity of slice.activities) {
+            rawActivitiesById.set(activity.id, activity);
+            if (activity.locationId !== undefined)
+                this.#activityLocationFallback.set(activity.id, activity.locationId);
+        }
+
+        const timeslotsByArea = new Map<number, EventTimeslot[]>();
+        const timeslotsByLocation = new Map<number, EventTimeslot[]>();
+        const timeslotsByActivity = new Map<number, EventTimeslot[]>();
+        const activityLocationIds = new Map<number, Set<number>>();
+        const programAreaIds = new Set<number>();
+        const programLocationIds = new Set<number>();
+        const allTimeslots: EventTimeslot[] = [];
+
+        for (const rawTimeslot of slice.timeslots) {
+            const rawActivity = rawActivitiesById.get(rawTimeslot.activityId);
+            const location = this.#locations.get(rawTimeslot.locationId);
+            if (!rawActivity || !location)
+                continue;
+
+            const timeslot: EventTimeslot = {
+                id: rawTimeslot.id,
+                activityId: rawTimeslot.activityId,
+                locationId: location.id,
+                areaId: location.areaId,
+                startMs: rawTimeslot.startMs,
+                endMs: rawTimeslot.endMs,
+            };
+
+            this.#timeslots.set(timeslot.id, timeslot);
+            allTimeslots.push(timeslot);
+
+            this.#appendToMap(timeslotsByArea, timeslot.areaId, timeslot);
+            this.#appendToMap(timeslotsByLocation, timeslot.locationId, timeslot);
+            this.#appendToMap(timeslotsByActivity, timeslot.activityId, timeslot);
+
+            let locationSet = activityLocationIds.get(timeslot.activityId);
+            if (!locationSet) {
+                locationSet = new Set();
+                activityLocationIds.set(timeslot.activityId, locationSet);
+            }
+            locationSet.add(timeslot.locationId);
+
+            if (rawActivity.type === kActivityType.Program) {
+                programAreaIds.add(timeslot.areaId);
+                programLocationIds.add(timeslot.locationId);
+            }
+        }
+
+        for (const [ areaId, list ] of timeslotsByArea)
+            this.#timeslotsByArea.set(areaId, new IntervalIndex(list));
+
+        for (const [ locationId, list ] of timeslotsByLocation)
+            this.#timeslotsByLocation.set(locationId, new IntervalIndex(list));
+
+        for (const [ activityId, list ] of timeslotsByActivity) {
+            list.sort((lhs, rhs) => lhs.startMs - rhs.startMs || lhs.endMs - rhs.endMs);
+            this.#timeslotsByActivity.set(activityId, list);
+        }
+
+        return { activityLocationIds, allTimeslots, programAreaIds, programLocationIds };
+    }
+
+    #indexActivities(
+        slice: ProgramSlice, activityLocationIds: Map<number, Set<number>>): EventActivity[]
+    {
+        const activities: EventActivity[] = [];
+        for (const rawActivity of slice.activities) {
+            const slots = this.#timeslotsByActivity.get(rawActivity.id) ?? [];
+            const locIds = [ ...(activityLocationIds.get(rawActivity.id) ?? []) ];
+            if (!locIds.length && rawActivity.locationId !== undefined)
+                locIds.push(rawActivity.locationId);
+
+            const activity: EventActivity = {
+                id: rawActivity.id,
+                title: rawActivity.title,
+                type: rawActivity.type,
+                visible: rawActivity.visible,
+                locationIds: locIds,
+                timeslotIds: slots.map(slot => slot.id),
+            };
+
+            this.#activities.set(activity.id, activity);
+            activities.push(activity);
+        }
+
+        return activities;
+    }
+
+    #indexAreas(
+        slice: ProgramSlice,
+        locationIdsByArea: Map<number, number[]>,
+        programLocationIds: Set<number>): EventArea[]
+    {
+        const areas: EventArea[] = [];
+        for (const rawArea of slice.areas) {
+            const locations = (locationIdsByArea.get(rawArea.id) ?? [])
+                .map(id => this.#locations.get(id)!)
+                .sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
+
+            this.#locationsByArea.set(rawArea.id, locations);
+            this.#programLocationsByArea.set(
+                rawArea.id, locations.filter(location => programLocationIds.has(location.id)));
+
+            const area: EventArea = {
+                id: rawArea.id,
+                name: rawArea.name,
+                type: rawArea.type,
+                locationIds: locations.map(location => location.id),
+            };
+
+            this.#areas.set(area.id, area);
+            areas.push(area);
+        }
+
+        areas.sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
+        return areas;
+    }
+
+    #appendToMap<K, V>(map: Map<K, V[]>, key: K, value: V): void {
+        const existing = map.get(key);
+        if (existing)
+            existing.push(value);
+        else
+            map.set(key, [ value ]);
+    }
+
+    #selectTimeslotIndex(
         filter?: ProgramTimeslotFilter): IntervalIndex<EventTimeslot> | undefined
     {
         if (filter?.locationId !== undefined)
@@ -352,7 +397,7 @@ export class ProgramIndex {
         return this.#allTimeslots;
     }
 
-    private filterTimeslots(
+    #filterTimeslots(
         timeslots: EventTimeslot[], filter?: ProgramTimeslotFilter): EventTimeslot[]
     {
         const programOnly = filter?.programOnly ?? false;
@@ -377,12 +422,4 @@ export class ProgramIndex {
             return true;
         });
     }
-}
-
-function pushToMapArray<K, V>(map: Map<K, V[]>, key: K, value: V): void {
-    const existing = map.get(key);
-    if (existing)
-        existing.push(value);
-    else
-        map.set(key, [ value ]);
 }

@@ -72,112 +72,8 @@ export class ShiftIndex {
         scheduleSlice: ScheduleSlice,
         program: ProgramIndex)
     {
-        const shiftsByTeam = new Map<number, EventShift[]>();
-        const shiftsByActivity = new Map<number, EventShift[]>();
-        const shiftsByLocation = new Map<number, EventShift[]>();
-        const allShifts: EventShift[] = [];
-
-        for (const rawShift of shiftsSlice.shifts) {
-            const locationId = rawShift.locationId ?? (
-                rawShift.activityId !== undefined
-                    ? program.getActivityLocationId(rawShift.activityId)
-                    : undefined);
-            const areaId = locationId !== undefined
-                ? program.getLocation(locationId)?.areaId
-                : undefined;
-
-            const shift: EventShift = {
-                id: rawShift.id,
-                teamId: rawShift.teamId,
-                categoryId: rawShift.categoryId,
-                categoryName: rawShift.categoryName,
-                countsContribution: rawShift.countsContribution,
-                name: rawShift.name,
-                description: rawShift.description,
-                colour: rawShift.colour,
-                excitement: rawShift.excitement,
-                activityId: rawShift.activityId,
-                locationId,
-                areaId,
-                isBackup: rawShift.name.startsWith('Backup'),
-            };
-
-            this.#shifts.set(shift.id, shift);
-            allShifts.push(shift);
-            pushToMapArray(shiftsByTeam, shift.teamId, shift);
-
-            if (shift.activityId !== undefined)
-                pushToMapArray(shiftsByActivity, shift.activityId, shift);
-            if (shift.locationId !== undefined)
-                pushToMapArray(shiftsByLocation, shift.locationId, shift);
-        }
-
-        allShifts.sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
-        this.#allShifts = allShifts;
-
-        for (const [ teamId, list ] of shiftsByTeam) {
-            list.sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
-            this.#shiftsByTeam.set(teamId, list);
-        }
-        for (const [ activityId, list ] of shiftsByActivity)
-            this.#shiftsByActivity.set(activityId, list);
-        for (const [ locationId, list ] of shiftsByLocation)
-            this.#shiftsByLocation.set(locationId, list);
-
-        const assignmentsByShift = new Map<number, EventShiftAssignment[]>();
-        const assignmentsByUser = new Map<number, EventShiftAssignment[]>();
-        const assignmentsByActivity = new Map<number, EventShiftAssignment[]>();
-        const assignmentsByLocation = new Map<number, EventShiftAssignment[]>();
-        const assignmentsByArea = new Map<number, EventShiftAssignment[]>();
-        const allAssignments: EventShiftAssignment[] = [];
-
-        for (const raw of scheduleSlice.assignments) {
-            const shift = this.#shifts.get(raw.shiftId);
-            if (!shift || raw.endMs <= raw.startMs)
-                continue;
-
-            const assignment: EventShiftAssignment = {
-                id: raw.id,
-                shiftId: shift.id,
-                userId: raw.userId,
-                teamId: shift.teamId,
-                activityId: shift.activityId,
-                locationId: shift.locationId,
-                areaId: shift.areaId,
-                startMs: raw.startMs,
-                endMs: raw.endMs,
-            };
-
-            this.#assignments.set(assignment.id, assignment);
-            allAssignments.push(assignment);
-
-            pushToMapArray(assignmentsByShift, assignment.shiftId, assignment);
-            pushToMapArray(assignmentsByUser, assignment.userId, assignment);
-
-            if (assignment.activityId !== undefined)
-                pushToMapArray(assignmentsByActivity, assignment.activityId, assignment);
-            if (assignment.locationId !== undefined)
-                pushToMapArray(assignmentsByLocation, assignment.locationId, assignment);
-            if (assignment.areaId !== undefined)
-                pushToMapArray(assignmentsByArea, assignment.areaId, assignment);
-        }
-
-        this.#allAssignments = new IntervalIndex(allAssignments);
-
-        for (const [ shiftId, list ] of assignmentsByShift)
-            this.#assignmentsByShift.set(shiftId, new IntervalIndex(list));
-
-        for (const [ userId, list ] of assignmentsByUser) {
-            list.sort((lhs, rhs) => lhs.startMs - rhs.startMs || lhs.endMs - rhs.endMs);
-            this.#assignmentsByUser.set(userId, list);
-        }
-
-        for (const [ activityId, list ] of assignmentsByActivity)
-            this.#assignmentsByActivity.set(activityId, new IntervalIndex(list));
-        for (const [ locationId, list ] of assignmentsByLocation)
-            this.#assignmentsByLocation.set(locationId, new IntervalIndex(list));
-        for (const [ areaId, list ] of assignmentsByArea)
-            this.#assignmentsByArea.set(areaId, new IntervalIndex(list));
+        this.#allShifts = this.#indexShifts(shiftsSlice, program);
+        this.#allAssignments = this.#indexAssignments(scheduleSlice);
     }
 
     getShift(shiftId: number): EventShift | undefined {
@@ -263,24 +159,25 @@ export class ShiftIndex {
     getActiveAssignmentsAt(
         timeMs: number, filter?: ShiftAssignmentFilter): EventShiftAssignment[]
     {
-        const index = this.selectAssignmentIndex(filter);
+        const index = this.#selectAssignmentIndex(filter);
         if (!index)
             return [];
 
-        return filterAssignments(index.at(timeMs), filter);
+        return this.#filterAssignments(index.at(timeMs), filter);
     }
 
     /**
-     * Returns all shift assignments overlapping `[startMs, endMs)`, optionally narrowed by `filter`.
+     * Returns all shift assignments overlapping `[startMs, endMs)`, optionally narrowed by
+     * `filter`.
      */
     getOverlappingAssignments(
         startMs: number, endMs: number, filter?: ShiftAssignmentFilter): EventShiftAssignment[]
     {
-        const index = this.selectAssignmentIndex(filter);
+        const index = this.#selectAssignmentIndex(filter);
         if (!index)
             return [];
 
-        return filterAssignments(index.overlapping(startMs, endMs), filter);
+        return this.#filterAssignments(index.overlapping(startMs, endMs), filter);
     }
 
     /**
@@ -333,7 +230,127 @@ export class ShiftIndex {
         return this.#shifts.size * 320 + this.#assignments.size * 192;
     }
 
-    private selectAssignmentIndex(
+    #indexShifts(shiftsSlice: ShiftsSlice, program: ProgramIndex): EventShift[] {
+        const shiftsByTeam = new Map<number, EventShift[]>();
+        const shiftsByActivity = new Map<number, EventShift[]>();
+        const shiftsByLocation = new Map<number, EventShift[]>();
+        const allShifts: EventShift[] = [];
+
+        for (const rawShift of shiftsSlice.shifts) {
+            const locationId = rawShift.locationId ?? (
+                rawShift.activityId !== undefined
+                    ? program.getActivityLocationId(rawShift.activityId)
+                    : undefined);
+            const areaId = locationId !== undefined
+                ? program.getLocation(locationId)?.areaId
+                : undefined;
+
+            const shift: EventShift = {
+                id: rawShift.id,
+                teamId: rawShift.teamId,
+                categoryId: rawShift.categoryId,
+                categoryName: rawShift.categoryName,
+                countsContribution: rawShift.countsContribution,
+                name: rawShift.name,
+                description: rawShift.description,
+                colour: rawShift.colour,
+                excitement: rawShift.excitement,
+                activityId: rawShift.activityId,
+                locationId,
+                areaId,
+                isBackup: rawShift.name.startsWith('Backup'),
+            };
+
+            this.#shifts.set(shift.id, shift);
+            allShifts.push(shift);
+            this.#appendToMap(shiftsByTeam, shift.teamId, shift);
+
+            if (shift.activityId !== undefined)
+                this.#appendToMap(shiftsByActivity, shift.activityId, shift);
+            if (shift.locationId !== undefined)
+                this.#appendToMap(shiftsByLocation, shift.locationId, shift);
+        }
+
+        allShifts.sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
+
+        for (const [ teamId, list ] of shiftsByTeam) {
+            list.sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
+            this.#shiftsByTeam.set(teamId, list);
+        }
+        for (const [ activityId, list ] of shiftsByActivity)
+            this.#shiftsByActivity.set(activityId, list);
+        for (const [ locationId, list ] of shiftsByLocation)
+            this.#shiftsByLocation.set(locationId, list);
+
+        return allShifts;
+    }
+
+    #indexAssignments(scheduleSlice: ScheduleSlice): IntervalIndex<EventShiftAssignment> {
+        const assignmentsByShift = new Map<number, EventShiftAssignment[]>();
+        const assignmentsByUser = new Map<number, EventShiftAssignment[]>();
+        const assignmentsByActivity = new Map<number, EventShiftAssignment[]>();
+        const assignmentsByLocation = new Map<number, EventShiftAssignment[]>();
+        const assignmentsByArea = new Map<number, EventShiftAssignment[]>();
+        const allAssignments: EventShiftAssignment[] = [];
+
+        for (const raw of scheduleSlice.assignments) {
+            const shift = this.#shifts.get(raw.shiftId);
+            if (!shift || raw.endMs <= raw.startMs)
+                continue;
+
+            const assignment: EventShiftAssignment = {
+                id: raw.id,
+                shiftId: shift.id,
+                userId: raw.userId,
+                teamId: shift.teamId,
+                activityId: shift.activityId,
+                locationId: shift.locationId,
+                areaId: shift.areaId,
+                startMs: raw.startMs,
+                endMs: raw.endMs,
+            };
+
+            this.#assignments.set(assignment.id, assignment);
+            allAssignments.push(assignment);
+
+            this.#appendToMap(assignmentsByShift, assignment.shiftId, assignment);
+            this.#appendToMap(assignmentsByUser, assignment.userId, assignment);
+
+            if (assignment.activityId !== undefined)
+                this.#appendToMap(assignmentsByActivity, assignment.activityId, assignment);
+            if (assignment.locationId !== undefined)
+                this.#appendToMap(assignmentsByLocation, assignment.locationId, assignment);
+            if (assignment.areaId !== undefined)
+                this.#appendToMap(assignmentsByArea, assignment.areaId, assignment);
+        }
+
+        for (const [ shiftId, list ] of assignmentsByShift)
+            this.#assignmentsByShift.set(shiftId, new IntervalIndex(list));
+
+        for (const [ userId, list ] of assignmentsByUser) {
+            list.sort((lhs, rhs) => lhs.startMs - rhs.startMs || lhs.endMs - rhs.endMs);
+            this.#assignmentsByUser.set(userId, list);
+        }
+
+        for (const [ activityId, list ] of assignmentsByActivity)
+            this.#assignmentsByActivity.set(activityId, new IntervalIndex(list));
+        for (const [ locationId, list ] of assignmentsByLocation)
+            this.#assignmentsByLocation.set(locationId, new IntervalIndex(list));
+        for (const [ areaId, list ] of assignmentsByArea)
+            this.#assignmentsByArea.set(areaId, new IntervalIndex(list));
+
+        return new IntervalIndex(allAssignments);
+    }
+
+    #appendToMap<K, V>(map: Map<K, V[]>, key: K, value: V): void {
+        const existing = map.get(key);
+        if (existing)
+            existing.push(value);
+        else
+            map.set(key, [ value ]);
+    }
+
+    #selectAssignmentIndex(
         filter?: ShiftAssignmentFilter): IntervalIndex<EventShiftAssignment> | undefined
     {
         if (filter?.shiftId !== undefined)
@@ -347,34 +364,26 @@ export class ShiftIndex {
 
         return this.#allAssignments;
     }
-}
 
-function filterAssignments(
-    assignments: EventShiftAssignment[], filter?: ShiftAssignmentFilter): EventShiftAssignment[]
-{
-    if (!filter)
-        return assignments;
+    #filterAssignments(
+        assignments: EventShiftAssignment[], filter?: ShiftAssignmentFilter): EventShiftAssignment[]
+    {
+        if (!filter)
+            return assignments;
 
-    return assignments.filter(assignment => {
-        if (filter.shiftId !== undefined && assignment.shiftId !== filter.shiftId)
-            return false;
-        if (filter.teamId !== undefined && assignment.teamId !== filter.teamId)
-            return false;
-        if (filter.activityId !== undefined && assignment.activityId !== filter.activityId)
-            return false;
-        if (filter.locationId !== undefined && assignment.locationId !== filter.locationId)
-            return false;
-        if (filter.areaId !== undefined && assignment.areaId !== filter.areaId)
-            return false;
+        return assignments.filter(assignment => {
+            if (filter.shiftId !== undefined && assignment.shiftId !== filter.shiftId)
+                return false;
+            if (filter.teamId !== undefined && assignment.teamId !== filter.teamId)
+                return false;
+            if (filter.activityId !== undefined && assignment.activityId !== filter.activityId)
+                return false;
+            if (filter.locationId !== undefined && assignment.locationId !== filter.locationId)
+                return false;
+            if (filter.areaId !== undefined && assignment.areaId !== filter.areaId)
+                return false;
 
-        return true;
-    });
-}
-
-function pushToMapArray<K, V>(map: Map<K, V[]>, key: K, value: V): void {
-    const existing = map.get(key);
-    if (existing)
-        existing.push(value);
-    else
-        map.set(key, [ value ]);
+            return true;
+        });
+    }
 }
