@@ -4,7 +4,6 @@
 import { forbidden, notFound } from 'next/navigation';
 
 import type { UserAuthenticationContext } from '@lib/auth';
-import { Cache } from '@lib/cache';
 import { queryUsersWithPermission } from '@app/admin/lib/queryUsersWithPermission';
 import db, { tEmailAccounts, tEmailAccountsPermissions, tUsers } from '@lib/database';
 
@@ -179,21 +178,4 @@ export async function queryInboxAssignees(
         })
         .orderBy(tUsers.name, 'asc')
         .executeSelectMany();
-}
-
-/**
- * Invalidates cached `inbox/*` entries in `AdminNavigationMenuCache`, either for a single `userId`
- * or across all users when omitted.
- */
-export function invalidateInboxNavigationCache(userId?: number): void {
-    const cache = Cache.getInstance('AdminNavigationMenuCache');
-    if (userId !== undefined) {
-        cache.delete(`inbox/${userId}`);
-        return;
-    }
-
-    for (const key of [ ...cache.params() ]) {
-        if (key.startsWith('inbox/'))
-            cache.delete(key);
-    }
 }

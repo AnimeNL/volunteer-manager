@@ -9,9 +9,10 @@ import { z } from 'zod/v4';
 import { ImportEmailTask, normalizeThreadSubject } from '@lib/scheduler/tasks/ImportEmailTask';
 import { createSmtpClient } from '@lib/integrations/smtp';
 import { executeServerAction } from '@lib/serverAction';
-import { invalidateInboxNavigationCache, requireInboxAccess } from './InboxAccess';
+import { invalidateCache } from '@lib/cache';
 import { readSetting } from '@lib/Settings';
 import { requireAuthentication } from '@lib/auth';
+import { requireInboxAccess } from './InboxAccess';
 import db, { tEmailAccounts, tInboxEmail, tInboxThreads, tUsers } from '@lib/database';
 
 /**
@@ -323,7 +324,7 @@ async function executeSendInboxMessage(
             }
         });
 
-        invalidateInboxNavigationCache();
+        invalidateCache('inbox');
 
         return {
             success: true,
@@ -488,7 +489,7 @@ export async function synchronizeInbox(accountId: number, formData: unknown) {
             };
         }
 
-        invalidateInboxNavigationCache();
+        invalidateCache('inbox');
 
         return { success: true };
     });
@@ -530,7 +531,7 @@ export async function updateInboxThreadState(
                 .and(tInboxThreads.threadDeleted.isNull())
             .executeUpdate();
 
-        invalidateInboxNavigationCache();
+        invalidateCache('inbox');
 
         return { success: true, refresh: true };
     });

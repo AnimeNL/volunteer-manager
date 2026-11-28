@@ -249,11 +249,3 @@ async function generateMetadata(props: PageProps<any>, path: PathValue[]): Promi
         title: [ ...resolvedPath, kProductName ].join(' | '),
     };
 }
-
-/**
- * Clears cached page metadata entries for the given entity `key`, optionally narrowed to `id`.
- */
-export function clearPageMetadataCache(key: EntityType, id?: number | string): void {
-    Cache.getInstance('PageMetadata').delete(
-        id !== undefined ? { type: key, id: String(id) } : { type: key });
-}

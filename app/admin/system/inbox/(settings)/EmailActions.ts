@@ -8,11 +8,10 @@ import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log';
 import { SmtpMessage } from '@lib/integrations/smtp/SmtpMessage';
-import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
 import { createImapClient } from '@lib/integrations/imap';
 import { createSmtpClient } from '@lib/integrations/smtp';
 import { executeServerAction } from '@lib/serverAction';
-import { invalidateInboxNavigationCache } from '../InboxAccess';
+import { invalidateCache } from '@lib/cache';
 import { readSetting } from '@lib/Settings';
 import { requireAuthentication } from '@lib/auth';
 import db, { tEmailAccounts, tEmailAccountsPermissions, tTeams, tUsers } from '@lib/database';
@@ -135,8 +134,7 @@ export async function deleteEmailAccount(accountId: number, formData: unknown) {
                 address: existingAddress,
             });
 
-        clearPageMetadataCache('emailAccount', accountId);
-        invalidateInboxNavigationCache();
+        invalidateCache('inbox', { accountId });
 
         return {
             success: true,
@@ -301,7 +299,7 @@ export async function updateEmailAccountImap(accountId: number, formData: unknow
                 address: existingAccount.address,
             });
 
-        invalidateInboxNavigationCache();
+        invalidateCache('inbox');
 
         return { success: true, refresh: true };
     });
@@ -435,7 +433,7 @@ export async function updateInboxPermissions(userId: number, formData: unknown) 
             .withSeverity('Warning')
             .record();
 
-        invalidateInboxNavigationCache(userId);
+        invalidateCache('inbox', { userId });
 
         return { success: true, refresh: true };
     });
