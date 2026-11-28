@@ -130,7 +130,11 @@ describe('invalidateCache', () => {
         expect(eventA.dirtySlices).toEqual([ 'program' ]);
         expect(eventB.dirtySlices).toEqual([]);
 
-        invalidateCache('event.shifts', { eventId: 1 });
+        const metadataCache = Cache.getInstance('PageMetadata');
+        metadataCache.set({ type: 'shift', id: '99' }, 'Entrance');
+
+        invalidateCache('event.shifts', { eventId: 1, shiftId: 99 });
+        expect(metadataCache.has({ type: 'shift', id: '99' })).toBe(false);
         invalidateCache('event.schedule', { eventId: 1 });
         invalidateCache('event.teams', { eventId: 1, eventSlug: '2026' });
         expect(eventA.dirtySlices).toEqual([ 'program', 'shifts', 'schedule', 'teams' ]);

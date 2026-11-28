@@ -526,6 +526,10 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
             'environment': (cache) => {
                 cache.delete({ type: 'environment' });
             },
+            'event.shifts': (cache, { shiftId }) => {
+                if (shiftId !== undefined)
+                    cache.delete({ type: 'shift', id: String(shiftId) });
+            },
             'inbox': (cache, { accountId }) => {
                 if (accountId !== undefined)
                     cache.delete({ type: 'emailAccount', id: String(accountId) });

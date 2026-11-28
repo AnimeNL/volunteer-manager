@@ -90,6 +90,9 @@ const shiftCategoriesDataSource = createDataSource('admin/event/shift-categories
             .returningLastInsertedId()
             .executeInsert();
 
+        if (insertId)
+            invalidateCache('shiftCategories');
+
         LogBuilder.for('CreateShiftCategory')
             .withCondition(!!insertId)
             .withInitiatorUser(props.user)
@@ -122,6 +125,9 @@ const shiftCategoriesDataSource = createDataSource('admin/event/shift-categories
             .where(tShiftsCategories.shiftCategoryId.equals(row.id))
                 .and(tShiftsCategories.shiftCategoryDeleted.isNull())
             .executeUpdate();
+
+        if (affectedRows)
+            invalidateCache('shiftCategories');
 
         LogBuilder.for('DeleteShiftCategory')
             .withCondition(!!affectedRows)
@@ -171,6 +177,7 @@ const shiftCategoriesDataSource = createDataSource('admin/event/shift-categories
             }
         });
 
+        invalidateCache('shiftCategories');
         return true;
     },
 
