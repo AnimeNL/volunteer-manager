@@ -8,6 +8,7 @@ import type { ExtractRowModel } from '@app/admin/components/DataTable/server';
 import { LogBuilder } from '@lib/log';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable/server';
+import { invalidateCache } from '@lib/cache';
 import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tContent, tContentCategories } from '@lib/database';
 
@@ -100,8 +101,14 @@ export const knowledgeCategoriesDataSource = createDataSource('admin/event/faq-c
             .returningLastInsertedId()
             .executeInsert();
 
-        if (insertId)
+        if (insertId) {
             ScheduleCache.clear('knowledge', context.event.id);
+            invalidateCache('event.content', {
+                categoryId: insertId,
+                eventId: context.event.id,
+                type: kContentType.FAQ,
+            });
+        }
 
         LogBuilder.for('CreateKnowledgeBaseCategory')
             .withCondition(!!insertId)
@@ -137,8 +144,14 @@ export const knowledgeCategoriesDataSource = createDataSource('admin/event/faq-c
                 .and(tContentCategories.categoryDeleted.isNull())
             .executeUpdate();
 
-        if (affectedRows)
+        if (affectedRows) {
             ScheduleCache.clear('knowledge', context.event.id);
+            invalidateCache('event.content', {
+                categoryId: row.id,
+                eventId: context.event.id,
+                type: kContentType.FAQ,
+            });
+        }
 
         LogBuilder.for('DeleteKnowledgeBaseCategory')
             .withCondition(!!affectedRows)
@@ -203,6 +216,10 @@ export const knowledgeCategoriesDataSource = createDataSource('admin/event/faq-c
         });
 
         ScheduleCache.clear('knowledge', context.event.id);
+        invalidateCache('event.content', {
+            eventId: context.event.id,
+            type: kContentType.FAQ,
+        });
         return true;
     },
 
@@ -223,8 +240,14 @@ export const knowledgeCategoriesDataSource = createDataSource('admin/event/faq-c
                 .and(tContentCategories.categoryDeleted.isNull())
             .executeUpdate();
 
-        if (affectedRows)
+        if (affectedRows) {
             ScheduleCache.clear('knowledge', context.event.id);
+            invalidateCache('event.content', {
+                categoryId: updatedRow.id,
+                eventId: context.event.id,
+                type: kContentType.FAQ,
+            });
+        }
 
         LogBuilder.for('UpdateKnowledgeBaseCategory')
             .withCondition(!!affectedRows)
