@@ -6,11 +6,11 @@
 import type { UpdatableRow } from 'ts-sql-query';
 import { z } from 'zod/v4';
 
-import { Cache, getEvent, invalidateEventCache } from '@lib/cache';
 import { LogBuilder } from '@lib/log';
-import { invalidateAuthCache, requireAuthenticationWithEvent } from '@lib/auth';
 import { createTicketService } from '@lib/tickets';
 import { executeServerAction } from '@lib/serverAction';
+import { getEvent, invalidateCache } from '@lib/cache';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import { storeBlobData } from '@lib/database/BlobStore';
 import db, { tEvents, tUsersEventsPreferencesRefunds } from '@lib/database';
 
@@ -108,7 +108,7 @@ export async function changeEventImage(eventSlug: string, formData: unknown) {
             .where(tEvents.eventId.equals(event.id))
             .executeUpdate();
 
-        await invalidateEventCache(event.id);
+        invalidateCache('event', { eventId: event.id, eventSlug: event.slug });
 
         LogBuilder.for('UpdateEventImage')
             .withCondition(!!affectedRows)
@@ -158,14 +158,11 @@ export async function changeEventSlug(existingEventSlug: string, formData: unkno
                 .and(tEvents.eventSlug.equals(existingEventSlug))
             .executeUpdate();
 
-        await invalidateEventCache(event.id);
-        await invalidateEventCache(event.slug);
-
-        // Active events in the navigation area now has to consider that the |event|'s slug, and
-        // thus URL, may have changed.
-        Cache.getInstance('AdminNavigationActiveEvents').clear();
-        Cache.getInstance('AdminNavigationMenuCache').clear();
-        invalidateAuthCache();
+        invalidateCache('event.slug', {
+            eventId: event.id,
+            eventSlug: data.slug,
+            previousSlug: event.slug,
+        });
 
         LogBuilder.for('UpdateEventSlug')
             .withCondition(!!affectedRows)
@@ -197,12 +194,7 @@ export async function publishEvent(eventSlug: string) {
                 .and(tEvents.eventHidden.equals(event.published ? 0 : 1))
             .executeUpdate();
 
-        await invalidateEventCache(event.id);
-
-        // Active events in the navigation area now has to consider the updated status of |event|,
-        // for which the cache has to be manually cleared.
-        Cache.getInstance('AdminNavigationActiveEvents').clear();
-        invalidateAuthCache();
+        invalidateCache('event.visibility', { eventId: event.id, eventSlug: event.slug });
 
         LogBuilder.for('UpdateEventPublicationStatus')
             .withCondition(!!affectedRows)
@@ -249,7 +241,7 @@ export async function updateEventFeatures(eventSlug: string, formData: unknown) 
             .where(tEvents.eventId.equals(event.id))
             .executeUpdate();
 
-        await invalidateEventCache(event.id);
+        invalidateCache('event', { eventId: event.id, eventSlug: event.slug });
 
         LogBuilder.for('UpdateEventSettings')
             .withCondition(!!affectedRows)
@@ -300,7 +292,7 @@ export async function updateEventIdentity(eventSlug: string, formData: unknown) 
             .where(tEvents.eventId.equals(event.id))
             .executeUpdate();
 
-        await invalidateEventCache(event.id);
+        invalidateCache('event.identity', { eventId: event.id, eventSlug: event.slug });
 
         LogBuilder.for('UpdateEventSettings')
             .withCondition(!!affectedRows)
@@ -341,7 +333,7 @@ export async function updateEventIntegrations(eventSlug: string, formData: unkno
             .where(tEvents.eventId.equals(event.id))
             .executeUpdate();
 
-        await invalidateEventCache(event.id);
+        invalidateCache('event', { eventId: event.id, eventSlug: event.slug });
 
         LogBuilder.for('UpdateEventSettings')
             .withCondition(!!affectedRows)
@@ -382,7 +374,7 @@ export async function updateEventTicketingProvider(eventSlug: string, formData: 
             .where(tEvents.eventId.equals(event.id))
             .executeUpdate();
 
-        await invalidateEventCache(event.id);
+        invalidateCache('event', { eventId: event.id, eventSlug: event.slug });
 
         LogBuilder.for('UpdateEventSettings')
             .withCondition(!!affectedRows)
@@ -407,8 +399,7 @@ export async function refreshEventTicketingWeeztix(eventSlug: string) {
         const { event } = await requireAuthenticationWithEvent(
             props.authenticationContext, eventSlug, 'event.settings');
 
-        Cache.getInstance('TicketProvider').delete(`${event.slug}/weeztix`);
-        Cache.getInstance('TicketProvider').delete(`${event.slug}/weeztix/ticketTypes`);
+        invalidateCache('event.tickets', { eventSlug: event.slug, target: 'weeztix' });
 
         return {
             success: true,
@@ -443,8 +434,8 @@ export async function updateEventTicketingWeeztix(eventSlug: string, formData: u
             .where(tEvents.eventId.equals(event.id))
             .executeUpdate();
 
-        await invalidateEventCache(event.id);
-        Cache.getInstance('TicketProvider').delete(`${event.slug}/weeztix/ticketTypes`);
+        invalidateCache('event', { eventId: event.id, eventSlug: event.slug });
+        invalidateCache('event.tickets', { eventSlug: event.slug, target: 'weeztixTicketTypes' });
 
         LogBuilder.for('UpdateEventSettings')
             .withCondition(!!affectedRows)
@@ -490,7 +481,7 @@ export async function updateEventTicketingWeeztixAutomation(
                 .where(tEvents.eventId.equals(event.id))
                 .executeUpdate();
 
-            await invalidateEventCache(event.id);
+            invalidateCache('event', { eventId: event.id, eventSlug: event.slug });
 
             LogBuilder.for('UpdateEventSettings')
                 .withCondition(!!affectedRows)
@@ -515,7 +506,7 @@ export async function refreshEventTicketingWeeztixAutomation(eventSlug: string) 
         const { event } = await requireAuthenticationWithEvent(
             props.authenticationContext, eventSlug, 'event.settings');
 
-        Cache.getInstance('TicketProvider').delete(`${event.slug}/weeztix/ticketTypes`);
+        invalidateCache('event.tickets', { eventSlug: event.slug, target: 'weeztixTicketTypes' });
 
         return {
             success: true,
@@ -548,7 +539,7 @@ export async function updateEventTicketingYtp(eventSlug: string, formData: unkno
             .where(tEvents.eventId.equals(event.id))
             .executeUpdate();
 
-        await invalidateEventCache(event.id);
+        invalidateCache('event', { eventId: event.id, eventSlug: event.slug });
 
         LogBuilder.for('UpdateEventSettings')
             .withCondition(!!affectedRows)
@@ -592,7 +583,7 @@ export async function updateEventTicketingAutomationToggle(
                 .where(tEvents.eventId.equals(event.id))
                 .executeUpdate();
 
-            await invalidateEventCache(event.id);
+            invalidateCache('event', { eventId: event.id, eventSlug: event.slug });
 
             LogBuilder.for('UpdateEventSettings')
                 .withCondition(!!affectedRows)

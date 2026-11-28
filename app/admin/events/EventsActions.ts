@@ -5,9 +5,9 @@
 
 import { z } from 'zod/v4';
 
-import { Cache, getEvent, invalidateEventCache } from '@lib/cache';
 import { LogBuilder } from '@lib/log';
 import { executeServerAction } from '@lib/serverAction';
+import { getEvent, invalidateCache } from '@lib/cache';
 import { requireAuthentication } from '@lib/auth';
 import db, { tEvents } from '@lib/database';
 
@@ -64,9 +64,7 @@ export async function createEvent(formData: unknown) {
             })
             .executeInsert();
 
-        await invalidateEventCache(data.slug);
-
-        Cache.getInstance('AdminNavigationActiveEvents').clear();
+        invalidateCache('event.identity', { eventSlug: data.slug });
 
         LogBuilder.for('CreateEvent')
             .withCondition(!!insertId)

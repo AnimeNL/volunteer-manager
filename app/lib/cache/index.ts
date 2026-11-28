@@ -5,6 +5,6 @@ export type { InvalidationScope } from './InvalidationScopes';
 export * from './Types';
 
 export { Cache } from './Cache';
-export { getEvent, invalidateEventCache } from './getEvent';
+export { getEvent } from './getEvent';
 export { getTeam, invalidateTeamCache } from './getTeam';
 export { invalidateCache } from './invalidateCache';

@@ -2,7 +2,8 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { Cache } from './Cache';
-import { getEvent, invalidateEventCache } from './getEvent';
+import { getEvent } from './getEvent';
+import { invalidateCache } from './invalidateCache';
 import { useMockConnection } from '@lib/database/Connection';
 
 describe('getEvent', () => {
@@ -23,18 +24,18 @@ describe('getEvent', () => {
         expect(eventCache.has('non-existent')).toBeFalsy();
     });
 
-    it('should safely handle invalidation when a null entry is cached', async () => {
+    it('should safely handle invalidation when a null entry is cached', () => {
         eventCache.set('missing-slug', null as any);
 
-        await expect(invalidateEventCache('missing-slug')).resolves.toBeUndefined();
+        expect(() => invalidateCache('event', { eventSlug: 'missing-slug' })).not.toThrow();
         expect(eventCache.has('missing-slug')).toBeFalsy();
     });
 
-    it('should invalidate both the event cache and URL slug cache by slug', async () => {
+    it('should invalidate both the event cache and URL slug cache by slug', () => {
         eventCache.set('2026', { id: 42, slug: '2026' } as any);
         urlSlugCache.set({ event: 42 }, '2026');
 
-        await invalidateEventCache('2026');
+        invalidateCache('event', { eventSlug: '2026' });
 
         expect(eventCache.has('2026')).toBeFalsy();
         expect(urlSlugCache.has({ event: 42 })).toBeFalsy();

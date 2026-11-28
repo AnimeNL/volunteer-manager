@@ -8,7 +8,6 @@ import GroupsIcon from '@mui/icons-material/Groups';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { BooleanCell } from '@app/admin/components/DataTable/cells/BooleanCell';
-import { Cache, getTeam } from '@lib/cache';
 import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { LogBuilder } from '@lib/log';
@@ -16,7 +15,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TeamNameCell } from './TeamCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { invalidateEventState } from '@lib/event';
+import { getTeam, invalidateCache } from '@lib/cache';
 import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tContent, tEventsTeams, tTeams } from '@lib/database';
 
@@ -115,6 +114,8 @@ const eventTeamsDataSource = createDataSource('admin/event/settings/teams', with
         if (!team)
             notFound();
 
+        let contentCreated = false;
+
         const dbInstance = db;
         const success = await dbInstance.transaction(async () => {
             const affectedRows = await dbInstance.insertInto(tEventsTeams)
@@ -152,18 +153,19 @@ const eventTeamsDataSource = createDataSource('admin/event/settings/teams', with
                     .onConflictDoNothing()
                     .executeInsert();
 
-                // Invalidate the event's content since new pages were created:
-                Cache.getInstance('Content').delete({ eventId: event.id });
+                contentCreated = true;
             }
 
             return !!affectedRows;
         });
 
-        if (success)
-            await invalidateEventState(event.id, 'teams');
-
-        Cache.getInstance('AdminNavigationMenuCache').delete(event.slug);
-        Cache.getInstance('AdminNavigationActiveEvents').clear();
+        if (success) {
+            invalidateCache('event.teams', {
+                contentCreated,
+                eventId: event.id,
+                eventSlug: event.slug,
+            });
+        }
 
         LogBuilder.for('UpdateEventTeamParticipation')
             .withCondition(success)

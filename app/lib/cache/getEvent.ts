@@ -4,7 +4,7 @@
 import type { CachedEvent } from './Types';
 import { Cache } from './Cache';
 import { getBlobUrl } from '@lib/database/BlobStore';
-import { getUrlSlug, invalidateUrlSlug } from './getUrlSlug';
+import { getUrlSlug } from './getUrlSlug';
 import db, { tEvents, tStorage } from '@lib/database';
 
 /**
@@ -78,30 +78,4 @@ export async function getEvent(event: number | string): Promise<CachedEvent | un
 
     cache.set(slug, result);
     return result;
-}
-
-/**
- * Invalidates all cached representations of the `event` identified by either its ID or slug.
- */
-export async function invalidateEventCache(event: number | string): Promise<void> {
-    const cache = Cache.getInstance('EventCache');
-
-    if (typeof event === 'string' && cache.has(event)) {
-        const cached = cache.get(event);
-
-        cache.delete(event);
-
-        if (cached) {
-            Cache.getInstance('EventState').delete(cached.id);
-            invalidateUrlSlug({ event: cached.id });
-        }
-
-    } else if (typeof event === 'number') {
-        const slug = await getUrlSlug({ event });
-        if (!!slug)
-            cache.delete(slug);
-
-        Cache.getInstance('EventState').delete(event);
-        invalidateUrlSlug({ event });
-    }
 }
