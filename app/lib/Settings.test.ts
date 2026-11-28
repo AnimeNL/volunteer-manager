@@ -199,4 +199,39 @@ describe('Settings', () => {
         expect(cacheTag).toHaveBeenCalledWith('settings', 'setting:web-vitals-reporting');
         expect(cacheLife).toHaveBeenCalledWith('max');
     });
+
+    it('should reset EventState boundary hours when schedule view boundary settings change',
+        async () =>
+    {
+        const eventStateCache = Cache.getInstance('EventState');
+        const resetBoundaryHours = vi.fn();
+
+        eventStateCache.set(42, {
+            festivalId: undefined,
+            markDirty: vi.fn(),
+            markVolunteerDirty: vi.fn(),
+            resetBoundaryHours,
+        });
+
+        const expectWrite = () => {
+            mockConnection.expect('beginTransaction');
+            mockConnection.expect('delete', () => 1);
+            mockConnection.expect('insert', () => 1);
+            mockConnection.expect('commit');
+        };
+
+        try {
+            // Unrelated setting: must not reset boundary hours.
+            expectWrite();
+            await writeSetting('display-check-in-rate-seconds', 90);
+            expect(resetBoundaryHours).not.toHaveBeenCalled();
+
+            // Boundary setting: must reset boundary hours on cached EventState entries.
+            expectWrite();
+            await writeSetting('schedule-event-view-start-hours', 6);
+            expect(resetBoundaryHours).toHaveBeenCalledTimes(1);
+        } finally {
+            eventStateCache.clear();
+        }
+    });
 });

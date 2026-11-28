@@ -7,6 +7,7 @@ import type { AiSupportedModel } from './integrations/genai/Models';
 import type { GeminiApi, TextGenerationComplexity, TextGenerationThinkingLevel } from './integrations/genai/Client';
 import type { TwilioRegion } from './integrations/twilio/TwilioTypes';
 import { Cache } from '@lib/cache/Cache';
+import { invalidateCache } from '@lib/cache/invalidateCache';
 import db, { tSettings } from '@lib/database';
 
 /**
@@ -366,4 +367,6 @@ export async function writeSettings<T extends keyof Settings>(
         if (kCacheTaggedSettingSet.has(setting) && (!previous || previous.value !== value))
             updateTag(`setting:${setting}`);
     }
+
+    invalidateCache('settings', { keys: Object.keys(settings) });
 }
