@@ -24,3 +24,17 @@ import MuiLink from '@mui/material/Link';
 Importing directly from `next/link` fails at runtime with
 `Functions cannot be passed directly to Client Components` in Next.js 16+. Treat `@app/LinkProxy`
 as a block-1 import (as if it were `next/link`).
+
+## Caching Strategy (`@lib/cache` over Next.js `'use cache'`)
+
+`@lib/cache` (`app/lib/cache/`) is the primary server-side caching layer for the Volunteer Manager.
+Broadly adopting Next.js's caching primitives (`'use cache'`, `cacheLife()`, `cacheTag()`) is an
+explicit non-goal in order to avoid framework lock-in:
+
+* Keep existing `@lib/cache` caches in `@lib/cache`, even when their payloads are serializable and
+  could hypothetically be replaced by `'use cache'`.
+* Prefer adding new application caches to `@lib/cache` (`CacheDescriptors.ts`) rather than
+  introducing new `'use cache'` scopes.
+* Reserve Next.js `'use cache'` for the narrow cases where Next.js's rendering model requires it
+  (such as prerendered App Shell / Instant Navigation reads in `app/schedule2/` or build-safe
+  `readCachedSetting()` reads).
