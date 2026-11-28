@@ -9,7 +9,7 @@ import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { createDataSource, kEventTransformer, withContext, withRowModel }
     from '@app/admin/components/DataTable/server';
 import { getAnPlanActivityUrl } from '@lib/AnPlan';
-import { invalidateEventProgram } from '@lib/event';
+import { invalidateCache } from '@lib/cache';
 import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tActivities, tActivitiesLocations, tActivitiesLogs, tActivitiesTimeslots,
     tShifts } from '@lib/database';
@@ -135,7 +135,7 @@ export const programActivitiesDataSource = createDataSource('admin/event/program
             return false;
 
         ScheduleCache.clear('program', festivalId);
-        invalidateEventProgram(festivalId);
+        invalidateCache('event.program', { festivalId });
 
         await dbInstance.insertInto(tActivitiesLogs)
             .set({
@@ -180,7 +180,7 @@ export const programActivitiesDataSource = createDataSource('admin/event/program
             return false;
 
         ScheduleCache.clear('program', festivalId);
-        invalidateEventProgram(festivalId);
+        invalidateCache('event.program', { festivalId });
 
         await dbInstance.insertInto(tActivitiesLogs)
             .set({
@@ -327,7 +327,7 @@ export const programActivitiesDataSource = createDataSource('admin/event/program
             return false;
 
         ScheduleCache.clear('program', festivalId);
-        invalidateEventProgram(festivalId);
+        invalidateCache('event.program', { festivalId });
 
         await dbInstance.insertInto(tActivitiesLogs)
             .set({

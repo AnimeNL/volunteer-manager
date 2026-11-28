@@ -9,7 +9,7 @@ import type { Activity, Location, Timeslot } from '@lib/integrations/animecon';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { TaskWithParams } from '../Task';
 import { createAnimeConClient } from '@lib/integrations/animecon';
-import { invalidateEventProgram } from '@lib/event';
+import { invalidateCache } from '@lib/cache';
 
 import type { Mutation, MutationSeverity } from '@lib/database/Types';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesLogs,
@@ -224,7 +224,7 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
         }
 
         ScheduleCache.clear('program', festivalId);
-        invalidateEventProgram(festivalId);
+        invalidateCache('event.program', { festivalId });
 
         return true;
     }

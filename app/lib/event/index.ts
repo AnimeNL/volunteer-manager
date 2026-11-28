@@ -15,4 +15,4 @@ export type { ShiftAssignmentFilter, ShiftIndex } from './ShiftIndex';
 export type { VolunteerFilter, VolunteerIndex } from './VolunteerIndex';
 
 export { AvailabilityTimeline, kAvailabilityException } from './AvailabilityTimeline';
-export { getEventState, invalidateEventProgram, invalidateEventState } from './EventStateStore';
+export { getEventState, invalidateEventState } from './EventStateStore';

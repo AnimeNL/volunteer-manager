@@ -84,17 +84,6 @@ export class EventStateStore {
         const entry = this.#cache.get(eventId);
         entry?.invalidate(scope);
     }
-
-    /**
-     * Marks the `program` slice dirty for every cached event linked to `festivalId`. Useful for
-     * AnPlan synchronisation tasks and program admin tables that only know the festival ID.
-     */
-    invalidateProgram(festivalId: number): void {
-        for (const [ , entry ] of this.#cache.entries()) {
-            if (entry?.festivalId === festivalId)
-                entry.invalidate('program');
-        }
-    }
 }
 
 /**
@@ -113,11 +102,4 @@ export function invalidateEventState(
     event: number | string, scope?: EventStateInvalidationScope): Promise<void>
 {
     return EventStateStore.getInstance().invalidate(event, scope);
-}
-
-/**
- * Marks the `program` slice dirty for every cached event linked to `festivalId`.
- */
-export function invalidateEventProgram(festivalId: number): void {
-    EventStateStore.getInstance().invalidateProgram(festivalId);
 }

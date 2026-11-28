@@ -17,7 +17,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getAnPlanLocationUrl } from '@lib/AnPlan';
-import { invalidateEventProgram } from '@lib/event';
+import { invalidateCache } from '@lib/cache';
 import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tActivitiesAreas, tActivitiesLocations, tActivitiesLogs } from '@lib/database';
 
@@ -114,7 +114,7 @@ const programLocationsDataSource = createDataSource('admin/event/program/locatio
             return false;
 
         ScheduleCache.clear('program', festivalId);
-        invalidateEventProgram(festivalId);
+        invalidateCache('event.program', { festivalId });
 
         await dbInstance.insertInto(tActivitiesLogs)
             .set({
@@ -159,7 +159,7 @@ const programLocationsDataSource = createDataSource('admin/event/program/locatio
             return false;
 
         ScheduleCache.clear('program', festivalId);
-        invalidateEventProgram(festivalId);
+        invalidateCache('event.program', { festivalId });
 
         await dbInstance.insertInto(tActivitiesLogs)
             .set({
@@ -253,7 +253,7 @@ const programLocationsDataSource = createDataSource('admin/event/program/locatio
             return false;
 
         ScheduleCache.clear('program', festivalId);
-        invalidateEventProgram(festivalId);
+        invalidateCache('event.program', { festivalId });
 
         await dbInstance.insertInto(tActivitiesLogs)
             .set({

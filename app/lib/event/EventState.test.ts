@@ -3,7 +3,7 @@
 
 import type { CachedEvent } from '@lib/cache';
 import type { EventStateDataSource } from './EventStateLoader';
-import { Cache } from '@lib/cache';
+import { Cache, invalidateCache } from '@lib/cache';
 import { EventStateStore } from './EventStateStore';
 
 import { kActivityType } from '@lib/database/Types';
@@ -252,7 +252,7 @@ describe('EventState', () => {
         expect(afterVolunteer.volunteers.getVolunteer(7)?.name).toBe('Johnny Doe');
 
         // (3) Festival program invalidation reloads ONLY `program`.
-        store.invalidateProgram(9001);
+        invalidateCache('event.program', { festivalId: 9001 });
         await store.get(event);
         expect(counts.program).toBe(2);
         expect(counts.teams).toBe(1);
