@@ -497,6 +497,13 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
                 for (const [ , entry ] of cache.entries())
                     entry?.markDirty('teams');
             },
+            'user.profile': (cache, { userId }) => {
+                if (userId === undefined)
+                    return;
+
+                for (const [ , entry ] of cache.entries())
+                    entry?.markVolunteerDirty(userId);
+            },
         },
     },
 
@@ -538,8 +545,9 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
                 if (roleId)
                     cache.delete({ type: 'role', id: roleId });
             },
-            'user.profile': (cache) => {
-                cache.delete({ type: 'user' });
+            'user.profile': (cache, { userId }) => {
+                if (userId !== undefined)
+                    cache.delete({ type: 'user', id: String(userId) });
             },
         },
     },

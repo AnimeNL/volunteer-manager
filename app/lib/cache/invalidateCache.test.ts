@@ -175,6 +175,32 @@ describe('invalidateCache', () => {
         expect(authCache.has(8)).toBe(true);
     });
 
+    it('invalidates EventState across all events, auth, and targeted PageMetadata on user.profile',
+        () =>
+    {
+        const eventA = createMockEventStateEntry();
+        const eventB = createMockEventStateEntry();
+        const stateCache = Cache.getInstance('EventState');
+        const authCache = Cache.getInstance('Authentication');
+        const metadataCache = Cache.getInstance('PageMetadata');
+
+        stateCache.set(1, eventA.entry);
+        stateCache.set(2, eventB.entry);
+        authCache.set(7, { context: {} as any, sessions: new Map() });
+        authCache.set(8, { context: {} as any, sessions: new Map() });
+        metadataCache.set({ type: 'user', id: '7' }, 'Jane Doe');
+        metadataCache.set({ type: 'user', id: '8' }, 'John Smith');
+
+        invalidateCache('user.profile', { userId: 7 });
+
+        expect(eventA.dirtyVolunteers).toEqual([ 7 ]);
+        expect(eventB.dirtyVolunteers).toEqual([ 7 ]);
+        expect(authCache.has(7)).toBe(false);
+        expect(authCache.has(8)).toBe(true);
+        expect(metadataCache.has({ type: 'user', id: '7' })).toBe(false);
+        expect(metadataCache.has({ type: 'user', id: '8' })).toBe(true);
+    });
+
     it('invalidates team, environment, content, vendors, tickets, user, and inbox caches', () => {
         const teamCache = Cache.getInstance('TeamCache');
         const slugCache = Cache.getInstance('UrlSlugs');
