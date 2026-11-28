@@ -130,7 +130,9 @@ regularly include small transition gaps, a tolerance constant can be introduced 
 
 ### Capability object vs. per-route functional guards
 Exposing a synchronous `VolunteerAccess` capability object mirrors `AccessControl` in
-`app/lib/auth/access/`: it keeps access logic completely decoupled from UI data projection, stays
-pure and trivial to unit-test without database mocks, and uses a discriminated union
-(`'shared-shift' | 'full'`) so callers cannot accidentally access schedule or note fields on a
-restricted profile.
+`app/lib/auth/access/` (delegating shift-handoff indexing to an internal `SharedShiftIndex`,
+analogous to `AccessList`): it keeps access logic completely decoupled from UI data projection,
+owns its `EventState` projection via `VolunteerAccess.fromEventState()` and
+`VolunteerAccess.empty()` while staying pure and trivial to unit-test without database mocks, and
+uses a discriminated union (`'shared-shift' | 'full'`) so callers cannot accidentally access
+schedule or note fields on a restricted profile.

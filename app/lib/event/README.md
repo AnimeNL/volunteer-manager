@@ -11,14 +11,16 @@ requests or baking a single user's permissions or clock offset into the cache.
 
 ## Architecture
 
-Each event is cached permanently in `@lib/cache` under the `EventState` descriptor. Internally, the
+Each event is cached permanently in `@lib/cache` under the `EventState` descriptor and managed by
+`EventStateStore`, which coordinates `EventStateCacheEntry` instances and an injectable
+`EventStateDataSource` (implemented against the database by `EventStateLoader`). Internally, the
 state is split into five independent data slices that mirror the database's natural write
 boundaries:
 
 | Slice | Backing tables |
 |---|---|
 | `program` | `activities`, `activities_areas`, `activities_locations`, `activities_timeslots` |
-| `teams` | `events_teams`, `teams`, `roles` |
+| `teams` | `events_teams`, `teams`, `roles`, `teams_visibility` |
 | `volunteers` | `users_events`, `users`, `storage`, `users_events_preferences_availability` |
 | `shifts` | `shifts`, `shifts_categories` |
 | `schedule` | `schedule` |
@@ -30,7 +32,7 @@ program ──────────────────────┐
                               ▼
 teams ────────┬──────────► shifts ──────┐
               ▼                         ▼
-         volunteers ───────────────► schedule ──► VolunteerTimeline
+         volunteers ───────────────► schedule ──► AvailabilityTimeline
 ```
 
 - **`program`** has no dependencies.
@@ -39,28 +41,33 @@ teams ────────┬──────────► shifts ──
 - **`shifts`** depends on `program` and `teams` (resolving each shift's location and area from
   `shiftLocationId` or its linked `shiftActivityId`).
 - **`schedule`** depends on `shifts` and `volunteers`.
-- Each volunteer's compiled availability timeline depends on event boundary settings, that
+- Each volunteer's compiled `AvailabilityTimeline` depends on event boundary settings, that
   volunteer's preferences/exceptions, and that volunteer's scheduled assignments.
 
 ### Partial Invalidation
 
 Because the cache is permanent, mutations invalidate only the affected slice(s) via
 `invalidateEventState(event, scope)` (or `invalidateEventProgram(festivalId)` when only the AnPlan
-festival ID is known):
+festival ID is known), delegating to `EventStateStore.getInstance()`:
 
-1. Invalidation marks the requested slice(s) dirty lazily without issuing database queries.
-2. On the next `getEventState()` call, only dirty slices are re-queried from the database, and
-   concurrent requests share a single in-flight reload promise to prevent stampedes.
+1. `EventStateCacheEntry.invalidate()` marks the requested slice(s) or volunteer ID dirty lazily
+   without issuing database queries.
+2. On the next `getEventState()` call, `EventStateCacheEntry.ensureFresh()` reloads only dirty
+   slices from `EventStateLoader` and shares a single in-flight rebuild promise across concurrent
+   requests to prevent stampedes.
 3. Only the facets affected by the reloaded slices are rebuilt in memory.
-4. Omitting `scope` invalidates the entire event (for example when event dates or timezone change).
+4. Omitting `scope` drops the entire cached event entry (for example when event dates or timezone
+   change).
 
 ## Facets and Time-Bound Queries
 
 `EventState` separates static topology from point-in-time evaluation:
 
 - `state.program` (`ProgramIndex`) — areas, locations, activities, timeslots, and interval queries.
-- `state.shifts` (`ShiftIndex`) — shifts, assignments, and handover/relief lookups.
-- `state.volunteers` (`VolunteerIndex`) — teams, roles, volunteers, compiled timelines, and rosters.
+- `state.shifts` (`ShiftIndex`) — shifts, assignments, next-shift lookups, and handover/relief
+  queries.
+- `state.volunteers` (`VolunteerIndex`) — teams, roles, volunteers, compiled
+  `AvailabilityTimeline` instances, and rosters.
 - `state.at(time)` (`EventStateAtTime`) — lightweight view binding a single `Temporal.ZonedDateTime`
   or `Temporal.Instant` once per request for ergonomic point-in-time and lateral queries.
 
@@ -69,8 +76,9 @@ double-match at their shared boundary.
 
 ## Layered Volunteer Availability Model
 
-A volunteer's timeline is compiled into a contiguous, non-overlapping sequence of segments by
-applying five layers from lowest to highest precedence:
+`AvailabilityTimeline` compiles a volunteer's availability into a contiguous, non-overlapping
+sequence of segments (supporting `at(timeMs)`, `queryAt(timeMs)`, iteration, and
+`AvailabilityTimeline.parseExceptions()`) by applying five layers from lowest to highest precedence:
 
 1. **Event boundary window** *(lowest precedence)*
    - Derived from `event.startTime` minus `schedule-event-view-start-hours` until `event.endTime`
