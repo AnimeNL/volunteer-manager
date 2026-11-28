@@ -22,7 +22,7 @@ type TeamIdentifier =
 /**
  * Payload accepted by each domain invalidation scope.
  */
-export interface InvalidationScopeMap {
+interface InvalidationScopeMap {
     /**
      * An environment was created, updated, or deleted.
      */
@@ -226,7 +226,7 @@ export interface ResolvedInvalidationContext {
  * reachable through `kScopeImplications` are triggered automatically so individual cache
  * descriptors do not repeat severity conditionals.
  */
-export const kScopeImplications: Partial<Record<InvalidationScope, readonly InvalidationScope[]>> =
+const kScopeImplications: Partial<Record<InvalidationScope, readonly InvalidationScope[]>> =
 {
     'event.slug': [ 'event.visibility' ],
     'event.visibility': [ 'event.identity' ],

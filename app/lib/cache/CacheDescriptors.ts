@@ -273,7 +273,7 @@ export type CacheInvalidationStrategy =
  * handler function performs targeted eviction or dirty-marking. When multiple scopes in an
  * implication chain match the same cache, only the most specific matching handler runs.
  */
-export type CacheInvalidationHandler<T extends CacheType> =
+type CacheInvalidationHandler<T extends CacheType> =
     | 'clear'
     | ((cache: CacheInvalidationHandle<T>, context: ResolvedInvalidationContext) => void);
 
