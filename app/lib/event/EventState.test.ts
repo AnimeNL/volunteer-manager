@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { CachedEvent } from '@lib/cache';
-import type { EventStateLoaders } from './EventState';
+import type { EventStateDataSource } from './EventStateLoader';
 import { Cache } from '@lib/cache';
 import { getEventState, invalidateEventProgram, invalidateEventState } from './EventState';
 
@@ -56,7 +56,7 @@ function createSpyLoaders() {
         schedule: 0,
     };
 
-    const loaders: EventStateLoaders = {
+    const loaders: EventStateDataSource = {
         loadBoundaryHours: async () => {
             counts.boundaryHours++;
             return { beforeStart: 4, afterEnd: 2 };

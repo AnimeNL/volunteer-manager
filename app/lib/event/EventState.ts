@@ -2,45 +2,23 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { CachedEvent } from '@lib/cache';
+import type { EventStateDataSource } from './EventStateLoader';
 import type { EventStateInvalidationScope, EventStateSlice, EventTimeInput } from './Types';
 import type { ProgramSlice } from './ProgramIndex';
 import type { RawVolunteerRecord, TeamsSlice, VolunteersSlice } from './VolunteerIndex';
 import type { ScheduleSlice, ShiftsSlice } from './ShiftIndex';
 import { Cache, getEvent } from '@lib/cache';
 import { EventStateAtTime } from './EventStateAtTime';
+import { EventStateLoader } from './EventStateLoader';
 import { ProgramIndex } from './ProgramIndex';
 import { ShiftIndex } from './ShiftIndex';
 import { VolunteerIndex } from './VolunteerIndex';
-import { loadEventBoundaryHours, loadProgramSlice, loadScheduleSlice, loadShiftsSlice,
-    loadSingleVolunteer, loadTeamsSlice, loadVolunteersSlice } from './EventStateLoader';
 
 const kAllSlices: readonly EventStateSlice[] = [
     'program', 'teams', 'volunteers', 'shifts', 'schedule',
 ];
 
-/**
- * Dependency-injectable slice loaders used by `EventStateStore` (and overridden in unit tests).
- */
-export interface EventStateLoaders {
-    readonly loadBoundaryHours: () => Promise<{ beforeStart: number; afterEnd: number }>;
-    readonly loadProgram: (festivalId: number | undefined) => Promise<ProgramSlice>;
-    readonly loadTeams: (eventId: number) => Promise<TeamsSlice>;
-    readonly loadVolunteers: (eventId: number) => Promise<VolunteersSlice>;
-    readonly loadSingleVolunteer: (eventId: number, userId: number)
-        => Promise<RawVolunteerRecord | undefined>;
-    readonly loadShifts: (eventId: number) => Promise<ShiftsSlice>;
-    readonly loadSchedule: (eventId: number) => Promise<ScheduleSlice>;
-}
-
-const kDefaultLoaders: EventStateLoaders = {
-    loadBoundaryHours: loadEventBoundaryHours,
-    loadProgram: loadProgramSlice,
-    loadTeams: loadTeamsSlice,
-    loadVolunteers: loadVolunteersSlice,
-    loadSingleVolunteer,
-    loadShifts: loadShiftsSlice,
-    loadSchedule: loadScheduleSlice,
-};
+const kDefaultDataSource: EventStateDataSource = new EventStateLoader();
 
 /**
  * Immutable, time-agnostic operational snapshot of an event, exposing cohesive domain facets
@@ -145,7 +123,7 @@ class EventStateCacheEntry {
 async function ensureFreshState(
     entry: EventStateCacheEntry,
     event: CachedEvent,
-    loaders: EventStateLoaders): Promise<EventState>
+    dataSource: EventStateDataSource): Promise<EventState>
 {
     const festivalId = event.integrations?.anPlanFestivalId;
 
@@ -158,7 +136,7 @@ async function ensureFreshState(
             return result;
     }
 
-    const rebuildPromise = rebuildDirtySlices(entry, event, loaders);
+    const rebuildPromise = rebuildDirtySlices(entry, event, dataSource);
     entry.inFlight = rebuildPromise;
 
     try {
@@ -170,13 +148,13 @@ async function ensureFreshState(
 }
 
 /**
- * Reloads only dirty slices (and/or individual dirty volunteers) from `loaders` and reconstructs
+ * Reloads only dirty slices (and/or individual dirty volunteers) from `dataSource` and reconstructs
  * only the facets whose inputs changed.
  */
 async function rebuildDirtySlices(
     entry: EventStateCacheEntry,
     event: CachedEvent,
-    loaders: EventStateLoaders): Promise<EventState>
+    dataSource: EventStateDataSource): Promise<EventState>
 {
     const festivalId = event.integrations?.anPlanFestivalId;
     if (entry.festivalId !== festivalId) {
@@ -203,18 +181,22 @@ async function rebuildDirtySlices(
         scheduleSlice,
         singleVolunteers,
     ] = await Promise.all([
-        needBoundaryHours ? loaders.loadBoundaryHours() : Promise.resolve(undefined),
-        slicesToLoad.has('program') ? loaders.loadProgram(festivalId) : Promise.resolve(undefined),
-        slicesToLoad.has('teams') ? loaders.loadTeams(event.id) : Promise.resolve(undefined),
-        slicesToLoad.has('volunteers')
-            ? loaders.loadVolunteers(event.id)
+        needBoundaryHours ? dataSource.loadBoundaryHours() : Promise.resolve(undefined),
+        slicesToLoad.has('program')
+            ? dataSource.loadProgram(festivalId)
             : Promise.resolve(undefined),
-        slicesToLoad.has('shifts') ? loaders.loadShifts(event.id) : Promise.resolve(undefined),
-        slicesToLoad.has('schedule') ? loaders.loadSchedule(event.id) : Promise.resolve(undefined),
+        slicesToLoad.has('teams') ? dataSource.loadTeams(event.id) : Promise.resolve(undefined),
+        slicesToLoad.has('volunteers')
+            ? dataSource.loadVolunteers(event.id)
+            : Promise.resolve(undefined),
+        slicesToLoad.has('shifts') ? dataSource.loadShifts(event.id) : Promise.resolve(undefined),
+        slicesToLoad.has('schedule')
+            ? dataSource.loadSchedule(event.id)
+            : Promise.resolve(undefined),
         volunteerIdsToLoad.length > 0
             ? Promise.all(volunteerIdsToLoad.map(async userId => ({
                 userId,
-                record: await loaders.loadSingleVolunteer(event.id, userId),
+                record: await dataSource.loadSingleVolunteer(event.id, userId),
             })))
             : Promise.resolve([]),
     ]);
@@ -301,7 +283,7 @@ async function rebuildDirtySlices(
  */
 export async function getEventState(
     event: CachedEvent | number | string,
-    loaders: EventStateLoaders = kDefaultLoaders): Promise<EventState | undefined>
+    dataSource: EventStateDataSource = kDefaultDataSource): Promise<EventState | undefined>
 {
     const cachedEvent = typeof event === 'object' ? event : await getEvent(event);
     if (!cachedEvent)
@@ -315,7 +297,7 @@ export async function getEventState(
         cache.set(cachedEvent.id, entry);
     }
 
-    return await ensureFreshState(entry, cachedEvent, loaders);
+    return await ensureFreshState(entry, cachedEvent, dataSource);
 }
 
 /**
