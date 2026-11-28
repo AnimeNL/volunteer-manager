@@ -1,7 +1,8 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { EventStateSlice, InvalidatableEventStateEntry } from './Types';
+import type { EventStateCacheEntry } from '@lib/event/EventStateCacheEntry';
+import type { EventStateSlice } from '@lib/event';
 import { Cache } from './Cache';
 import { expandInvalidationScopes } from './InvalidationScopes';
 import { invalidateCache } from './invalidateCache';
@@ -11,7 +12,10 @@ function createMockEventStateEntry(festivalId?: number) {
     const dirtyVolunteers: number[] = [];
     let boundaryHoursResetCount = 0;
 
-    const entry: InvalidatableEventStateEntry = {
+    const entry: Pick<
+        EventStateCacheEntry,
+        'festivalId' | 'markDirty' | 'markVolunteerDirty' | 'resetBoundaryHours'
+    > = {
         festivalId,
         markDirty: (slice) => { dirtySlices.push(slice); },
         markVolunteerDirty: (userId) => { dirtyVolunteers.push(userId); },

@@ -1,7 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { CachedEvent, InvalidatableEventStateEntry } from '@lib/cache';
+import type { CachedEvent } from '@lib/cache';
 import type { EventStateDataSource } from './EventStateLoader';
 import type { EventStateSlice } from './Types';
 import type { ProgramSlice } from './ProgramIndex';
@@ -21,7 +21,7 @@ const kAllSlices: readonly EventStateSlice[] = [
  * immutable slices, lazily dirty slice markers, and an in-flight rebuild promise for coalescing
  * concurrent reloads.
  */
-export class EventStateCacheEntry implements InvalidatableEventStateEntry {
+export class EventStateCacheEntry {
     #festivalId?: number;
     #boundaryHours?: { beforeStart: number; afterEnd: number };
 
